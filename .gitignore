@@ -1,1 +1,5 @@
 *.o
+.vscode/launch.json
+.vscode/c_cpp_properties.json
+data/*.tif
+data/*.vrt
