@@ -8,7 +8,7 @@ all: rawbench
 	$(CXX) `pkg-config gdal --cflags` $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< -c -o $@
 
 rawbench: rawbench.o
-	$(CC) $^ `pkg-config gdal --libs` -lstdc++ -o $@
+	$(CC) $^ `pkg-config gdal --libs` -lstdc++ -lboost_timer -o $@
 
 clean:
 	rm -f *.o
