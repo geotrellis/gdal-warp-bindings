@@ -20,8 +20,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <string>
-
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/timer/timer.hpp>
@@ -46,7 +44,7 @@ namespace t = boost::timer;
 
 int main(int argc, char **argv)
 {
-    int log_steps = 10;
+    int log_steps = 20;
 
     if (argc < 2)
     {

@@ -1,7 +1,7 @@
 PORT ?= 8080
 NAME ?= gdal-warp-httpd
 
-.PHONY: httpd-start httpd-stop data
+.PHONY: httpd-start httpd-stop bench data
 
 all: data bin/rawbench
 
@@ -40,13 +40,10 @@ data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
 
 data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
 
-src/bench/rawbench:
-	make -C src/bench
+bench/rawbench:
+	make -C bench
 
-bin/rawbench: src/bench/rawbench
-	cp -f $< $@
-
-bench: bin/rawbench data
+bench: bench/rawbench data
 	make -C . httpd-start
 	$< data/c41078a1-local-local.vrt 20
 	$< data/c41078a1-local-remote.vrt 20
