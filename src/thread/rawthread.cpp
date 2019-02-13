@@ -35,6 +35,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 char *options[] = {
+    "-of", "MEM",
     "-tap", "-tr", "7", "11",
     "-r", "bilinear",
     "-t_srs", "epsg:3857"};
@@ -44,7 +45,7 @@ const char *temp_template = "/tmp/rawbench.%d.%d.tif";
 // Constants
 constexpr int WINDOW_SIZE = (1 << 8);
 constexpr int TILE_SIZE = (1 << 8);
-constexpr int N = (1 << 10);
+constexpr int N = (1 << 12);
 constexpr int PATH_LEN = (1 << 6);
 
 // Threads
