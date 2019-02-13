@@ -4,3 +4,5 @@
 *.tif
 *.vrt
 src/bench/rawbench
+src/thread/rawthread
+
