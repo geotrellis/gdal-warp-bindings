@@ -102,6 +102,7 @@ int main(int argc, char **argv)
         }
     }
 
+#if 0
     // Reuse a few datasets
     {
         constexpr int N = (1 << 10);
@@ -170,6 +171,7 @@ int main(int argc, char **argv)
             GDALClose(dataset);
         }
     }
+#endif
 
     // Clean-Up
     GDALWarpAppOptionsFree(app_options);
