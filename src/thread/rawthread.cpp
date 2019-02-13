@@ -38,7 +38,7 @@ char *options[] = {
     "-tap", "-tr", "7", "11",
     "-r", "bilinear",
     "-t_srs", "epsg:3857"};
-const char *temp_template = "/tmp/rawbench.%d.%d.vrt";
+const char *temp_template = "/tmp/rawbench.%d.%d.tif";
 #pragma GCC diagnostic pop
 
 // Constants
@@ -48,7 +48,7 @@ constexpr int N = (1 << 10);
 constexpr int PATH_LEN = (1 << 6);
 
 // Threads
-int log_steps = 10;
+int lg_steps = 10;
 pthread_t threads[N];
 
 // Data
@@ -61,8 +61,8 @@ int height = -1;
 int x = -1;
 int y = -1;
 
-// Temporary VRT file name
-char vrt_path[PATH_LEN];
+// Temporary file name
+char temp_path[PATH_LEN];
 
 // Randomness
 namespace r = boost::random;
@@ -71,13 +71,24 @@ namespace r = boost::random;
 auto expected = std::vector<std::size_t>();
 auto hash = std::hash<std::string>();
 
+// ANSI
+// Reference: https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
+// Reference: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+#define ANSI_COLOR_RED     "\x1b[31;1m"
+#define ANSI_COLOR_GREEN   "\x1b[32;1m"
+#define ANSI_COLOR_YELLOW  "\x1b[33;1m"
+#define ANSI_COLOR_BLUE    "\x1b[34;1m"
+#define ANSI_COLOR_MAGENTA "\x1b[35;1m"
+#define ANSI_COLOR_CYAN    "\x1b[36;1m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 void *reader(void *)
 {
     r::mt19937 generator;
     r::uniform_int_distribution<> x_dist(0, x - 1);
     r::uniform_int_distribution<> y_dist(0, y - 1);
 
-    for (int k = 0; k < (1 << log_steps); ++k)
+    for (int k = 0; k < (1 << lg_steps); ++k)
     {
         uint8_t buffer[TILE_SIZE * TILE_SIZE + 1];
         buffer[TILE_SIZE * TILE_SIZE] = 0;
@@ -115,19 +126,17 @@ int main(int argc, char **argv)
     }
     if (argc >= 3)
     {
-        sscanf(argv[2], "%d", &log_steps);
+        sscanf(argv[2], "%d", &lg_steps);
     }
 
     // Initialize
     GDALAllRegister();
 
-    // Temporary VRT file name
-    sprintf(vrt_path, temp_template, getpid(), 0);
-
     // Setup
     app_options = GDALWarpAppOptionsNew(options, nullptr);
     source = GDALOpen(argv[1], GA_ReadOnly);
-    dataset = GDALWarp(vrt_path, nullptr, 1, &source, app_options, 0);
+    sprintf(temp_path, temp_template, getpid(), 0);
+    dataset = GDALWarp(temp_path, nullptr, 1, &source, app_options, 0);
     band = GDALGetRasterBand(dataset, 1);
     width = GDALGetRasterXSize(dataset);
     height = GDALGetRasterYSize(dataset);
@@ -135,7 +144,7 @@ int main(int argc, char **argv)
     y = (height / WINDOW_SIZE) - 1;
 
     // Expected
-    fprintf(stdout, "Computing expected results\n");
+    fprintf(stdout, ANSI_COLOR_GREEN "Computing expected results\n" ANSI_COLOR_RESET);
     expected.resize(x * y);
     for (int i = 0; i < x; ++i)
     {
@@ -165,11 +174,13 @@ int main(int argc, char **argv)
     }
 
     GDALClose(dataset);
-    dataset = GDALWarp(vrt_path, nullptr, 1, &source, app_options, 0);
+    unlink(temp_path);
+    sprintf(temp_path, temp_template, getpid(), 1);
+    dataset = GDALWarp(temp_path, nullptr, 1, &source, app_options, 0);
     band = GDALGetRasterBand(dataset, 1);
 
     // Reuse one dataset
-    fprintf(stdout, "Checking results\n");
+    fprintf(stdout, ANSI_COLOR_GREEN "Checking results\n" ANSI_COLOR_RESET);
     for (int i = 0; i < N; ++i)
     {
         assert(pthread_create(&threads[i], nullptr, reader, 0) == 0);
@@ -177,13 +188,15 @@ int main(int argc, char **argv)
     for (int i = 0; i < N; ++i)
     {
         assert(pthread_join(threads[i], nullptr) == 0);
+        fprintf(stdout, ANSI_COLOR_MAGENTA "." ANSI_COLOR_RESET);
     }
+    fprintf(stdout, "\n");
 
     // Cleanup
     GDALWarpAppOptionsFree(app_options);
     GDALClose(dataset);
     GDALClose(source);
-    unlink(vrt_path);
+    unlink(temp_path);
 
     return 0;
 }
