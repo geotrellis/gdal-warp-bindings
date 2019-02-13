@@ -71,7 +71,7 @@ namespace r = boost::random;
 auto expected = std::vector<std::size_t>();
 auto hash = std::hash<std::string>();
 
-void reader()
+void *reader(void *)
 {
     r::mt19937 generator;
     r::uniform_int_distribution<> x_dist(0, x - 1);
@@ -103,6 +103,8 @@ void reader()
         auto h = hash(s);
         assert(h == expected[i + j * x]);
     }
+
+    return nullptr;
 }
 
 int main(int argc, char **argv)
@@ -168,7 +170,14 @@ int main(int argc, char **argv)
 
     // Reuse one dataset
     fprintf(stdout, "Checking results\n");
-    reader();
+    for (int i = 0; i < N; ++i)
+    {
+        assert(pthread_create(&threads[i], nullptr, reader, 0) == 0);
+    }
+    for (int i = 0; i < N; ++i)
+    {
+        assert(pthread_join(threads[i], nullptr) == 0);
+    }
 
     // Cleanup
     GDALWarpAppOptionsFree(app_options);
