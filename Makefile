@@ -40,11 +40,22 @@ data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
 
 data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
 
+src/bench/rawbench:
+	make -C src/bench
+
 bin/rawbench: src/bench/rawbench
 	cp -f $< $@
 
-src/bench/rawbench:
-	make -C src/bench
+bench: bin/rawbench data
+	make -C . httpd-start
+	$< data/c41078a1-local-local.vrt 20
+	$< data/c41078a1-local-remote.vrt 20
+	$< data/c41078a1-local.vrt 20
+	$< data/c41078a1-remote-local.vrt 20
+	$< data/c41078a1-remote-remote.vrt 20
+	$< data/c41078a1-remote.vrt 20
+	$< data/c41078a1.tif 20
+	make -C . httpd-stop
 
 clean:
 	rm -f data/*.vrt bin/rawbench src/bench/rawbench
