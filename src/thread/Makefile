@@ -8,7 +8,7 @@ all: rawthread
 	$(CXX) `pkg-config gdal --cflags` $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< -c -o $@
 
 rawthread: rawthread.o
-	$(CC) $^ `pkg-config gdal --libs` -lstdc++ -lpthread -o $@
+	$(CC) $^ `pkg-config gdal --libs` -lstdc++ -lboost_timer -lpthread -o $@
 
 clean:
 	rm -f *.o
