@@ -43,6 +43,9 @@ data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt da
 bench/rawbench:
 	make -C bench
 
+thread/rawthread:
+	make -C thread
+
 bench: bench/rawbench data
 	make -C . httpd-start
 	$< data/c41078a1-local-local.vrt 20
@@ -52,6 +55,17 @@ bench: bench/rawbench data
 	$< data/c41078a1-remote-remote.vrt 20
 	$< data/c41078a1-remote.vrt 20
 	$< data/c41078a1.tif 20
+	make -C . httpd-stop
+
+thread: thread/rawthread data
+	make -C . httpd-start
+	$< data/c41078a1-local-local.vrt
+	$< data/c41078a1-local-remote.vrt
+	$< data/c41078a1-local.vrt
+	$< data/c41078a1-remote-local.vrt
+	$< data/c41078a1-remote-remote.vrt
+	$< data/c41078a1-remote.vrt
+	$< data/c41078a1.tif
 	make -C . httpd-stop
 
 clean:
