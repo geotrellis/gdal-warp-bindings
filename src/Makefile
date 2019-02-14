@@ -69,12 +69,15 @@ thread: thread/rawthread data
 	make -C . httpd-stop
 
 clean:
-	rm -f data/*.vrt bin/rawbench src/bench/rawbench
-	make -C src/bench clean
+	rm -f data/*.vrt bench/rawbench thread/rawthread
+	make -C bench clean
+	make -C thread clean
 
 cleaner: clean
 	rm -f data/*.tif
-	make -C src/bench cleaner
+	make -C bench cleaner
+	make -C thread cleaner
 
 cleanest: cleaner
-	make -C src/bench cleanest
+	make -C bench cleanest
+	make -C thread cleanest
