@@ -1,0 +1,151 @@
+/*
+ * Copyright 2019 Azavea
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef __locked_dataset_H__
+#define __locked_dataset_H__
+
+#include <pthread.h>
+#include "types.hpp"
+#include "gdal.h"
+#include "gdal_utils.h"
+
+class locked_dataset
+{
+  public:
+    locked_dataset()
+        : p_dataset(nullptr), p_source(nullptr),
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options()
+    {
+    }
+
+    locked_dataset(const uri_options_t &uri_options)
+        : p_dataset(nullptr), p_source(nullptr),
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(uri_options)
+    {
+    }
+
+    locked_dataset(const locked_dataset &rhs)
+    {
+        *this = locked_dataset(rhs.m_uri_options);
+        throw std::exception(); // XXX
+    }
+
+    locked_dataset(locked_dataset &&rhs) noexcept
+        : p_dataset(std::exchange(rhs.p_dataset, nullptr)),
+          p_source(std::exchange(rhs.p_source, nullptr)),
+          m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
+          m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t()))
+    {
+    }
+
+    locked_dataset &operator=(const locked_dataset &rhs)
+    {
+        *this = locked_dataset(rhs.m_uri_options);
+        throw std::exception(); // XXX
+        return *this;
+    }
+
+    locked_dataset &operator=(locked_dataset &&rhs) noexcept
+    {
+        p_dataset = rhs.p_dataset;
+        p_source = rhs.p_source;
+        m_lock = rhs.m_lock;
+        m_uri_options = std::move(rhs.m_uri_options);
+
+        rhs.p_dataset = nullptr;
+        rhs.p_source = nullptr;
+        rhs.m_lock = PTHREAD_MUTEX_INITIALIZER;
+        rhs.m_uri_options = uri_options_t();
+
+        return *this;
+    }
+
+    ~locked_dataset()
+    {
+        if (p_dataset != nullptr)
+        {
+            GDALClose(p_dataset);
+        }
+        if (p_source != nullptr)
+        {
+            GDALClose(p_source);
+        }
+    }
+
+    void read(const int src_window[4],
+              int dst_window[2],
+              int band_number,
+              void *data)
+    {
+        GDALRasterBandH band = GDALGetRasterBand(dataset(), band_number);
+
+        pthread_mutex_lock(&m_lock);
+        auto retval = GDALRasterIO(
+            band,                         // source band
+            GF_Read,                      // mode
+            src_window[0], src_window[1], // read offsets
+            src_window[2], src_window[3], // read width, height
+            data,                         // write buffer
+            dst_window[0], dst_window[1], // write width, height
+            GDT_Byte,                     // destination type
+            0, 0                          // stride
+        );
+        pthread_mutex_unlock(&m_lock);
+
+        if (retval != CE_None)
+        {
+            throw std::exception();
+        }
+    }
+
+  private:
+    GDALDatasetH dataset()
+    {
+        pthread_mutex_lock(&m_lock);
+        if (p_source == nullptr || p_dataset == nullptr)
+        {
+            auto uri = m_uri_options.first;
+            auto options_vector = m_uri_options.second;
+            char const *options_array[1 << 8];
+            GDALWarpAppOptions *app_options = nullptr;
+
+            unsigned int i = 0;
+            for (i = 0; i < options_vector.size(); ++i)
+            {
+                options_array[i] = options_vector[i].c_str();
+            }
+            options_array[i++] = "-of";
+            options_array[i++] = "VRT";
+            options_array[i++] = nullptr;
+            app_options = GDALWarpAppOptionsNew(const_cast<char **>(options_array), nullptr);
+
+            p_source = GDALOpen(uri.c_str(), GA_ReadOnly);
+            p_dataset = GDALWarp("/dev/null", nullptr, 1, &p_source, app_options, 0);
+            GDALWarpAppOptionsFree(app_options);
+        }
+        pthread_mutex_unlock(&m_lock);
+
+        return p_dataset;
+    }
+
+  private:
+    GDALDatasetH p_dataset;
+    GDALDatasetH p_source;
+    mutable pthread_mutex_t m_lock;
+    uri_options_t m_uri_options;
+};
+
+#endif
