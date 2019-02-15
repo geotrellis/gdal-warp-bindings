@@ -17,8 +17,11 @@
 #include <cstdio>
 
 #include "bindings.h"
+#include "lru_cache.hpp"
 
 int read(const char * uri, const char ** options, void * data)
 {
-    return 42;
+    auto cache = lru_cache<int, int>(33);
+
+    return static_cast<int>(cache.size());
 }

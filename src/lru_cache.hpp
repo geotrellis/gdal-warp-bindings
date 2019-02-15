@@ -14,25 +14,20 @@
 #include <map>
 #include <list>
 #include <utility>
-
-#include <boost/optional.hpp>
-
-namespace boost {
-namespace compute {
-namespace detail {
+#include <optional>
 
 // a cache which evicts the least recently used item when it is full
-template<class Key, class Value>
+template <class Key, class Value>
 class lru_cache
 {
-public:
+  public:
     typedef Key key_type;
     typedef Value value_type;
     typedef std::list<key_type> list_type;
     typedef std::map<
-                key_type,
-                std::pair<value_type, typename list_type::iterator>
-            > map_type;
+        key_type,
+        std::pair<value_type, typename list_type::iterator>>
+        map_type;
 
     lru_cache(size_t capacity)
         : m_capacity(capacity)
@@ -66,9 +61,11 @@ public:
     void insert(const key_type &key, const value_type &value)
     {
         typename map_type::iterator i = m_map.find(key);
-        if(i == m_map.end()){
+        if (i == m_map.end())
+        {
             // insert item into the cache, but first check if it is full
-            if(size() >= m_capacity){
+            if (size() >= m_capacity)
+            {
                 // cache is full, evict the least recently used item
                 evict();
             }
@@ -79,19 +76,21 @@ public:
         }
     }
 
-    boost::optional<value_type> get(const key_type &key)
+    std::optional<value_type> get(const key_type &key)
     {
         // lookup value in the cache
         typename map_type::iterator i = m_map.find(key);
-        if(i == m_map.end()){
+        if (i == m_map.end())
+        {
             // value not in cache
-            return boost::none;
+            return std::nullopt;
         }
 
         // return the value, but first update its place in the most
         // recently used list
         typename list_type::iterator j = i->second.second;
-        if(j != m_list.begin()){
+        if (j != m_list.begin())
+        {
             // move item to the front of the most recently used list
             m_list.erase(j);
             m_list.push_front(key);
@@ -104,7 +103,8 @@ public:
             // return the value
             return value;
         }
-        else {
+        else
+        {
             // the item is already at the front of the most recently
             // used list so just return it
             return i->second.first;
@@ -117,7 +117,7 @@ public:
         m_list.clear();
     }
 
-private:
+  private:
     void evict()
     {
         // evict item from the end of most recently used list
@@ -126,14 +126,10 @@ private:
         m_list.erase(i);
     }
 
-private:
+  private:
     map_type m_map;
     list_type m_list;
     size_t m_capacity;
 };
-
-} // end detail namespace
-} // end compute namespace
-} // end boost namespace
 
 #endif // BOOST_COMPUTE_DETAIL_LRU_CACHE_HPP
