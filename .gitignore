@@ -1,8 +1,9 @@
 *.o
-.vscode/launch.json
-.vscode/c_cpp_properties.json
+*.so
 *.tif
 *.vrt
-src/bench/rawbench
-src/thread/rawthread
+.vscode/launch.json
+.vscode/c_cpp_properties.json
+src/experiments/bench/rawbench
+src/experiments/thread/rawthread
 

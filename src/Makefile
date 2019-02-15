@@ -1,83 +1,23 @@
-PORT ?= 8080
-NAME ?= gdal-warp-httpd
+CFLAGS ?= -Wall -Werror -Og -ggdb3
+CXXFLAGS ?= -std=c++1z
+LDFLAGS += $(shell pkg-config gdal --libs | sed 's,-lgdal,-l:libgdal.a,') -l:libstdc++.a -lpthread
+GDALCFLAGS = $(shell pkg-config gdal --cflags)
 
-.PHONY: httpd-start httpd-stop bench data
+all: libgdalwarp_bindings.so
 
-all: data bin/rawbench
+%.o: %.cpp
+	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-httpd-start:
-	docker run -dit --rm --name $(NAME) -p $(PORT):80 -v $(shell pwd):/usr/local/apache2/htdocs/:ro httpd:2.4
+bindings.o: bindings.cpp bindings.h lru_cache.hpp
+	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-httpd-stop:
-	docker stop $(NAME)
-
-data/c41078a1.tif:
-	wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O $@
-
-data/c41078a1-local.vrt: data/c41078a1.tif
-	gdalbuildvrt $@ $^
-
-data/c41078a1-local-local.vrt: data/c41078a1-local.vrt
-	gdalbuildvrt $@ $^
-
-data/c41078a1-local-remote.vrt: data/c41078a1-local.vrt
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
-
-data/c41078a1-remote.vrt: data/c41078a1.tif
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
-
-data/c41078a1-remote-local.vrt: data/c41078a1-remote.vrt
-	gdalbuildvrt $@ $^
-
-data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
-
-data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
-
-bench/rawbench:
-	make -C bench
-
-thread/rawthread:
-	make -C thread
-
-bench: bench/rawbench data
-	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt 20
-	$< data/c41078a1-local-remote.vrt 20
-	$< data/c41078a1-local.vrt 20
-	$< data/c41078a1-remote-local.vrt 20
-	$< data/c41078a1-remote-remote.vrt 20
-	$< data/c41078a1-remote.vrt 20
-	$< data/c41078a1.tif 20
-	make -C . httpd-stop
-
-thread: thread/rawthread data
-	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt
-	$< data/c41078a1-local-remote.vrt
-	$< data/c41078a1-local.vrt
-	$< data/c41078a1-remote-local.vrt
-	$< data/c41078a1-remote-remote.vrt
-	$< data/c41078a1-remote.vrt
-	$< data/c41078a1.tif
-	make -C . httpd-stop
+libgdalwarp_bindings.so: bindings.o
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 clean:
-	rm -f data/*.vrt bench/rawbench thread/rawthread
-	make -C bench clean
-	make -C thread clean
+	rm -f *.o
 
 cleaner: clean
-	rm -f data/*.tif
-	make -C bench cleaner
-	make -C thread cleaner
+	rm -f libgdalwarp_bindings.so
 
 cleanest: cleaner
-	make -C bench cleanest
-	make -C thread cleanest
