@@ -8,7 +8,7 @@ all: libgdalwarp_bindings.so
 %.o: %.cpp
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-bindings.o: bindings.cpp bindings.h lru_cache.hpp
+bindings.o: bindings.cpp bindings.h types.hpp lru_cache.hpp
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
 libgdalwarp_bindings.so: bindings.o

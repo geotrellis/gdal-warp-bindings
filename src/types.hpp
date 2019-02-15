@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef __BINDINGS_H__
-#define __BINDINGS_H__
+#ifndef __TYPES_H__
+#define __TYPES_H__
 
-#ifdef __cplusplus
-extern "C"
-#endif
-{
-    void init(int size);
-    void deinit();
-    uint64_t get_token(const char *uri, const char **options);
-    void return_token(uint64_t token);
-    int read_data(uint64_t token, double window[4], void *data);
-#ifdef __cplusplus
-}
-#endif
+#include <map>
+#include <string>
+#include <vector>
+
+typedef std::vector<std::string> options_t;
+typedef std::string uri_t;
+typedef std::pair<uri_t, options_t> uri_options_t;
+typedef uint64_t token_t;
+typedef std::map<uri_options_t, token_t> token_map_t;
+typedef std::map<token_t, uri_options_t> reverse_token_map_t;
 
 #endif

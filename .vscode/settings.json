@@ -53,6 +53,7 @@
         "utility": "cpp",
         "variant": "cpp",
         "algorithm": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "unordered_set": "cpp"
     }
 }
