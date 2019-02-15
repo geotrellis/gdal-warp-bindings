@@ -1,6 +1,6 @@
 CFLAGS ?= -Wall -Werror -Og -ggdb3
 CXXFLAGS ?= -std=c++1z
-LDFLAGS += $(shell pkg-config gdal --libs | sed 's,-lgdal,-l:libgdal.a,') -l:libstdc++.a -lpthread
+LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 GDALCFLAGS = $(shell pkg-config gdal --cflags)
 
 all: libgdalwarp_bindings.so
