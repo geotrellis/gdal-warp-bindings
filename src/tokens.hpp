@@ -14,29 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __BINDINGS_H__
-#define __BINDINGS_H__
+#ifndef __TOKENS_HPP__
+#define __TOKENS_HPP__
 
-#include "gdal.h"
+#include "types.hpp"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+void token_init();
+void token_deinit();
 
-    void init(int size);
-    void deinit();
-    uint64_t get_token(const char *uri, const char **options);
-    void surrender_token(uint64_t token);
-    int read_data(uint64_t token,
-                  double src_window[4],
-                  int dst_window[2],
-                  int band_number,
-                  GDALDataType type,
-                  void *data);
-
-#ifdef __cplusplus
-}
-#endif
+// The prototypes for get_token and surrender_token are in bindings.h
 
 #endif
