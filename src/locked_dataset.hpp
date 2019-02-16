@@ -35,12 +35,14 @@ class locked_dataset
         : p_dataset(nullptr), p_source(nullptr),
           m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(uri_options)
     {
+        open();
     }
 
     locked_dataset(const locked_dataset &rhs)
+        : p_dataset(nullptr), p_source(nullptr),
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(rhs.m_uri_options)
     {
-        *this = locked_dataset(rhs.m_uri_options);
-        throw std::exception(); // XXX
+        open();
     }
 
     locked_dataset(locked_dataset &&rhs) noexcept
@@ -49,17 +51,20 @@ class locked_dataset
           m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
           m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t()))
     {
+        // XXX not safe
     }
 
     locked_dataset &operator=(const locked_dataset &rhs)
     {
+        close();
         *this = locked_dataset(rhs.m_uri_options);
-        throw std::exception(); // XXX
         return *this;
     }
 
     locked_dataset &operator=(locked_dataset &&rhs) noexcept
     {
+        close();
+
         p_dataset = rhs.p_dataset;
         p_source = rhs.p_source;
         m_lock = rhs.m_lock;
@@ -71,28 +76,38 @@ class locked_dataset
         rhs.m_uri_options = uri_options_t();
 
         return *this;
+        // XXX not safe
     }
 
     ~locked_dataset()
     {
-        if (p_dataset != nullptr)
-        {
-            GDALClose(p_dataset);
-        }
-        if (p_source != nullptr)
-        {
-            GDALClose(p_source);
-        }
+        close();
     }
 
-    void read(const int src_window[4],
-              int dst_window[2],
-              int band_number,
-              void *data)
+    bool get_transform(double transform[6])
     {
-        GDALRasterBandH band = GDALGetRasterBand(dataset(), band_number);
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALGetGeoTransform(p_dataset, transform);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
 
-        pthread_mutex_lock(&m_lock);
+    bool get_pixels(const int src_window[4],
+                    int dst_window[2],
+                    int band_number,
+                    GDALDataType type,
+                    void *data)
+    {
+        GDALRasterBandH band = GDALGetRasterBand(p_dataset, band_number);
+
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+
         auto retval = GDALRasterIO(
             band,                         // source band
             GF_Read,                      // mode
@@ -100,19 +115,42 @@ class locked_dataset
             src_window[2], src_window[3], // read width, height
             data,                         // write buffer
             dst_window[0], dst_window[1], // write width, height
-            GDT_Byte,                     // destination type
+            type,                         // destination type
             0, 0                          // stride
         );
         pthread_mutex_unlock(&m_lock);
 
         if (retval != CE_None)
         {
-            throw std::exception();
+            throw std::exception(); // XXX just make invalid?
         }
+
+        return true;
+    }
+
+    bool valid()
+    {
+        return ((p_source != nullptr) && (p_dataset != nullptr));
     }
 
   private:
-    GDALDatasetH dataset()
+    void close()
+    {
+        pthread_mutex_lock(&m_lock);
+        if (p_dataset != nullptr)
+        {
+            GDALClose(p_dataset);
+            p_dataset = nullptr;
+        }
+        if (p_source != nullptr)
+        {
+            GDALClose(p_source);
+            p_source = nullptr;
+        }
+        pthread_mutex_unlock(&m_lock);
+    }
+
+    void open()
     {
         pthread_mutex_lock(&m_lock);
         if (p_source == nullptr || p_dataset == nullptr)
@@ -137,8 +175,6 @@ class locked_dataset
             GDALWarpAppOptionsFree(app_options);
         }
         pthread_mutex_unlock(&m_lock);
-
-        return p_dataset;
     }
 
   private:
