@@ -20,10 +20,13 @@
 #ifdef DEBUG
 #include <cstdio>
 #endif
+
 #include <pthread.h>
+
+#include <gdal.h>
+#include <gdal_utils.h>
+
 #include "types.hpp"
-#include "gdal.h"
-#include "gdal_utils.h"
 
 class locked_dataset
 {

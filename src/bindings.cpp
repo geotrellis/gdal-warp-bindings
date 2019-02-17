@@ -24,12 +24,13 @@
 #include <vector>
 
 #include <pthread.h>
+#include <gdal.h>
+
 #include "bindings.h"
 #include "types.hpp"
 #include "lru_cache.hpp"
 #include "locked_dataset.hpp"
 #include "tokens.hpp"
-#include "gdal.h"
 
 typedef lru_cache cache_t;
 

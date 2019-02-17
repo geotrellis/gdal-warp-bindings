@@ -17,7 +17,7 @@
 #ifndef __BINDINGS_H__
 #define __BINDINGS_H__
 
-#include "gdal.h"
+#include <gdal.h>
 
 #ifdef __cplusplus
 extern "C"

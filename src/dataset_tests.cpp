@@ -19,8 +19,9 @@
 
 #include <vector>
 
+#include <gdal.h>
+
 #include "locked_dataset.hpp"
-#include "gdal.h"
 
 auto uri = uri_t("experiments/data/c41078a1.tif");
 auto options = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
