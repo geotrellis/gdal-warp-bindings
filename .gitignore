@@ -8,3 +8,4 @@ src/experiments/bench/rawbench
 src/experiments/thread/rawthread
 src/dataset_tests
 src/token_tests
+src/cache_tests

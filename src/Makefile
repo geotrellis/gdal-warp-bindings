@@ -27,12 +27,16 @@ token_tests: token_tests.o tokens.o
 dataset_tests: dataset_tests.o
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -lm -o $@
 
+cache_tests: cache_tests.o
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -lm -o $@
+
 experiments/data:
 	make -C experiments data/c41078a1.tif
 
-tests: experiments/data dataset_tests token_tests
+tests: experiments/data dataset_tests token_tests cache_tests
 	dataset_tests
 	token_tests
+	cache_tests
 
 clean:
 	rm -f *.o
