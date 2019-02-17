@@ -80,7 +80,9 @@ BOOST_AUTO_TEST_CASE(move_constructor)
 BOOST_AUTO_TEST_CASE(assignment)
 {
     auto ld1 = locked_dataset(uri_options);
-    auto ld2 = ld1;
+    auto ld2 = locked_dataset();
+
+    ld2 = ld1;
 
     BOOST_TEST(ld1.valid() == true);
     BOOST_TEST(ld2.valid() == true);

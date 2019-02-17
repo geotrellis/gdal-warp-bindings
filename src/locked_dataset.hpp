@@ -17,6 +17,9 @@
 #ifndef __locked_dataset_H__
 #define __locked_dataset_H__
 
+#ifdef DEBUG
+#include <cstdio>
+#endif
 #include <pthread.h>
 #include "types.hpp"
 #include "gdal.h"
@@ -42,6 +45,9 @@ class locked_dataset
         : p_dataset(nullptr), p_source(nullptr),
           m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(rhs.m_uri_options)
     {
+#ifdef DEBUG
+        fprintf(stderr, "COPY CONSTRUCTOR\n");
+#endif
         open();
     }
 
@@ -51,13 +57,17 @@ class locked_dataset
           m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
           m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t()))
     {
-        // XXX not safe
+        // XXX not thread safe, but the rhs should always be a
+        // just-created local that is not in use.
     }
 
     locked_dataset &operator=(const locked_dataset &rhs)
     {
         close();
         *this = locked_dataset(rhs.m_uri_options);
+#ifdef DEBUG
+        fprintf(stderr, "ASSIGNMENT OPERATOR\n");
+#endif
         return *this;
     }
 
@@ -76,7 +86,8 @@ class locked_dataset
         rhs.m_uri_options = uri_options_t();
 
         return *this;
-        // XXX not safe
+        // XXX not thread safe, but the rhs should always be a
+        // just-created local that is not in use.
     }
 
     ~locked_dataset()
@@ -84,7 +95,7 @@ class locked_dataset
         close();
     }
 
-    bool get_transform(double transform[6])
+    bool get_transform(double transform[6]) const
     {
         if (pthread_mutex_trylock(&m_lock) != 0)
         {
@@ -99,7 +110,7 @@ class locked_dataset
                     int dst_window[2],
                     int band_number,
                     GDALDataType type,
-                    void *data)
+                    void *data) const
     {
         GDALRasterBandH band = GDALGetRasterBand(p_dataset, band_number);
 
@@ -128,7 +139,7 @@ class locked_dataset
         return true;
     }
 
-    bool valid()
+    bool valid() const
     {
         return ((p_source != nullptr) && (p_dataset != nullptr));
     }
