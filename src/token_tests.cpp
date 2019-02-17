@@ -19,77 +19,6 @@
 
 #include "tokens.hpp"
 
-extern "C"
-{
-    uint64_t get_token(const char *uri, const char **options);
-    void surrender_token(uint64_t token);
-}
-
-BOOST_AUTO_TEST_CASE(get_unique_token_test)
-{
-    token_init();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri = "geo.tif";
-#pragma GCC diagnostic pop
-    auto token = get_token(uri, options);
-
-    BOOST_TEST(token == static_cast<token_t>(33));
-    token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(get_same_token_test)
-{
-    token_init();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri = "geo.tif";
-#pragma GCC diagnostic pop
-    auto token1 = get_token(uri, options);
-    auto token2 = get_token(uri, options);
-
-    BOOST_TEST(token1 == static_cast<token_t>(33));
-    BOOST_TEST(token1 == token2);
-    token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(get_different_uri_tokens_test)
-{
-    token_init();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri1 = "geo1.tif";
-    const char *uri2 = "geo2.tif";
-#pragma GCC diagnostic pop
-    auto token1 = get_token(uri1, options);
-    auto token2 = get_token(uri2, options);
-
-    BOOST_TEST(token1 == static_cast<token_t>(33));
-    BOOST_TEST(token1 != token2);
-    token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
-{
-    token_init();
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
     const char *options1[] = {
@@ -103,10 +32,52 @@ BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
         "-tap", "-tr", "7", "11",
         "-t_srs", "epsg:3857",
         nullptr};
-    const char *uri = "geo.tif";
+    const char *uri1 = "geo.tif";
+    const char *uri2 = "geo2.tif";
 #pragma GCC diagnostic pop
-    auto token1 = get_token(uri, options1);
-    auto token2 = get_token(uri, options2);
+
+extern "C"
+{
+    uint64_t get_token(const char *uri, const char **option1);
+    void surrender_token(uint64_t token);
+}
+
+BOOST_AUTO_TEST_CASE(get_unique_token_test)
+{
+    token_init();
+    auto token = get_token(uri1, options1);
+
+    BOOST_TEST(token == static_cast<token_t>(33));
+    token_deinit();
+}
+
+BOOST_AUTO_TEST_CASE(get_same_token_test)
+{
+    token_init();
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri1, options1);
+
+    BOOST_TEST(token1 == static_cast<token_t>(33));
+    BOOST_TEST(token1 == token2);
+    token_deinit();
+}
+
+BOOST_AUTO_TEST_CASE(get_different_uri_tokens_test)
+{
+    token_init();
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri2, options1);
+
+    BOOST_TEST(token1 == static_cast<token_t>(33));
+    BOOST_TEST(token1 != token2);
+    token_deinit();
+}
+
+BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
+{
+    token_init();
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri1, options2);
 
     BOOST_TEST(token1 == static_cast<token_t>(33));
     BOOST_TEST(token1 != token2);
@@ -116,20 +87,9 @@ BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
 BOOST_AUTO_TEST_CASE(surrender_token_test)
 {
     token_init();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri1 = "geo1.tif";
-    const char *uri2 = "geo2.tif";
-#pragma GCC diagnostic pop
-    auto token1 = get_token(uri1, options);
+    auto token1 = get_token(uri1, options1);
     surrender_token(token1);
-    auto token2 = get_token(uri2, options);
+    auto token2 = get_token(uri2, options1);
 
     BOOST_TEST(token2 == static_cast<token_t>(33));
     token_deinit();
@@ -138,17 +98,7 @@ BOOST_AUTO_TEST_CASE(surrender_token_test)
 BOOST_AUTO_TEST_CASE(double_free_test)
 {
     token_init();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri = "geo1.tif";
-#pragma GCC diagnostic pop
-    auto token = get_token(uri, options);
+    auto token = get_token(uri1, options1);
     surrender_token(token);
     surrender_token(token);
 
