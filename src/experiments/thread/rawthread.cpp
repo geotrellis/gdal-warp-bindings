@@ -39,7 +39,8 @@ char *options[] = {
     "-of", "MEM",
     "-tap", "-tr", "7", "11",
     "-r", "bilinear",
-    "-t_srs", "epsg:3857"};
+    "-t_srs", "epsg:3857",
+    nullptr};
 const char *temp_template = "/tmp/rawbench.%d.%d.tif";
 #pragma GCC diagnostic pop
 

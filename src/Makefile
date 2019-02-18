@@ -1,83 +1,48 @@
-PORT ?= 8080
-NAME ?= gdal-warp-httpd
+CFLAGS ?= -Wall -Werror -Og -ggdb3
+CXXFLAGS ?= -std=c++1z
+LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
+GDALCFLAGS = $(shell pkg-config gdal --cflags)
+BOOST_ROOT ?= /usr/include
+HEADERS = bindings.h types.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
 
-.PHONY: httpd-start httpd-stop bench data
+.PHONY: experiments/data
 
-all: data bin/rawbench
+all: libgdalwarp_bindings.so
 
-httpd-start:
-	docker run -dit --rm --name $(NAME) -p $(PORT):80 -v $(shell pwd):/usr/local/apache2/htdocs/:ro httpd:2.4
+%.o: %.cpp $(HEADERS)
+	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-httpd-stop:
-	docker stop $(NAME)
+%_tests.o: %_tests.cpp  $(HEADERS)
+	$(CXX) $(GDALCFLAGS) -I$(BOOST_ROOT) $(CFLAGS) $(CXXFLAGS) $< -c -o $@
 
-data/c41078a1.tif:
-	wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O $@
+bindings.o: bindings.cpp $(HEADERS)
+	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-data/c41078a1-local.vrt: data/c41078a1.tif
-	gdalbuildvrt $@ $^
+libgdalwarp_bindings.so: bindings.o tokens.o
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
-data/c41078a1-local-local.vrt: data/c41078a1-local.vrt
-	gdalbuildvrt $@ $^
+token_tests: token_tests.o tokens.o
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -lm -o $@
 
-data/c41078a1-local-remote.vrt: data/c41078a1-local.vrt
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
+dataset_tests: dataset_tests.o
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -lm -o $@
 
-data/c41078a1-remote.vrt: data/c41078a1.tif
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
+cache_tests: cache_tests.o
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -lm -o $@
 
-data/c41078a1-remote-local.vrt: data/c41078a1-remote.vrt
-	gdalbuildvrt $@ $^
+experiments/data:
+	make -C experiments data/c41078a1.tif
 
-data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
-	make -C . httpd-start
-	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
-
-data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
-
-bench/rawbench:
-	make -C bench
-
-thread/rawthread:
-	make -C thread
-
-bench: bench/rawbench data
-	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt 20
-	$< data/c41078a1-local-remote.vrt 20
-	$< data/c41078a1-local.vrt 20
-	$< data/c41078a1-remote-local.vrt 20
-	$< data/c41078a1-remote-remote.vrt 20
-	$< data/c41078a1-remote.vrt 20
-	$< data/c41078a1.tif 20
-	make -C . httpd-stop
-
-thread: thread/rawthread data
-	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt
-	$< data/c41078a1-local-remote.vrt
-	$< data/c41078a1-local.vrt
-	$< data/c41078a1-remote-local.vrt
-	$< data/c41078a1-remote-remote.vrt
-	$< data/c41078a1-remote.vrt
-	$< data/c41078a1.tif
-	make -C . httpd-stop
+tests: experiments/data dataset_tests token_tests cache_tests
+	dataset_tests
+	token_tests
+	cache_tests
 
 clean:
-	rm -f data/*.vrt bench/rawbench thread/rawthread
-	make -C bench clean
-	make -C thread clean
+	rm -f *.o
 
 cleaner: clean
-	rm -f data/*.tif
-	make -C bench cleaner
-	make -C thread cleaner
+	rm -f libgdalwarp_bindings.so
+	rm -f dataset_tests
 
 cleanest: cleaner
-	make -C bench cleanest
-	make -C thread cleanest

@@ -32,7 +32,8 @@
 char *options[] = {
     "-tap", "-tr", "33", "42",
     "-r", "bilinear",
-    "-t_srs", "epsg:3857"};
+    "-t_srs", "epsg:3857",
+    nullptr};
 const char *temp_template = "/tmp/rawbench.%d.%d.vrt";
 #pragma GCC diagnostic pop
 
