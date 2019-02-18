@@ -66,13 +66,15 @@ class lru_cache
     const locked_dataset &get(const uri_options_t &key)
     {
         // lookup value in the cache
-        pthread_rwlock_wrlock(&m_map_lock);
+        pthread_rwlock_rdlock(&m_map_lock);
         map_t::iterator i = m_map.find(key);
         if (i == m_map.end())
         {
             // value not in cache
             auto value = locked_dataset(key);
+            pthread_rwlock_unlock(&m_map_lock);
             insert(key, value);
+            pthread_rwlock_rdlock(&m_map_lock);
             i = m_map.find(key);
         }
 
@@ -109,18 +111,24 @@ class lru_cache
     void clear()
     {
         pthread_rwlock_wrlock(&m_map_lock);
-        m_map.clear();
-        pthread_rwlock_unlock(&m_map_lock);
         pthread_rwlock_wrlock(&m_list_lock);
+        m_map.clear();
         m_list.clear();
         pthread_rwlock_unlock(&m_list_lock);
+        pthread_rwlock_unlock(&m_map_lock);
     }
 
   private:
-    // There is only one path to this function.  It is only ever
-    // called when the map lock is held.
+
+    /**
+     * Insert a key, value pair into the cache.
+     *
+     * @param key A uri_options_t object.
+     * @param value A locked_dataset.  This will be moved into the cache, so the passed object is invalid after the call.
+     */
     void insert(const uri_options_t &key, locked_dataset &value)
     {
+        pthread_rwlock_wrlock(&m_map_lock);
         pthread_rwlock_wrlock(&m_list_lock);
         map_t::iterator i = m_map.find(key);
         if (i == m_map.end())
@@ -137,10 +145,12 @@ class lru_cache
             m_map[key] = std::move(std::make_pair(std::move(value), m_list.begin()));
         }
         pthread_rwlock_unlock(&m_list_lock);
+        pthread_rwlock_unlock(&m_map_lock);
     }
 
-    // There is only one path to this function.  It is only ever
-    // called when the map lock and list lock are both held.
+    /**
+     * Evict the least recently used pair from the cache.
+     */
     void evict()
     {
         // evict item from the end of most recently used list
