@@ -103,3 +103,22 @@ void surrender_token(uint64_t _token)
     }
     pthread_mutex_unlock(&token_lock);
 }
+
+std::optional<uri_options_t> query_token(uint64_t _token)
+{
+    pthread_mutex_lock(&token_lock);
+    auto token = static_cast<token_t>(_token);
+    auto i = reverse_token_map->find(token);
+
+    if (i == reverse_token_map->end())
+    {
+        pthread_mutex_unlock(&token_lock);
+        return std::nullopt;
+    }
+    else
+    {
+        auto uri_options = *i;
+        pthread_mutex_unlock(&token_lock);
+        return uri_options.second;
+    }
+}
