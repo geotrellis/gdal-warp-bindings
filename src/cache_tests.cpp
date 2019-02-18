@@ -76,3 +76,13 @@ BOOST_AUTO_TEST_CASE(evict_test)
     cache.get(uri_options2);
     BOOST_TEST(cache.size() == 1);
 }
+
+BOOST_AUTO_TEST_CASE(non_destructive_get_test)
+{
+    auto cache = lru_cache(4);
+    auto v1 = cache.get(uri_options1);
+    auto v2 = cache.get(uri_options1);
+    auto v3 = cache.get(uri_options1);
+    BOOST_TEST(v1[0] == v2[0]);
+    BOOST_TEST(v2[0] == v3[0]);
+}
