@@ -132,7 +132,6 @@ class lru_cache
         pthread_rwlock_unlock(&m_map_lock);
     }
 
-  private:
     /**
      * Insert a key, value pair into the cache.
      *
@@ -162,6 +161,7 @@ class lru_cache
         pthread_rwlock_unlock(&m_map_lock);
     }
 
+  private:
     /**
      * Evict the least recently used pair from the cache.
      */

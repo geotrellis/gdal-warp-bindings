@@ -43,11 +43,12 @@ void init(int size)
     GDALAllRegister();
 
     cache = new cache_t(size);
-
     if (cache == nullptr)
     {
         throw std::bad_alloc();
     }
+
+    token_init();
 
     return;
 }
@@ -58,14 +59,41 @@ void deinit()
     {
         delete cache;
     }
+    token_deinit();
 }
 
 int read_data(uint64_t token,
-              double src_window[4],
+              int src_window[4],
               int dst_window[2],
               int band_number,
               GDALDataType type,
               void *data)
 {
-    return 33;
+    bool done = false;
+    auto query_result = query_token(token);
+
+    if (query_result.has_value())
+    {
+        // Attempt to read the data using an existing, unlocked dataset ...
+        auto uri_options = query_result.value();
+        auto locked_datasets = cache->get(uri_options);
+        for (auto ld : locked_datasets) // XXX not clear that one pass is optimal
+        {
+            if (!done && ld->get_pixels(src_window, dst_window, band_number, type, data))
+            {
+                done = true;
+            }
+            ld->dec();
+        }
+
+        // ... if there are none or they are all busy, create new one.
+        if (!done)
+        {
+            auto ld = locked_dataset(uri_options);
+            done = ld.get_pixels(src_window, dst_window, band_number, type, data);
+            cache->insert(uri_options, ld);
+        }
+    }
+
+    return done;
 }
