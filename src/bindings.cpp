@@ -86,7 +86,7 @@ int read_data(uint64_t token,
             ld->dec();
         }
 
-        // ... if there are none or they are all busy, create new one.
+        // ... if there are none, create new one.
         if (!done)
         {
             auto ld = locked_dataset(uri_options);

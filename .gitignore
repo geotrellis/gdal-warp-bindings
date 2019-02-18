@@ -6,6 +6,7 @@
 .vscode/c_cpp_properties.json
 src/experiments/bench/rawbench
 src/experiments/thread/rawthread
+src/experiments/thread/wrapthread
 src/dataset_tests
 src/token_tests
 src/cache_tests

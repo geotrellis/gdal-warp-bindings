@@ -32,22 +32,28 @@
 #include <gdal.h>
 #include <gdal_utils.h>
 
+#include "../../bindings.h"
+
 // Strings
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-char *options[] = {
-    "-of", "MEM",
-    "-tap", "-tr", "7", "11",
+char *expected_options[] = {
+    "-of", "VRT",
+    "-tap", "-tr", "5", "7",
     "-r", "bilinear",
     "-t_srs", "epsg:3857",
     nullptr};
-const char *temp_template = "/tmp/rawbench.%d.%d.tif";
+char *actual_options[] = {
+    "-tap", "-tr", "5", "7",
+    "-r", "bilinear",
+    "-t_srs", "epsg:3857",
+    nullptr};
 #pragma GCC diagnostic pop
 
 // Constants
 constexpr int WINDOW_SIZE = (1 << 8);
 constexpr int TILE_SIZE = (1 << 8);
-constexpr int N = (1 << 12);
+constexpr int N = (1 << 8);
 constexpr int PATH_LEN = (1 << 6);
 
 // Threads
@@ -63,9 +69,7 @@ int width = -1;
 int height = -1;
 int x = -1;
 int y = -1;
-
-// Temporary file name
-char temp_path[PATH_LEN];
+uint64_t token = -1;
 
 // Randomness
 namespace r = boost::random;
@@ -98,27 +102,17 @@ void *reader(void *)
     {
         uint8_t buffer[TILE_SIZE * TILE_SIZE + 1];
         buffer[TILE_SIZE * TILE_SIZE] = 0;
-        auto i = x_dist(generator);
-        auto j = y_dist(generator);
-        auto retval = GDALRasterIO(
-            band,                             // source band
-            GF_Read,                          // mode
-            i * WINDOW_SIZE, j * WINDOW_SIZE, // read offsets
-            WINDOW_SIZE, WINDOW_SIZE,         // read width, height
-            buffer,                           // write buffer
-            TILE_SIZE, TILE_SIZE,             // write width, height
-            GDT_Byte,                         // destination type
-            0, 0                              // stride
-        );
+        auto i = x_dist(generator); i = 7;
+        auto j = y_dist(generator); j = 5;
+        int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
+        int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 
-        if (retval != CE_None)
+        if (read_data(token, src_window, dst_window, 1, GDT_Byte, buffer))
         {
-            exit(-1);
+            auto s = std::string(reinterpret_cast<char *>(buffer));
+            auto h = hash(s);
+            assert(h == expected[i + j * x]);
         }
-
-        auto s = std::string(reinterpret_cast<char *>(buffer));
-        auto h = hash(s);
-        assert(h == expected[i + j * x]);
     }
 
     return nullptr;
@@ -139,14 +133,13 @@ int main(int argc, char **argv)
     GDALAllRegister();
 
     // Setup
-    app_options = GDALWarpAppOptionsNew(options, nullptr);
+    app_options = GDALWarpAppOptionsNew(expected_options, nullptr);
     source = GDALOpen(argv[1], GA_ReadOnly);
-    sprintf(temp_path, temp_template, getpid(), 0);
     {
         t::auto_cpu_timer timer;
 
         fprintf(stdout, ANSI_COLOR_GREEN "DATASET\n" ANSI_COLOR_RESET);
-        dataset = GDALWarp(temp_path, nullptr, 1, &source, app_options, 0);
+        dataset = GDALWarp("/dev/null", nullptr, 1, &source, app_options, 0);
         band = GDALGetRasterBand(dataset, 1);
     }
     width = GDALGetRasterXSize(dataset);
@@ -188,18 +181,13 @@ int main(int argc, char **argv)
         }
     }
 
+    // Cleanup
     GDALClose(dataset);
-    unlink(temp_path);
-    sprintf(temp_path, temp_template, getpid(), 1);
-    {
-        t::auto_cpu_timer timer;
+    GDALClose(source);
+    GDALWarpAppOptionsFree(app_options);
 
-        fprintf(stdout, ANSI_COLOR_GREEN "SECOND DATASET\n" ANSI_COLOR_RESET);
-        dataset = GDALWarp(temp_path, nullptr, 1, &source, app_options, 0);
-        band = GDALGetRasterBand(dataset, 1);
-    }
-
-    // Reuse one dataset
+    init(1 << 7);
+    token = get_token(argv[1], const_cast<const char **>(actual_options));
     {
         t::auto_cpu_timer timer;
 
@@ -215,12 +203,7 @@ int main(int argc, char **argv)
         }
         fprintf(stdout, "\n");
     }
-
-    // Cleanup
-    GDALWarpAppOptionsFree(app_options);
-    GDALClose(dataset);
-    GDALClose(source);
-    unlink(temp_path);
+    surrender_token(token);
 
     return 0;
 }
