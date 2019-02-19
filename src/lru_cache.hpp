@@ -23,10 +23,13 @@ class lru_cache
 {
   public:
     typedef std::list<uri_options_t> list_t;
-    typedef std::map<uri_options_t, std::pair<locked_dataset, list_t::iterator>> map_t;
+    typedef std::multimap<uri_options_t, std::pair<locked_dataset, list_t::iterator>> map_t;
+    typedef std::vector<locked_dataset *> return_list_t;
 
     lru_cache(size_t capacity)
-        : m_capacity(capacity), m_map_lock(PTHREAD_RWLOCK_INITIALIZER), m_list_lock(PTHREAD_RWLOCK_INITIALIZER)
+        : m_capacity(capacity),
+          m_map_lock(PTHREAD_RWLOCK_INITIALIZER),
+          m_list_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
     }
 
@@ -63,64 +66,81 @@ class lru_cache
         return retval;
     }
 
-    const locked_dataset &get(const uri_options_t &key)
+    return_list_t get(const uri_options_t &key)
     {
+        auto return_list = return_list_t();
+
         // lookup value in the cache
-        pthread_rwlock_wrlock(&m_map_lock);
-        map_t::iterator i = m_map.find(key);
-        if (i == m_map.end())
+        pthread_rwlock_rdlock(&m_map_lock);
         {
-            // value not in cache
-            auto value = locked_dataset(key);
-            insert(key, value);
-            i = m_map.find(key);
+            map_t::iterator i = m_map.find(key);
+            if (i == m_map.end())
+            {
+                // value not in cache
+                auto value = locked_dataset(key);
+                pthread_rwlock_unlock(&m_map_lock);
+                insert(key, value);
+                pthread_rwlock_rdlock(&m_map_lock);
+            }
         }
 
-        // return the value, but first update its place in the most
-        // recently used list
         pthread_rwlock_wrlock(&m_list_lock);
-        list_t::iterator j = i->second.second;
-        if (j != m_list.begin())
+        auto [start, end] = m_map.equal_range(key);
+        for (auto i = start; i != end; ++i)
         {
-            // move item to the front of the most recently used list
-            m_list.erase(j);
-            m_list.push_front(key);
-            j = m_list.begin();
+            // return the value, but first update its place in the most
+            // recently used list
+            list_t::iterator j = i->second.second;
+            if (j != m_list.begin())
+            {
+                // move item to the front of the most recently used list
+                m_list.erase(j);
+                m_list.push_front(key);
+                j = m_list.begin();
 
-            // update iterator in map
-            const locked_dataset &value = i->second.first;
-            m_map[key] = std::make_pair(value, j);
-            pthread_rwlock_unlock(&m_list_lock);
-            pthread_rwlock_unlock(&m_map_lock);
+                // update iterator in map
+                locked_dataset &value = i->second.first;
+                auto value_pair = std::make_pair(value, j);
+                m_map.insert({key, value_pair});
 
-            // return the value
-            return value;
+                // return the value
+                value.inc();
+                return_list.push_back(&value);
+            }
+            else
+            {
+                // the item is already at the front of the most recently
+                // used list so just return it
+                locked_dataset &value = i->second.first;
+                value.inc();
+                return_list.push_back(&value);
+            }
         }
-        else
-        {
-            // the item is already at the front of the most recently
-            // used list so just return it
-            pthread_rwlock_unlock(&m_list_lock);
-            pthread_rwlock_unlock(&m_map_lock);
-            return i->second.first;
-        }
+        pthread_rwlock_unlock(&m_list_lock);
+        pthread_rwlock_unlock(&m_map_lock);
+
+        return (return_list);
     }
 
     void clear()
     {
         pthread_rwlock_wrlock(&m_map_lock);
-        m_map.clear();
-        pthread_rwlock_unlock(&m_map_lock);
         pthread_rwlock_wrlock(&m_list_lock);
+        m_map.clear();
         m_list.clear();
         pthread_rwlock_unlock(&m_list_lock);
+        pthread_rwlock_unlock(&m_map_lock);
     }
 
-  private:
-    // There is only one path to this function.  It is only ever
-    // called when the map lock is held.
+    /**
+     * Insert a key, value pair into the cache.
+     *
+     * @param key A uri_options_t object.
+     * @param value A locked_dataset.  This will be moved into the cache, so the passed object is invalid after the call.
+     */
     void insert(const uri_options_t &key, locked_dataset &value)
     {
+        pthread_rwlock_wrlock(&m_map_lock);
         pthread_rwlock_wrlock(&m_list_lock);
         map_t::iterator i = m_map.find(key);
         if (i == m_map.end())
@@ -134,19 +154,34 @@ class lru_cache
 
             // insert the new item
             m_list.push_front(key);
-            m_map[key] = std::move(std::make_pair(std::move(value), m_list.begin()));
+            auto value_pair = std::move(std::make_pair(std::move(value), m_list.begin()));
+            m_map.insert({key, value_pair});
         }
         pthread_rwlock_unlock(&m_list_lock);
+        pthread_rwlock_unlock(&m_map_lock);
     }
 
-    // There is only one path to this function.  It is only ever
-    // called when the map lock and list lock are both held.
+  private:
+    /**
+     * Evict the least recently used pair from the cache.
+     */
     void evict()
     {
         // evict item from the end of most recently used list
         list_t::iterator i = --m_list.end();
-        m_map.erase(*i);
-        m_list.erase(i);
+        auto [start, end] = m_map.equal_range(*i);
+        // XXX remove the first unused dataset with the given key.
+        // The oldest one seems to be first, but may not be guranteed
+        // to be.
+        for (auto j = start; j != end; ++j)
+        {
+            if (j->second.first.unused())
+            {
+                m_map.erase(j);
+                m_list.pop_back();
+                break;
+            }
+        }
     }
 
   private:

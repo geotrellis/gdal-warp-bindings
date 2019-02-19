@@ -43,6 +43,6 @@ clean:
 
 cleaner: clean
 	rm -f libgdalwarp_bindings.so
-	rm -f dataset_tests
+	rm -f dataset_tests token_tests cache_tests
 
 cleanest: cleaner

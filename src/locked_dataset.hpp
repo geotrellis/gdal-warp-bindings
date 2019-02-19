@@ -33,20 +33,23 @@ class locked_dataset
   public:
     locked_dataset()
         : p_dataset(nullptr), p_source(nullptr),
-          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options()
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(),
+          m_use_count(0)
     {
     }
 
     locked_dataset(const uri_options_t &uri_options)
         : p_dataset(nullptr), p_source(nullptr),
-          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(uri_options)
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(uri_options),
+          m_use_count(0)
     {
         open();
     }
 
     locked_dataset(const locked_dataset &rhs)
         : p_dataset(nullptr), p_source(nullptr),
-          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(rhs.m_uri_options)
+          m_lock(PTHREAD_MUTEX_INITIALIZER), m_uri_options(rhs.m_uri_options),
+          m_use_count(0)
     {
 #ifdef DEBUG
         fprintf(stderr, "COPY CONSTRUCTOR\n");
@@ -58,7 +61,8 @@ class locked_dataset
         : p_dataset(std::exchange(rhs.p_dataset, nullptr)),
           p_source(std::exchange(rhs.p_source, nullptr)),
           m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
-          m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t()))
+          m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
+          m_use_count(0) // sic
     {
         // XXX not thread safe, but the rhs should always be a
         // just-created local that is not in use.
@@ -147,6 +151,31 @@ class locked_dataset
         return ((p_source != nullptr) && (p_dataset != nullptr));
     }
 
+    /**
+     * Increment the reference count of this dataset.
+     */
+    void inc()
+    {
+        m_use_count++; // XXX atomics?
+    }
+
+    /**
+     * Decrement the reference count of this dataset.
+     */
+    void dec()
+    {
+        m_use_count--; // XXX atomics?
+    }
+
+    /**
+     * Answer "true" only if there are no references to this dataset.
+     * (Notice that there is no "if", only an "only if".)
+     */
+    bool unused()
+    {
+        return (m_use_count == 0); // XXX atomics?
+    }
+
   private:
     void close()
     {
@@ -196,6 +225,7 @@ class locked_dataset
     GDALDatasetH p_source;
     mutable pthread_mutex_t m_lock;
     uri_options_t m_uri_options;
+    int m_use_count;
 };
 
 #endif

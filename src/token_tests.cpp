@@ -21,19 +21,19 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-    const char *options1[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-r", "bilinear",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *options2[] = {
-        "-of", "MEM",
-        "-tap", "-tr", "7", "11",
-        "-t_srs", "epsg:3857",
-        nullptr};
-    const char *uri1 = "geo.tif";
-    const char *uri2 = "geo2.tif";
+const char *options1[] = {
+    "-of", "MEM",
+    "-tap", "-tr", "7", "11",
+    "-r", "bilinear",
+    "-t_srs", "epsg:3857",
+    nullptr};
+const char *options2[] = {
+    "-of", "MEM",
+    "-tap", "-tr", "7", "11",
+    "-t_srs", "epsg:3857",
+    nullptr};
+const char *uri1 = "geo.tif";
+const char *uri2 = "geo2.tif";
 #pragma GCC diagnostic pop
 
 extern "C"
@@ -101,6 +101,44 @@ BOOST_AUTO_TEST_CASE(double_free_test)
     auto token = get_token(uri1, options1);
     surrender_token(token);
     surrender_token(token);
+
+    token_deinit();
+}
+
+namespace std
+{
+std::ostream &operator<<(std::ostream &out, const uri_options_t &rhs)
+{
+    return (out << rhs.first << " " << rhs.second.size());
+}
+} // namespace std
+
+BOOST_AUTO_TEST_CASE(query_test)
+{
+    token_init();
+
+    auto token1 = static_cast<uint64_t>(42);
+    auto actual1 = query_token(token1).has_value();
+    auto expected1 = false;
+    BOOST_TEST(actual1 == expected1);
+
+    auto token2 = get_token(uri1, options1);
+    auto actual2 = query_token(token2).value();
+    auto expected2 = uri_options_t{uri_t{uri1}, options_t{}};
+    for (auto p = options1; *p != nullptr; ++p)
+    {
+        expected2.second.push_back(*p);
+    }
+    BOOST_TEST(actual2 == expected2);
+
+    auto token3 = get_token(uri1, options2);
+    auto actual3 = query_token(token3).value();
+    auto expected3 = std::make_pair(uri_t{uri1}, options_t{});
+    for (auto p = options2; *p != nullptr; ++p)
+    {
+        expected3.second.push_back(*p);
+    }
+    BOOST_TEST(actual3 == expected3);
 
     token_deinit();
 }

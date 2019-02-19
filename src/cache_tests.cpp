@@ -69,10 +69,42 @@ BOOST_AUTO_TEST_CASE(get_different_test)
     BOOST_TEST(cache.size() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(evict_test)
+BOOST_AUTO_TEST_CASE(evict_only_unused_test)
 {
     auto cache = lru_cache(1);
     cache.get(uri_options1);
+    auto v = cache.get(uri_options2);
+    BOOST_TEST(cache.size() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(evict_unused_test)
+{
+    auto cache = lru_cache(1);
+    auto v = cache.get(uri_options1);
+    v[0]->dec();
     cache.get(uri_options2);
     BOOST_TEST(cache.size() == 1);
+}
+
+BOOST_AUTO_TEST_CASE(evict_correct_test)
+{
+    auto cache = lru_cache(1);
+    auto v = cache.get(uri_options1);
+    v[0]->dec();
+    v = cache.get(uri_options2);
+    v[0]->dec();
+    auto p = v[0];
+    v = cache.get(uri_options2);
+    BOOST_TEST(cache.size() == 1);
+    BOOST_TEST(v[0] == p);
+}
+
+BOOST_AUTO_TEST_CASE(non_destructive_get_test)
+{
+    auto cache = lru_cache(4);
+    auto v1 = cache.get(uri_options1);
+    auto v2 = cache.get(uri_options1);
+    auto v3 = cache.get(uri_options1);
+    BOOST_TEST(v1[0] == v2[0]);
+    BOOST_TEST(v2[0] == v3[0]);
 }
