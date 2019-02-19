@@ -1,0 +1,4 @@
+-J-Xmx2G
+-J-Xms1G
+-Djava.awt.headless=true
+-Dsun.io.serialization.extendedDebugInfo=true
