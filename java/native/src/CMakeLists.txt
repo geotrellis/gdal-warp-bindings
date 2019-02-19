@@ -1,11 +1,7 @@
-################################################################
-# A minimal CMake file that is compatible with sbt-jni         #
-#                                                              #
-# All settings required by sbt-jni have been marked so, please #
-# add/modify/remove settings to build your specific library.   #
-################################################################
-
 cmake_minimum_required(VERSION 2.8.0)
+
+set(ignoreMe "${SBT}") # sbt-jni defines -DSBT
+set(MAKE_COLOR_MAKEFILE ON)
 
 # Define project and related variables
 # (required by sbt-jni) please use semantic versioning
@@ -13,13 +9,25 @@ cmake_minimum_required(VERSION 2.8.0)
 project (gdaljni)
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 0)
-set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION_PATCH 1)
+
+if (APPLE)
+  set(CMAKE_MACOSX_RPATH ON)
+  SET(CMAKE_SKIP_BUILD_RPATH TRUE)
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+  SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif ()
 
 # Setup JNI
 find_package(JNI REQUIRED)
 if (JNI_FOUND)
     message (STATUS "JNI include directories: ${JNI_INCLUDE_DIRS}")
 endif()
+
+# Depend on GDAL
+find_package(GDAL REQUIRED)
+
+# !IMPORTANT! We also need to add here your files from the ../src folder
 
 # Include directories
 include_directories(.)
@@ -36,6 +44,6 @@ file(GLOB LIB_SRC
 # Setup installation targets
 # (required by sbt-jni) major version should always be appended to library name
 #
-set (LIB_NAME ${PROJECT_NAME}${PROJECT_VERSION_MAJOR})
+set (LIB_NAME ${PROJECT_NAME}.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR})
 add_library(${LIB_NAME} SHARED ${LIB_SRC})
-install(TARGETS ${LIB_NAME} LIBRARY DESTINATION .)
+install(TARGETS ${LIB_NAME} LIBRARY DESTINATION . OPTIONAL)
