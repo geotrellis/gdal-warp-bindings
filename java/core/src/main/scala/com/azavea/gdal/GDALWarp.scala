@@ -4,7 +4,7 @@ import ch.jodersky.jni.nativeLoader
 
 import java.nio.ByteBuffer
 
-class LockedDataset(val uri: String, val opts: Array[String]) extends Native {
+class GDALWarp(val uri: String, val opts: Array[String]) extends Native {
 
   /**
     * Probably there should be some other metadata methods
@@ -18,7 +18,7 @@ class LockedDataset(val uri: String, val opts: Array[String]) extends Native {
   @native def close(): Unit
 }
 
-@nativeLoader("gdaljni.0.0")
-object LockedDataset {
+@nativeLoader("gdaljni0")
+object GDALWarp {
 
 }

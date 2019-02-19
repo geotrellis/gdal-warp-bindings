@@ -2,16 +2,16 @@
 
 ## Generating JNI templates by having Java interfaces annotated with `@native` notation
 
-In a project `core` create any class that extends `Native` and / or have some 
-`@native` methods. After that do the following: 
+In a project `core` create any class that extends `Native` and / or have some
+`@native` methods. After that do the following:
 
 ```bash
 > ./sbt
 > projet core
-> javah 
+> javah
 ```
 
-`javah` command generates native JNI files in a `native` project. 
+`javah` command generates native JNI files in a `native` project.
 The output files would be placed into the `native/include` directory
 
 ## Generating a CMake sample file for the `native` project
@@ -32,7 +32,7 @@ This section is probably not required for you, as usually I write it manually.
 > nativeCompile
 ```
 
-## Check that everything got cacthed by the `core` project
+## Check that everything got caught by the `core` project
 
 ```bash
 > ./sbt

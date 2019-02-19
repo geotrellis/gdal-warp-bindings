@@ -54,3 +54,4 @@ java/data
 java/*.dylib
 java/*.so
 java/*dll
+java/native/src/include/com_azavea*
