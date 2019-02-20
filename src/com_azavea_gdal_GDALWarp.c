@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include "com_azavea_gdal_GDALWarp.h"
 #include "bindings.h"
 
 const int MAX_OPTIONS = 1 << 10;
+int gc_lock = 0;
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size)
 {
     init(size);
+    gc_lock = (getenv("GDALWARP_GC_LOCK") == NULL);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
@@ -80,10 +83,25 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env,
 {
     int *src_window = (*env)->GetIntArrayElements(env, _src_window, NULL);
     int *dst_window = (*env)->GetIntArrayElements(env, _dst_window, NULL);
-    void *data = (*env)->GetPrimitiveArrayCritical(env, _data, NULL); // GetByteArrayElements?
+    void *data = NULL;
 
+    if (gc_lock)
+    {
+        data = (*env)->GetPrimitiveArrayCritical(env, _data, NULL);
+    }
+    else
+    {
+        data = (*env)->GetByteArrayElements(env, _data, NULL);
+    }
     jboolean retval = read_data(token, src_window, dst_window, band_number, type, data);
-    (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);
+    if (gc_lock)
+    {
+        (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);
+    }
+    else
+    {
+        (*env)->ReleaseByteArrayElements(env, _data, data, 0);
+    }
     (*env)->ReleaseIntArrayElements(env, _dst_window, dst_window, JNI_ABORT);
     (*env)->ReleaseIntArrayElements(env, _src_window, src_window, JNI_ABORT);
 
