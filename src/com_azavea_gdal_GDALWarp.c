@@ -60,6 +60,16 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *en
     surrender_token(token);
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jintArray _width_height)
+{
+    int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
+
+    jboolean retval = get_width_height(token, width_height, width_height + 1);
+    (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
+
+    return retval;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env, jobject obj,
                                                                     jlong token,
                                                                     jintArray _src_window,
@@ -70,7 +80,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env,
 {
     int *src_window = (*env)->GetIntArrayElements(env, _src_window, NULL);
     int *dst_window = (*env)->GetIntArrayElements(env, _dst_window, NULL);
-    void *data = (*env)->GetPrimitiveArrayCritical(env, _data, NULL);
+    void *data = (*env)->GetPrimitiveArrayCritical(env, _data, NULL); // GetByteArrayElements?
 
     jboolean retval = read_data(token, src_window, dst_window, band_number, type, data);
     (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);

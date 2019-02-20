@@ -113,6 +113,20 @@ class locked_dataset
         return true;
     }
 
+    bool get_width_height(int *width, int *height)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+
+        *width = GDALGetRasterXSize(p_dataset);
+        *height = GDALGetRasterYSize(p_dataset);
+        pthread_mutex_unlock(&m_lock);
+
+        return true;
+    }
+
     bool get_pixels(const int src_window[4],
                     int dst_window[2],
                     int band_number,

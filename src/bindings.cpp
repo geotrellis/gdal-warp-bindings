@@ -62,6 +62,37 @@ void deinit()
     token_deinit();
 }
 
+int get_width_height(uint64_t token, int *width, int *height)
+{
+    bool done = false;
+    auto query_result = query_token(token);
+
+    if (query_result.has_value()) // XXX macro
+    {
+        // Attempt to read the data using an existing, unlocked dataset ...
+        auto uri_options = query_result.value();
+        auto locked_datasets = cache->get(uri_options);
+        for (auto ld : locked_datasets) // XXX not clear that one pass is optimal
+        {
+            if (!done && ld->get_width_height(width, height))
+            {
+                done = true;
+            }
+            ld->dec();
+        }
+
+        // ... if there are none, create new one.
+        if (!done)
+        {
+            auto ld = locked_dataset(uri_options);
+            done = ld.get_width_height(width, height);
+            cache->insert(uri_options, ld);
+        }
+    }
+
+    return done;
+}
+
 int read_data(uint64_t token,
               int src_window[4],
               int dst_window[2],
