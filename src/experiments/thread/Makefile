@@ -2,7 +2,7 @@ CFLAGS ?= -Wall -Werror -Og -ggdb3
 CXXFLAGS ?= -std=c++1z
 BOOST_ROOT ?= /usr/include
 
-all: rawthread
+all: rawthread wrapthread
 
 %.o: %.cpp
 	$(CXX) `pkg-config gdal --cflags` $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< -c -o $@
