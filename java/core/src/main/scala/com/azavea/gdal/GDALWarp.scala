@@ -18,7 +18,7 @@ class GDALWarp(val uri: String, val opts: Array[String]) extends Native {
   @native def close(): Unit
 }
 
-@nativeLoader("gdaljni0")
+@nativeLoader("gdaljni.0.0")
 object GDALWarp {
 
 }
