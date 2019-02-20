@@ -1,13 +1,21 @@
 CFLAGS ?= -Wall -Werror -Og -ggdb3
 CXXFLAGS ?= -std=c++1z
 LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
+JAVAC ?= javac
+JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
 GDALCFLAGS = $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 HEADERS = bindings.h types.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
 
-.PHONY: experiments/data
+.PHONY: experiments/data tests
 
-all: libgdalwarp_bindings.so
+all: tests libgdalwarp_bindings.so
+
+com_azavea_gdal_GDALWarp.h: ../jni/src/com/azavea/gdal/GDALWarp.java
+	$(JAVAC) -h . $<
+
+com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c com_azavea_gdal_GDALWarp.h
+	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -fPIC $< -c -o $@
 
 %.o: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
@@ -18,7 +26,7 @@ all: libgdalwarp_bindings.so
 bindings.o: bindings.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -fPIC $< -c -o $@
 
-libgdalwarp_bindings.so: bindings.o tokens.o
+libgdalwarp_bindings.so: bindings.o tokens.o com_azavea_gdal_GDALWarp.o
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 token_tests: token_tests.o tokens.o
@@ -46,3 +54,4 @@ cleaner: clean
 	rm -f dataset_tests token_tests cache_tests
 
 cleanest: cleaner
+	rm -f com_azavea_gdal_GDALWarp.h

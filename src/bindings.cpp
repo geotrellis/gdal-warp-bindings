@@ -66,11 +66,12 @@ int read_data(uint64_t token,
               int src_window[4],
               int dst_window[2],
               int band_number,
-              GDALDataType type,
+              int _type,
               void *data)
 {
     bool done = false;
     auto query_result = query_token(token);
+    auto type = static_cast<GDALDataType>(_type);
 
     if (query_result.has_value())
     {

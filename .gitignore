@@ -10,6 +10,8 @@ src/experiments/thread/wrapthread
 src/dataset_tests
 src/token_tests
 src/cache_tests
+src/com_azavea_gdal_GDALWarp.h
+*.class
 
 # Operating System Files
 

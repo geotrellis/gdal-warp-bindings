@@ -17,7 +17,7 @@
 #ifndef __BINDINGS_H__
 #define __BINDINGS_H__
 
-#include <gdal.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -32,7 +32,7 @@ extern "C"
                   int src_window[4],
                   int dst_window[2],
                   int band_number,
-                  GDALDataType type,
+                  int type,
                   void *data);
 
 #ifdef __cplusplus
