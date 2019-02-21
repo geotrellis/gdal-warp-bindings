@@ -17,7 +17,7 @@
 #ifndef __BINDINGS_H__
 #define __BINDINGS_H__
 
-#include <gdal.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,11 +28,12 @@ extern "C"
     void deinit();
     uint64_t get_token(const char *uri, const char **options);
     void surrender_token(uint64_t token);
+    int get_width_height(uint64_t token, int *width, int *height);
     int read_data(uint64_t token,
                   int src_window[4],
                   int dst_window[2],
                   int band_number,
-                  GDALDataType type,
+                  int type,
                   void *data);
 
 #ifdef __cplusplus

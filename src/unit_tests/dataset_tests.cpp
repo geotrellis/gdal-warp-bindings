@@ -23,7 +23,7 @@
 
 #include "locked_dataset.hpp"
 
-auto uri = uri_t("experiments/data/c41078a1.tif");
+auto uri = uri_t("../experiments/data/c41078a1.tif");
 auto options = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
 auto uri_options = std::make_pair(uri, options);
 
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(get_pixels_test)
     BOOST_TEST(actual == expected);
 }
 
-BOOST_AUTO_TEST_CASE(copy_constructor)
+BOOST_AUTO_TEST_CASE(copy_constructor_test)
 {
     auto ld1 = locked_dataset(uri_options);
     auto ld2 = locked_dataset(ld1);
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(copy_constructor)
     BOOST_TEST(ld2.valid() == true);
 }
 
-BOOST_AUTO_TEST_CASE(move_constructor)
+BOOST_AUTO_TEST_CASE(move_constructor_test)
 {
     auto ld1 = locked_dataset(uri_options);
     auto ld2 = locked_dataset(std::move(ld1));
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(move_constructor)
     BOOST_TEST(ld2.valid() == true);
 }
 
-BOOST_AUTO_TEST_CASE(assignment)
+BOOST_AUTO_TEST_CASE(assignment_test)
 {
     auto ld1 = locked_dataset(uri_options);
     auto ld2 = locked_dataset();
@@ -89,11 +89,22 @@ BOOST_AUTO_TEST_CASE(assignment)
     BOOST_TEST(ld2.valid() == true);
 }
 
-BOOST_AUTO_TEST_CASE(move_assignment)
+BOOST_AUTO_TEST_CASE(move_assignment_test)
 {
     auto ld1 = locked_dataset(uri_options);
     auto ld2 = std::move(ld1);
 
     BOOST_TEST(ld1.valid() == false);
     BOOST_TEST(ld2.valid() == true);
+}
+
+BOOST_AUTO_TEST_CASE(width_height_test)
+{
+    auto ld = locked_dataset(uri_options);
+    int width = -1;
+    int height = -1;
+
+    ld.get_width_height(&width, &height);
+    BOOST_TEST(width == 7319);  // Manually verified (VRT different from raw TIF)
+    BOOST_TEST(height == 5771); // Manually verified (VRT different from raw TIF)
 }

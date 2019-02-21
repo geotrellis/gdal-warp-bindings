@@ -1,9 +1,10 @@
 PORT ?= 8080
 NAME ?= gdal-warp-httpd
 
-.PHONY: httpd-start httpd-stop bench data
+.PHONY: httpd-start httpd-stop thread data
+.SILENT: thread
 
-all: data bin/rawbench
+all: thread
 
 httpd-start:
 	docker run -dit --rm --name $(NAME) -p $(PORT):80 -v $(shell pwd):/usr/local/apache2/htdocs/:ro httpd:2.4
@@ -40,44 +41,37 @@ data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
 
 data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
 
-bench/rawbench:
-	make -C bench
-
 thread/rawthread:
-	make -C thread
+	make -C thread rawthread
 
-bench: bench/rawbench data
-	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt 20
-	$< data/c41078a1-local-remote.vrt 20
-	$< data/c41078a1-local.vrt 20
-	$< data/c41078a1-remote-local.vrt 20
-	$< data/c41078a1-remote-remote.vrt 20
-	$< data/c41078a1-remote.vrt 20
-	$< data/c41078a1.tif 20
-	make -C . httpd-stop
+thread/wrapthread:
+	make -C thread wrapthread
 
-thread: thread/rawthread data
+thread: data thread/rawthread thread/wrapthread
 	make -C . httpd-start
-	$< data/c41078a1-local-local.vrt
-	$< data/c41078a1-local-remote.vrt
-	$< data/c41078a1-local.vrt
-	$< data/c41078a1-remote-local.vrt
-	$< data/c41078a1-remote-remote.vrt
-	$< data/c41078a1-remote.vrt
-	$< data/c41078a1.tif
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1.tif
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-local.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote.vrt
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1.tif
 	make -C . httpd-stop
 
 clean:
-	rm -f data/*.vrt bench/rawbench thread/rawthread
-	make -C bench clean
+	rm -f data/*.vrt thread/rawthread
 	make -C thread clean
 
 cleaner: clean
 	rm -f data/*.tif
-	make -C bench cleaner
 	make -C thread cleaner
 
 cleanest: cleaner
-	make -C bench cleanest
 	make -C thread cleanest

@@ -57,7 +57,7 @@ constexpr int N = (1 << 8);
 constexpr int PATH_LEN = (1 << 6);
 
 // Threads
-int lg_steps = 10;
+int lg_steps = 12;
 pthread_t threads[N];
 
 // Data
@@ -102,8 +102,8 @@ void *reader(void *)
     {
         uint8_t buffer[TILE_SIZE * TILE_SIZE + 1];
         buffer[TILE_SIZE * TILE_SIZE] = 0;
-        auto i = x_dist(generator); i = 7;
-        auto j = y_dist(generator); j = 5;
+        auto i = x_dist(generator);
+        auto j = y_dist(generator);
         int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
         int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 

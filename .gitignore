@@ -7,9 +7,11 @@
 src/experiments/bench/rawbench
 src/experiments/thread/rawthread
 src/experiments/thread/wrapthread
-src/dataset_tests
-src/token_tests
-src/cache_tests
+src/unit_tests/dataset_tests
+src/unit_tests/token_tests
+src/unit_tests/cache_tests
+src/com_azavea_gdal_GDALWarp.h
+*.class
 
 # Operating System Files
 
@@ -47,11 +49,11 @@ README.html
 
 # Test data files #
 
-java/data
+sbt-jni/data
 
 # Compiled libs #
 
-java/*.dylib
-java/*.so
-java/*dll
+sbt-jni/*.dylib
+sbt-jni/*.so
+sbt-jni/*dll
 
