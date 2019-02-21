@@ -21,7 +21,7 @@
 
 #include "lru_cache.hpp"
 
-auto uri1 = uri_t("experiments/data/c41078a1.tif");
+auto uri1 = uri_t("../experiments/data/c41078a1.tif");
 auto options1 = options_t{
     "-of", "MEM",
     "-tap", "-tr", "7", "11",

@@ -23,7 +23,7 @@
 
 #include "locked_dataset.hpp"
 
-auto uri = uri_t("experiments/data/c41078a1.tif");
+auto uri = uri_t("../experiments/data/c41078a1.tif");
 auto options = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
 auto uri_options = std::make_pair(uri, options);
 
@@ -105,6 +105,6 @@ BOOST_AUTO_TEST_CASE(width_height_test)
     int height = -1;
 
     ld.get_width_height(&width, &height);
-    BOOST_TEST(width == 7319);
-    BOOST_TEST(height == 5771);
+    BOOST_TEST(width == 7319);  // Manually verified (VRT different from raw TIF)
+    BOOST_TEST(height == 5771); // Manually verified (VRT different from raw TIF)
 }
