@@ -32,14 +32,19 @@ experiments/data:
 
 tests:
 	make -C unit_tests tests
-	make -C main/java tests
+	make -C main tests
 
 clean:
 	rm -f *.o
+	make -C unit_tests clean
+	make -C main clean
 
 cleaner: clean
 	rm -f libgdalwarp_bindings.$(SO)
-	rm -f dataset_tests token_tests cache_tests
+	make -C unit_tests cleaner
+	make -C main cleaner
 
 cleanest: cleaner
 	rm -f com_azavea_gdal_GDALWarp.h
+	make -C unit_tests cleanest
+	make -C main cleanest

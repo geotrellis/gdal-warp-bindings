@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2019 Azavea
  *
@@ -14,8 +15,7 @@
  * limitations under the License.
  */
 
-package com.azavea.gdal;
-
+import com.azavea.gdal.GDALWarp;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -28,7 +28,13 @@ class GDALWarpThreadTest extends Thread {
 
     private static int[] EXPECTED;
 
-    private static String options[] = { /* */
+    private static String options_small[] = { /* */
+            "-tap", "-tr", "33", "42", /* */
+            "-r", "bilinear", /* */
+            "-t_srs", "epsg:3857" /* */
+    };
+
+    private static String options_large[] = { /* */
             "-tap", "-tr", "5", "7", /* */
             "-r", "bilinear", /* */
             "-t_srs", "epsg:3857" /* */
@@ -59,8 +65,8 @@ class GDALWarpThreadTest extends Thread {
 
             boolean success = GDALWarp.read_data(token, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
             int h = data.hashCode();
-            assert(success == true);
-            assert(h == EXPECTED[i + j * x]);
+            assert (success == true);
+            assert (h == EXPECTED[i + j * x]);
         }
     }
 
@@ -71,8 +77,23 @@ class GDALWarpThreadTest extends Thread {
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
         int[] dst_window = new int[] { TILE_SIZE, TILE_SIZE };
         byte[] data = new byte[TILE_SIZE * TILE_SIZE];
+        boolean large = true;
+        long token;
+    
+        if (args.length > 1 && args[1].equals("small")) {
+            large = false;
+        }
+        else {
+            large = true;
+        }
 
-        long token = GDALWarp.get_token(args[0], options);
+        if (large) {
+            token = GDALWarp.get_token(args[0], options_large);
+        }
+        else {
+            token = GDALWarp.get_token(args[0], options_small);
+            THREADS = 1 << 4;
+        }
 
         GDALWarp.get_width_height(token, width_height);
         int x = (width_height[0] / WINDOW_SIZE) - 1;

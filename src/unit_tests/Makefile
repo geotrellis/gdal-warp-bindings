@@ -20,7 +20,7 @@ tests: ../libgdalwarp_bindings.$(SO) ../experiments/data/c41078a1.tif token_test
 	make -C .. libgdalwarp_bindings.$(SO)
 
 token_tests: token_tests.cpp ../libgdalwarp_bindings.$(SO)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $^ $(LDFLAGS) -lm -o $@
+	$(CXX) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< $(LDFLAGS) -lm -o $@
 
 dataset_tests: dataset_tests.cpp ../libgdalwarp_bindings.$(SO)
 	$(CXX) $(CFLAGS) $(GDALCFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< $(LDFLAGS) -lm -o $@

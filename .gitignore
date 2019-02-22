@@ -12,6 +12,7 @@ src/unit_tests/token_tests
 src/unit_tests/cache_tests
 src/com_azavea_gdal_GDALWarp.h
 src/main/java/cz/adamh/utils/*.java
+*.jar
 *.class
 
 # Operating System Files

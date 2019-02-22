@@ -1,17 +1,23 @@
 JAVA ?= java
 JAVAC ?= javac
+SO ?= so
 
 .PHONY: tests
-.SILENT: tests
+
+gdalwarp.jar: java/resources/libgdalwarp_bindings.$(SO) java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class
+	(cd java ; jar -cvf ../$@ com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*)
+
+../libgdalwarp_bindings.$(SO):
+	make -C .. libgdalwarp_bindings.$(SO)
+
+java/resources/libgdalwarp_bindings.$(SO): ../libgdalwarp_bindings.$(SO)
+	cp -f $< $@
 
 java/com/azavea/gdal/GDALWarp.class: java/com/azavea/gdal/GDALWarp.java java/cz/adamh/utils/NativeUtils.java
 	$(JAVAC) -h .. -cp java $<
 
-%.class: %.java
-	$(JAVAC) -cp java $<
-
-../libgdalwarp_bindings.so:
-	make -C .. libgdalwarp_bindings.so
+GDALWarpThreadTest.class: GDALWarpThreadTest.java gdalwarp.jar
+	$(JAVAC) -cp gdalwarp.jar $<
 
 # MIT-Licensed code (that license is compatible with Apache 2.0)
 java/cz/adamh/utils/NativeUtils.java:
@@ -20,13 +26,14 @@ java/cz/adamh/utils/NativeUtils.java:
 ../experiments/data/c41078a1.tif:
 	make -C ../experiments data/c41078a1.tif
 
-tests: ../libgdalwarp_bindings.so java/com/azavea/gdal/GDALWarp.class java/com/azavea/gdal/GDALWarpThreadTest.class java/cz/adamh/utils/NativeUtils.class ../experiments/data/c41078a1.tif
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.. $(JAVA) -cp java com.azavea.gdal.GDALWarpThreadTest ../experiments/data/c41078a1.tif
+tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif
+	$(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
 
 clean:
-	rm -f java/com/azavedal/*.class java/cz/adamh/utils/*.class
+	rm -f *.class java/cz/adamh/utils/*.class
 
 cleaner: clean
+	rm -f gdalwarp.jar
 
 cleanest: cleaner
 	rm -f java/cz/adamh/utils/NativeUtils.java
