@@ -9,9 +9,9 @@ SO ?= so
 .SILENT: tests
 
 tests: ../libgdalwarp_bindings.$(SO) ../experiments/data/c41078a1.tif token_tests dataset_tests cache_tests
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. token_tests
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. dataset_tests
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. cache_tests
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. ./token_tests
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. ./dataset_tests
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. ./cache_tests
 
 ../experiments/data/c41078a1.tif:
 	make -C ../experiments data/c41078a1.tif

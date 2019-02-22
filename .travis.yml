@@ -1,0 +1,8 @@
+services:
+   docker
+
+before_install:
+   docker pull jamesmcclain/gdal-build-environment:0
+
+script:
+   .travis/tests.sh
