@@ -64,7 +64,7 @@ class GDALWarpThreadTest extends Thread {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         GDALWarp.init(127);
 
         int[] width_height = new int[2];

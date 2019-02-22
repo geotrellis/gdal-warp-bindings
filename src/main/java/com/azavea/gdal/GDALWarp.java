@@ -16,8 +16,12 @@
 
 package com.azavea.gdal;
 
+import cz.adamh.utils.NativeUtils;
+
 class GDALWarp {
-    private static final String GDALWARP_BINDINGS = "gdalwarp_bindings";
+    private static final String GDALWARP_BINDINGS_LIB = "gdalwarp_bindings";
+    private static final String GDALWARP_BINDINGS_RESOURCE_ELF = "/resources/libgdalwarp_bindigns.so";
+    private static final String GDALWARP_BINDINGS_RESOURCE_MACHO = "/resources/libgdalwarp_bindings.dylib";
 
     public static int GDT_Unknown = 0;
     public static int GDT_Byte = 1;
@@ -35,8 +39,35 @@ class GDALWarp {
 
     private static native void _init(int size);
 
-    public static void init(int size) {
-        System.loadLibrary(GDALWARP_BINDINGS);
+    public static void init(int size) throws Exception {
+        boolean so_loaded = false;
+
+        // Try to load shared library from typical location ..
+        try {
+            System.loadLibrary(GDALWARP_BINDINGS_LIB);
+            so_loaded = true;
+        } catch (Exception e) {
+            ;
+        }
+        // Try to load ELF shared object from JAR file ...
+        try {
+            NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ELF);
+            so_loaded = true;
+        } catch (Exception e) {
+            ;
+        }
+        // Try to Load Mach-O shared object from JAR file ...
+        try {
+            NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_MACHO);
+            so_loaded = true;
+        } catch (Exception e) {
+            ;
+        }
+
+        if (so_loaded == false) {
+            throw new Exception("Unable to load shared object.");
+        }
+
         _init(size);
     }
 
