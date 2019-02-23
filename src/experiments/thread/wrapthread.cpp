@@ -120,6 +120,8 @@ void *reader(void *)
 
 int main(int argc, char **argv)
 {
+    int n = N;
+
     if (argc < 2)
     {
         exit(-1);
@@ -127,6 +129,17 @@ int main(int argc, char **argv)
     if (argc >= 3)
     {
         sscanf(argv[2], "%d", &lg_steps);
+        fprintf(stderr, ANSI_COLOR_BLUE "lg_steps = %d\n" ANSI_COLOR_RESET, lg_steps);
+    }
+    if (argc >= 4)
+    {
+        sscanf(argv[3], "%d", &n);
+        n = (1 << n);
+        if (n > N)
+        {
+            n = N;
+        }
+        fprintf(stderr, ANSI_COLOR_BLUE "n = %d\n" ANSI_COLOR_RESET, n);
     }
 
     // Initialize
@@ -192,11 +205,11 @@ int main(int argc, char **argv)
         t::auto_cpu_timer timer;
 
         fprintf(stdout, ANSI_COLOR_GREEN "ACTUAL RESULTS\n" ANSI_COLOR_RESET);
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < n; ++i)
         {
             assert(pthread_create(&threads[i], nullptr, reader, 0) == 0);
         }
-        for (int i = 0; i < N; ++i)
+        for (int i = 0; i < n; ++i)
         {
             assert(pthread_join(threads[i], nullptr) == 0);
             fprintf(stdout, ANSI_COLOR_MAGENTA "." ANSI_COLOR_RESET);
