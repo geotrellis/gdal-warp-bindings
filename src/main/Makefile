@@ -36,4 +36,3 @@ cleaner: clean
 	rm -f gdalwarp.jar
 
 cleanest: cleaner
-	rm -f java/cz/adamh/utils/NativeUtils.java
