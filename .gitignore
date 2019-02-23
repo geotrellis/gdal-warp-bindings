@@ -11,6 +11,7 @@ src/unit_tests/dataset_tests
 src/unit_tests/token_tests
 src/unit_tests/cache_tests
 src/com_azavea_gdal_GDALWarp.h
+*.jar
 *.class
 
 # Operating System Files
