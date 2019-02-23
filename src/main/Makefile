@@ -34,5 +34,6 @@ clean:
 
 cleaner: clean
 	rm -f gdalwarp.jar
+	rm -f java/resources/libgdalwarp_bindings.$(SO)
 
 cleanest: cleaner
