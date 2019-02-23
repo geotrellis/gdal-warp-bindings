@@ -36,6 +36,36 @@ typedef lru_cache cache_t;
 
 cache_t *cache = nullptr;
 
+#define ATTEMPT(fn)                 \
+    for (auto ld : locked_datasets) \
+    {                               \
+        if (!done && ld->fn)        \
+        {                           \
+            done = true;            \
+        }                           \
+        ld->dec();                  \
+    }
+
+#define CREATE(fn)                             \
+    {                                          \
+        auto ld = locked_dataset(uri_options); \
+        done = ld.fn;                          \
+        cache->insert(uri_options, ld);        \
+    }
+
+#define ATTEMPT_CREATE(fn)                              \
+    bool done = false;                                  \
+    auto query_result = query_token(token);             \
+    if (query_result.has_value())                       \
+    {                                                   \
+        auto uri_options = query_result.value();        \
+        auto locked_datasets = cache->get(uri_options); \
+        ATTEMPT(fn)                                     \
+        if (!done)                                      \
+            CREATE(fn)                                  \
+    }                                                   \
+    return done;
+
 void init(int size)
 {
     deinit();
@@ -64,33 +94,7 @@ void deinit()
 
 int get_width_height(uint64_t token, int *width, int *height)
 {
-    bool done = false;
-    auto query_result = query_token(token);
-
-    if (query_result.has_value()) // XXX macro
-    {
-        // Attempt to read the data using an existing, unlocked dataset ...
-        auto uri_options = query_result.value();
-        auto locked_datasets = cache->get(uri_options);
-        for (auto ld : locked_datasets) // XXX not clear that one pass is optimal
-        {
-            if (!done && ld->get_width_height(width, height))
-            {
-                done = true;
-            }
-            ld->dec();
-        }
-
-        // ... if there are none, create new one.
-        if (!done)
-        {
-            auto ld = locked_dataset(uri_options);
-            done = ld.get_width_height(width, height);
-            cache->insert(uri_options, ld);
-        }
-    }
-
-    return done;
+    ATTEMPT_CREATE(get_width_height(width, height))
 }
 
 int read_data(uint64_t token,
@@ -100,32 +104,6 @@ int read_data(uint64_t token,
               int _type,
               void *data)
 {
-    bool done = false;
-    auto query_result = query_token(token);
     auto type = static_cast<GDALDataType>(_type);
-
-    if (query_result.has_value())
-    {
-        // Attempt to read the data using an existing, unlocked dataset ...
-        auto uri_options = query_result.value();
-        auto locked_datasets = cache->get(uri_options);
-        for (auto ld : locked_datasets) // XXX not clear that one pass is optimal
-        {
-            if (!done && ld->get_pixels(src_window, dst_window, band_number, type, data))
-            {
-                done = true;
-            }
-            ld->dec();
-        }
-
-        // ... if there are none, create new one.
-        if (!done)
-        {
-            auto ld = locked_dataset(uri_options);
-            done = ld.get_pixels(src_window, dst_window, band_number, type, data);
-            cache->insert(uri_options, ld);
-        }
-    }
-
-    return done;
+    ATTEMPT_CREATE(get_pixels(src_window, dst_window, band_number, type, data))
 }
