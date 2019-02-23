@@ -25,7 +25,7 @@ int gc_lock = 0;
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size)
 {
     init(size);
-    gc_lock = (getenv("GDALWARP_GC_LOCK") == NULL);
+    gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
