@@ -7,4 +7,8 @@ RUN apt-get update -q && \
     apt-get autoclean && \
     apt-get clean
 
+RUN wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O /tmp/c41078a1.tif
+
 WORKDIR /usr/local/src
+
+# docker build -f Dockerfile -t jamesmcclain/gdal-build-environment:1 .
