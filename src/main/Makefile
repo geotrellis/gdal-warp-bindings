@@ -28,12 +28,13 @@ java/cz/adamh/utils/NativeUtils.java:
 
 tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif
 	$(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
+	GDALWARP_GC_LOCK=1 $(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
 
 clean:
 	rm -f *.class java/cz/adamh/utils/*.class
 
 cleaner: clean
 	rm -f gdalwarp.jar
+	rm -f java/resources/libgdalwarp_bindings.$(SO)
 
 cleanest: cleaner
-	rm -f java/cz/adamh/utils/NativeUtils.java

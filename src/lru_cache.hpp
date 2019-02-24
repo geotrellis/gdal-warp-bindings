@@ -104,16 +104,20 @@ class lru_cache
                 m_map.insert({key, value_pair});
 
                 // return the value
-                value.inc();
-                return_list.push_back(&value);
+                if (value.inc())
+                {
+                    return_list.push_back(&value);
+                }
             }
             else
             {
                 // the item is already at the front of the most recently
                 // used list so just return it
                 locked_dataset &value = i->second.first;
-                value.inc();
-                return_list.push_back(&value);
+                if (value.inc())
+                {
+                    return_list.push_back(&value);
+                }
             }
         }
         pthread_rwlock_unlock(&m_list_lock);
@@ -172,7 +176,7 @@ class lru_cache
         auto [start, end] = m_map.equal_range(*i);
         // XXX remove the first unused dataset with the given key.
         // The oldest one seems to be first, but may not be guranteed
-        // to be.
+        // to be.  Should probably prefer removing the newest one.
         for (auto j = start; j != end; ++j)
         {
             if (j->second.first.unused())

@@ -1,7 +1,7 @@
 PORT ?= 8080
 NAME ?= gdal-warp-httpd
 
-.PHONY: httpd-start httpd-stop thread data
+.PHONY: httpd-start httpd-stop thread data thread/rawthread thread/wrapthread
 .SILENT: thread
 
 all: thread
@@ -49,20 +49,20 @@ thread/wrapthread:
 
 thread: data thread/rawthread thread/wrapthread
 	make -C . httpd-start
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1.tif
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-local.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote.vrt
-	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1.tif
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-local.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-remote.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-local.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote-remote.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-remote.vrt
+	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1.tif
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-local.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local-remote.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-local.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-local.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-remote.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote.vrt 12 10
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1.tif 12 10
 	make -C . httpd-stop
 
 clean:
