@@ -107,6 +107,12 @@ class locked_dataset
         close();
     }
 
+    /**
+     * Get the transform of the underlying warped dataset.
+     *
+     * @param transform The return-location of the transform
+     * @return A boolean: True iff the operation succeeded
+     */
     bool get_transform(double transform[6]) const
     {
         if (pthread_mutex_trylock(&m_lock) != 0)
@@ -118,6 +124,13 @@ class locked_dataset
         return true;
     }
 
+    /**
+     * Get the width and height of the underlying warped dataset.
+     *
+     * @param width The return-location for the width
+     * @param height The return-location for the height
+     * @return A boolean: True iff the operation succeed
+     */
     bool get_width_height(int *width, int *height)
     {
         if (pthread_mutex_trylock(&m_lock) != 0)
@@ -132,6 +145,22 @@ class locked_dataset
         return true;
     }
 
+    /**
+     * Read pixels from the underlying dataset.  This is more-or-less
+     * a direct wrapper of the GDALRasterIO function, so see
+     * https://www.gdal.org/gdal_8h.html#afb94984e55f110ec5346fc7ab6a139ef
+     * for more information.
+     *
+     * @param src_window The pixel-space coordinates of the upper-left
+     *                   corner of the source window (the first two
+     *                   entries) and the width and height of the
+     *                   source window (the last two entries)
+     * @param dst_window The width and height of the destination buffer
+     * @param band_number The band from which to read
+     * @param type The datatype of the destination buffer
+     * @param data A pointer to the destination buffer
+     * @return A boolean: True iff the read succeeded
+     */
     bool get_pixels(const int src_window[4],
                     int dst_window[2],
                     int band_number,
@@ -159,7 +188,7 @@ class locked_dataset
 
         if (retval != CE_None)
         {
-            throw std::exception(); // XXX just make invalid?
+            return false;
         }
 
         return true;
@@ -172,6 +201,8 @@ class locked_dataset
 
     /**
      * Increment the reference count of this dataset.
+     *
+     * @return A boolean which is true iff the increment succeeded
      */
     bool inc()
     {
@@ -195,6 +226,8 @@ class locked_dataset
 
     /**
      * Answer "true" iff this dataset is unused and safe to delete.
+     *
+     * @return A boolean meeting the above description
      */
     bool unused()
     {
@@ -209,22 +242,10 @@ class locked_dataset
     }
 
   private:
-    void close()
-    {
-        pthread_mutex_lock(&m_lock);
-        if (p_dataset != nullptr)
-        {
-            GDALClose(p_dataset);
-            p_dataset = nullptr;
-        }
-        if (p_source != nullptr)
-        {
-            GDALClose(p_source);
-            p_source = nullptr;
-        }
-        pthread_mutex_unlock(&m_lock);
-    }
-
+    /**
+     * A function to open a GDAL dataset answering the given warp
+     * options.  Should only be called from constructors.
+     */
     void open()
     {
         pthread_mutex_lock(&m_lock);
@@ -244,10 +265,47 @@ class locked_dataset
             options_array[i++] = "VRT";
             options_array[i++] = nullptr;
             app_options = GDALWarpAppOptionsNew(const_cast<char **>(options_array), nullptr);
+            if (app_options == nullptr)
+            {
+                // Lock intentionally not unlocked.  The underlying
+                // dataset is not valid, so prevent this wrapper from
+                // being used.
+                return;
+            }
 
             p_source = GDALOpen(uri.c_str(), GA_ReadOnly);
+            if (p_source == nullptr)
+            {
+                return; // Lock intentionally not unlocked
+            }
+
             p_dataset = GDALWarp("/dev/null", nullptr, 1, &p_source, app_options, 0);
+            if (p_dataset == nullptr)
+            {
+                return; // Lock intentionally not unlocked
+            }
+
             GDALWarpAppOptionsFree(app_options);
+        }
+        pthread_mutex_unlock(&m_lock);
+    }
+
+    /**
+     * A function to close the datasets wrapped by this object.
+     * Should only be called in moves or the destrucdtor.
+     */
+    void close()
+    {
+        pthread_mutex_lock(&m_lock);
+        if (p_dataset != nullptr)
+        {
+            GDALClose(p_dataset);
+            p_dataset = nullptr;
+        }
+        if (p_source != nullptr)
+        {
+            GDALClose(p_source);
+            p_source = nullptr;
         }
         pthread_mutex_unlock(&m_lock);
     }
