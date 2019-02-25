@@ -37,14 +37,16 @@
 // Strings
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-char *expected_options[] = {
+const char * xres = "5";
+const char * yres = "7";
+char const *expected_options[] = {
     "-of", "VRT",
-    "-tap", "-tr", "5", "7",
+    "-tap", "-tr", xres, yres,
     "-r", "bilinear",
     "-t_srs", "epsg:3857",
     nullptr};
-char *actual_options[] = {
-    "-tap", "-tr", "5", "7",
+char const *actual_options[] = {
+    "-tap", "-tr", xres, yres,
     "-r", "bilinear",
     "-t_srs", "epsg:3857",
     nullptr};
@@ -53,7 +55,7 @@ char *actual_options[] = {
 // Constants
 constexpr int WINDOW_SIZE = (1 << 8);
 constexpr int TILE_SIZE = (1 << 8);
-constexpr int N = (1 << 8);
+constexpr int N = (1 << 10);
 constexpr int PATH_LEN = (1 << 6);
 
 // Threads
@@ -107,15 +109,32 @@ void *reader(void *)
         int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
         int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 
-        if (read_data(token, src_window, dst_window, 1, GDT_Byte, buffer))
+        if (read_data(token, 0, src_window, dst_window, 1, GDT_Byte, buffer))
         {
             auto s = std::string(reinterpret_cast<char *>(buffer));
             auto h = hash(s);
             assert(h == expected[i + j * x]);
         }
+        else
+        {
+            assert(false);
+        }
     }
 
     return nullptr;
+}
+
+bool keep_going = true;
+
+void *leaker(void *argv1)
+{
+    auto source = GDALOpen(static_cast<const char *>(argv1), GA_ReadOnly);
+    auto dataset = GDALWarp("/dev/null", nullptr, 1, &source, app_options, 0);
+    while (keep_going)
+    {
+        sleep(1);
+    }
+    return dataset;
 }
 
 int main(int argc, char **argv)
@@ -134,10 +153,13 @@ int main(int argc, char **argv)
     if (argc >= 4)
     {
         sscanf(argv[3], "%d", &n);
-        n = (1 << n);
         if (n > N)
         {
             n = N;
+        }
+        else if (n < -N)
+        {
+            n = -N;
         }
         fprintf(stderr, ANSI_COLOR_BLUE "n = %d\n" ANSI_COLOR_RESET, n);
     }
@@ -146,7 +168,7 @@ int main(int argc, char **argv)
     GDALAllRegister();
 
     // Setup
-    app_options = GDALWarpAppOptionsNew(expected_options, nullptr);
+    app_options = GDALWarpAppOptionsNew(const_cast<char **>(expected_options), nullptr);
     source = GDALOpen(argv[1], GA_ReadOnly);
     {
         t::auto_cpu_timer timer;
@@ -197,26 +219,48 @@ int main(int argc, char **argv)
     // Cleanup
     GDALClose(dataset);
     GDALClose(source);
-    GDALWarpAppOptionsFree(app_options);
 
-    init(1 << 7);
+    init(1 << 8);
     token = get_token(argv[1], const_cast<const char **>(actual_options));
     {
         t::auto_cpu_timer timer;
 
         fprintf(stdout, ANSI_COLOR_GREEN "ACTUAL RESULTS\n" ANSI_COLOR_RESET);
-        for (int i = 0; i < n; ++i)
+        if (n > 0)
         {
-            assert(pthread_create(&threads[i], nullptr, reader, 0) == 0);
+            for (int i = 0; i < n; ++i)
+            {
+                assert(pthread_create(&threads[i], nullptr, reader, 0) == 0);
+            }
+            for (int i = 0; i < n; ++i)
+            {
+                assert(pthread_join(threads[i], nullptr) == 0);
+                fprintf(stdout, ANSI_COLOR_MAGENTA "." ANSI_COLOR_RESET);
+            }
+            fprintf(stdout, "\n");
         }
-        for (int i = 0; i < n; ++i)
+        else
         {
-            assert(pthread_join(threads[i], nullptr) == 0);
-            fprintf(stdout, ANSI_COLOR_MAGENTA "." ANSI_COLOR_RESET);
+            // Leak some datasets
+            for (int i = 0; i < -n; ++i)
+            {
+                fprintf(stderr, ANSI_COLOR_RED "?" ANSI_COLOR_RESET);
+                assert(pthread_create(&threads[i], nullptr, leaker, argv[1]) == 0);
+            }
+            fprintf(stderr, "\n");
+            reader(nullptr);
+            keep_going = false;
+            for (int i = 0; i < -n; ++i)
+            {
+                assert(pthread_join(threads[i], nullptr) == 0);
+                fprintf(stderr, ANSI_COLOR_BLUE "?" ANSI_COLOR_RESET);
+            }
+            fprintf(stderr, "\n");
         }
-        fprintf(stdout, "\n");
     }
+
     surrender_token(token);
+    GDALWarpAppOptionsFree(app_options);
 
     return 0;
 }
