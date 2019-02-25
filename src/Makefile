@@ -13,7 +13,7 @@ HEADERS = bindings.h types.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
 all: tests libgdalwarp_bindings.$(SO)
 
 com_azavea_gdal_GDALWarp.h: main/java/com/azavea/gdal/GDALWarp.java
-	make -BC main java/com/azavea/gdal/GDALWarp.class
+	make -C main java/com/azavea/gdal/GDALWarp.class
 
 com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c com_azavea_gdal_GDALWarp.h
 	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
@@ -36,15 +36,18 @@ tests: libgdalwarp_bindings.$(SO)
 
 clean:
 	rm -f *.o
+	make -C experiments clean
 	make -C unit_tests clean
 	make -C main clean
 
 cleaner: clean
 	rm -f libgdalwarp_bindings.$(SO)
+	make -C experiments cleaner
 	make -C unit_tests cleaner
 	make -C main cleaner
 
 cleanest: cleaner
 	rm -f com_azavea_gdal_GDALWarp.h
+	make -C experiments cleanest
 	make -C unit_tests cleanest
 	make -C main cleanest

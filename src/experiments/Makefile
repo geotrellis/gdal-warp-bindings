@@ -70,8 +70,8 @@ clean:
 	make -C thread clean
 
 cleaner: clean
-	rm -f data/*.tif
 	make -C thread cleaner
 
 cleanest: cleaner
+	rm -f data/*.tif
 	make -C thread cleanest
