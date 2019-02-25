@@ -29,10 +29,28 @@ auto options1 = options_t{
     "-t_srs", "epsg:3857"};
 auto options2 = options_t{
     "-of", "MEM",
-    "-tap", "-tr", "7", "11",
+    "-tap", "-tr", "33", "42",
+    "-t_srs", "epsg:3857"};
+auto options3 = options_t{
+    "-of", "MEM",
+    "-tap", "-tr", "1013", "1307",
     "-t_srs", "epsg:3857"};
 auto uri_options1 = uri_options_t{uri1, options1};
 auto uri_options2 = uri_options_t{uri1, options2};
+auto uri_options3 = uri_options_t{uri1, options3};
+
+namespace std
+{
+std::ostream &operator<<(std::ostream &out, const uri_options_t &rhs)
+{
+    return (out << "uri_options_t");
+}
+
+std::ostream &operator<<(std::ostream &out, const locked_dataset &rhs)
+{
+    return (out << "locked_dataset_t");
+}
+} // namespace std
 
 BOOST_AUTO_TEST_CASE(init)
 {
@@ -69,12 +87,14 @@ BOOST_AUTO_TEST_CASE(get_different_test)
     BOOST_TEST(cache.size() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(evict_only_unused_test)
+BOOST_AUTO_TEST_CASE(enforce_capacity_limit_test)
 {
     auto cache = lru_cache(1);
     cache.get(uri_options1);
-    auto v = cache.get(uri_options2);
-    BOOST_TEST(cache.size() == 2);
+    cache.get(uri_options2);
+    BOOST_TEST(cache.size() == 1);
+    BOOST_TEST(cache.count(uri_options1) == 1);
+    BOOST_TEST(cache.count(uri_options2) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(evict_unused_test)
@@ -84,19 +104,22 @@ BOOST_AUTO_TEST_CASE(evict_unused_test)
     v[0]->dec();
     cache.get(uri_options2);
     BOOST_TEST(cache.size() == 1);
+    BOOST_TEST(cache.count(uri_options1) == 0);
+    BOOST_TEST(cache.count(uri_options2) == 1);
 }
 
 BOOST_AUTO_TEST_CASE(evict_correct_test)
 {
-    auto cache = lru_cache(1);
+    auto cache = lru_cache(2);
     auto v = cache.get(uri_options1);
     v[0]->dec();
     v = cache.get(uri_options2);
     v[0]->dec();
-    auto p = v[0];
-    v = cache.get(uri_options2);
-    BOOST_TEST(cache.size() == 1);
-    BOOST_TEST(v[0] == p);
+    cache.get(uri_options3);
+    BOOST_TEST(cache.size() == 2);
+    BOOST_TEST(cache.count(uri_options1) == 0);
+    BOOST_TEST(cache.count(uri_options2) == 1);
+    BOOST_TEST(cache.count(uri_options3) == 1);
 }
 
 BOOST_AUTO_TEST_CASE(non_destructive_get_test)
@@ -105,6 +128,9 @@ BOOST_AUTO_TEST_CASE(non_destructive_get_test)
     auto v1 = cache.get(uri_options1);
     auto v2 = cache.get(uri_options1);
     auto v3 = cache.get(uri_options1);
+    auto v4 = cache.get(uri_options1);
     BOOST_TEST(v1[0] == v2[0]);
     BOOST_TEST(v2[0] == v3[0]);
+    BOOST_TEST(v3[0] == v4[0]);
+    BOOST_TEST(cache.size() == 1);
 }
