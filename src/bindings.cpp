@@ -66,6 +66,17 @@ cache_t *cache = nullptr;
     }                                                   \
     return done;
 
+#define ATTEMPT_NOCREATE(fn)                            \
+    bool done = false;                                  \
+    auto query_result = query_token(token);             \
+    if (query_result.has_value())                       \
+    {                                                   \
+        auto uri_options = query_result.value();        \
+        auto locked_datasets = cache->get(uri_options); \
+        ATTEMPT(fn)                                     \
+    }                                                   \
+    return done;
+
 void init(int size)
 {
     deinit();
@@ -94,7 +105,7 @@ void deinit()
 
 int get_width_height(uint64_t token, int *width, int *height)
 {
-    ATTEMPT_CREATE(get_width_height(width, height))
+    ATTEMPT_NOCREATE(get_width_height(width, height))
 }
 
 int read_data(uint64_t token,
@@ -105,5 +116,5 @@ int read_data(uint64_t token,
               void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
-    ATTEMPT_CREATE(get_pixels(src_window, dst_window, band_number, type, data))
+    ATTEMPT_NOCREATE(get_pixels(src_window, dst_window, band_number, type, data))
 }

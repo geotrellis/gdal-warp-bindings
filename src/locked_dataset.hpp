@@ -231,7 +231,7 @@ class locked_dataset
      */
     bool unused()
     {
-        if (pthread_rwlock_trywrlock(&m_use_count) != 0)
+        if (pthread_rwlock_trywrlock(&m_use_count) != 0 && valid())
         {
             return false;
         }
@@ -270,18 +270,21 @@ class locked_dataset
                 // Lock intentionally not unlocked.  The underlying
                 // dataset is not valid, so prevent this wrapper from
                 // being used.
+                p_source = p_dataset = nullptr;
                 return;
             }
 
             p_source = GDALOpen(uri.c_str(), GA_ReadOnly);
             if (p_source == nullptr)
             {
+                p_source = p_dataset = nullptr;
                 return; // Lock intentionally not unlocked
             }
 
             p_dataset = GDALWarp("/dev/null", nullptr, 1, &p_source, app_options, 0);
             if (p_dataset == nullptr)
             {
+                p_source = p_dataset = nullptr;
                 return; // Lock intentionally not unlocked
             }
 

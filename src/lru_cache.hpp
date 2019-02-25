@@ -29,7 +29,8 @@ class lru_cache
     lru_cache(size_t capacity)
         : m_capacity(capacity),
           m_map_lock(PTHREAD_RWLOCK_INITIALIZER),
-          m_list_lock(PTHREAD_RWLOCK_INITIALIZER)
+          m_list_lock(PTHREAD_RWLOCK_INITIALIZER),
+          m_creation_lock(PTHREAD_MUTEX_INITIALIZER)
     {
     }
 
@@ -74,12 +75,18 @@ class lru_cache
         pthread_rwlock_rdlock(&m_map_lock);
         {
             map_t::iterator i = m_map.find(key);
-            if (i == m_map.end())
+            if ((i == m_map.end()) && (size() < capacity()))
             {
-                // value not in cache
-                auto value = locked_dataset(key);
                 pthread_rwlock_unlock(&m_map_lock);
-                insert(key, value);
+
+                // value not in cache
+                pthread_mutex_lock(&m_creation_lock);
+                if (size() < capacity())
+                {
+                    auto value = locked_dataset(key);
+                    insert(key, value);
+                }
+                pthread_mutex_unlock(&m_creation_lock);
                 pthread_rwlock_rdlock(&m_map_lock);
             }
         }
@@ -136,6 +143,7 @@ class lru_cache
         pthread_rwlock_unlock(&m_map_lock);
     }
 
+  private:
     /**
      * Insert a key, value pair into the cache.
      *
@@ -165,7 +173,6 @@ class lru_cache
         pthread_rwlock_unlock(&m_map_lock);
     }
 
-  private:
     /**
      * Evict the least recently used pair from the cache.
      */
@@ -194,6 +201,7 @@ class lru_cache
     size_t m_capacity;
     pthread_rwlock_t m_map_lock;
     pthread_rwlock_t m_list_lock;
+    pthread_mutex_t m_creation_lock;
 };
 
 #endif // BOOST_COMPUTE_DETAIL_LRU_CACHE_HPP
