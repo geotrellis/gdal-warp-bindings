@@ -38,7 +38,7 @@ class lru_cache
     {
     }
 
-    size_t size()
+    size_t size() const
     {
         pthread_rwlock_rdlock(&m_map_lock);
         auto retval = m_map.size();
@@ -46,12 +46,12 @@ class lru_cache
         return retval;
     }
 
-    size_t capacity()
+    size_t capacity() const
     {
         return m_capacity;
     }
 
-    bool empty()
+    bool empty() const
     {
         pthread_rwlock_wrlock(&m_map_lock);
         auto retval = m_map.empty();
@@ -59,10 +59,18 @@ class lru_cache
         return retval;
     }
 
-    bool contains(const uri_options_t &key)
+    bool contains(const uri_options_t &key) const
     {
         pthread_rwlock_rdlock(&m_map_lock);
         auto retval = m_map.find(key) != m_map.end();
+        pthread_rwlock_unlock(&m_map_lock);
+        return retval;
+    }
+
+    int count(const uri_options_t &key) const
+    {
+        pthread_rwlock_rdlock(&m_map_lock);
+        auto retval = m_map.count(key);
         pthread_rwlock_unlock(&m_map_lock);
         return retval;
     }
@@ -75,13 +83,13 @@ class lru_cache
         pthread_rwlock_rdlock(&m_map_lock);
         {
             map_t::iterator i = m_map.find(key);
-            if ((i == m_map.end()) && (size() < capacity()))
+            if ((i == m_map.end()) && (size() <= capacity()))
             {
                 pthread_rwlock_unlock(&m_map_lock);
 
                 // value not in cache
                 pthread_mutex_lock(&m_creation_lock);
-                if (size() < capacity())
+                if (size() <= capacity())
                 {
                     auto value = locked_dataset(key);
                     insert(key, value);
@@ -154,17 +162,16 @@ class lru_cache
     {
         pthread_rwlock_wrlock(&m_map_lock);
         pthread_rwlock_wrlock(&m_list_lock);
-        map_t::iterator i = m_map.find(key);
-        if (i == m_map.end())
-        {
-            // insert item into the cache, but first check if it is full
-            if (m_map.size() >= m_capacity)
-            {
-                // cache is full, evict the least recently used item
-                evict();
-            }
 
-            // insert the new item
+        // cache is full, evict (one of) the least recently used items
+        if (m_map.size() >= m_capacity)
+        {
+            evict();
+        }
+
+        // insert the new item (if there is room)
+        if (m_map.size() < m_capacity)
+        {
             m_list.push_front(key);
             auto value_pair = std::move(std::make_pair(std::move(value), m_list.begin()));
             m_map.insert({key, value_pair});
@@ -199,9 +206,9 @@ class lru_cache
     map_t m_map;
     list_t m_list;
     size_t m_capacity;
-    pthread_rwlock_t m_map_lock;
-    pthread_rwlock_t m_list_lock;
-    pthread_mutex_t m_creation_lock;
+    mutable pthread_rwlock_t m_map_lock;
+    mutable pthread_rwlock_t m_list_lock;
+    mutable pthread_mutex_t m_creation_lock;
 };
 
 #endif // BOOST_COMPUTE_DETAIL_LRU_CACHE_HPP

@@ -102,6 +102,11 @@ class locked_dataset
         // just-created local that is not in use.
     }
 
+    bool operator==(const uri_options_t &rhs) const
+    {
+        return (m_uri_options == rhs);
+    }
+
     ~locked_dataset()
     {
         close();
