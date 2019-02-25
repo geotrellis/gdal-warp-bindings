@@ -23,6 +23,7 @@
 #include <map>
 #include <vector>
 
+#include <unistd.h>
 #include <pthread.h>
 #include <gdal.h>
 
@@ -36,7 +37,7 @@ typedef lru_cache cache_t;
 
 cache_t *cache = nullptr;
 
-#define ATTEMPT(fn)                 \
+#define TRY(fn)                     \
     for (auto ld : locked_datasets) \
     {                               \
         if (!done && ld->fn)        \
@@ -46,35 +47,19 @@ cache_t *cache = nullptr;
         ld->dec();                  \
     }
 
-#define CREATE(fn)                             \
-    {                                          \
-        auto ld = locked_dataset(uri_options); \
-        done = ld.fn;                          \
-        cache->insert(uri_options, ld);        \
-    }
-
-#define ATTEMPT_CREATE(fn)                              \
-    bool done = false;                                  \
-    auto query_result = query_token(token);             \
-    if (query_result.has_value())                       \
-    {                                                   \
-        auto uri_options = query_result.value();        \
-        auto locked_datasets = cache->get(uri_options); \
-        ATTEMPT(fn)                                     \
-        if (!done)                                      \
-            CREATE(fn)                                  \
-    }                                                   \
-    return done;
-
-#define ATTEMPT_NOCREATE(fn)                            \
-    bool done = false;                                  \
-    auto query_result = query_token(token);             \
-    if (query_result.has_value())                       \
-    {                                                   \
-        auto uri_options = query_result.value();        \
-        auto locked_datasets = cache->get(uri_options); \
-        ATTEMPT(fn)                                     \
-    }                                                   \
+#define DOIT(fn)                                                       \
+    bool done = false;                                                 \
+    auto query_result = query_token(token);                            \
+    if (query_result.has_value())                                      \
+    {                                                                  \
+        auto uri_options = query_result.value();                       \
+        for (int i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
+        {                                                              \
+            auto locked_datasets = cache->get(uri_options);            \
+            TRY(fn)                                                    \
+            usleep(1 << i);                                            \
+        }                                                              \
+    }                                                                  \
     return done;
 
 void init(int size)
@@ -103,12 +88,13 @@ void deinit()
     token_deinit();
 }
 
-int get_width_height(uint64_t token, int *width, int *height)
+int get_width_height(uint64_t token, int attempts, int *width, int *height)
 {
-    ATTEMPT_NOCREATE(get_width_height(width, height))
+    DOIT(get_width_height(width, height))
 }
 
 int read_data(uint64_t token,
+              int attempts,
               int src_window[4],
               int dst_window[2],
               int band_number,
@@ -116,5 +102,5 @@ int read_data(uint64_t token,
               void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
-    ATTEMPT_NOCREATE(get_pixels(src_window, dst_window, band_number, type, data))
+    DOIT(get_pixels(src_window, dst_window, band_number, type, data))
 }

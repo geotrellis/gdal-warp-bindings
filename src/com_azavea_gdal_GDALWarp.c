@@ -67,7 +67,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *
 {
     int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 
-    jboolean retval = get_width_height(token, width_height, width_height + 1);
+    jboolean retval = get_width_height(token, 0, width_height, width_height + 1);
     (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
 
     return retval;
@@ -93,7 +93,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env,
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jboolean retval = read_data(token, src_window, dst_window, band_number, type, data);
+    jboolean retval = read_data(token, 0, src_window, dst_window, band_number, type, data);
     if (gc_lock)
     {
         (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);
