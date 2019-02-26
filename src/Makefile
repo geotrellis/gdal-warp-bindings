@@ -8,7 +8,6 @@ OS ?= linux
 SO ?= so
 HEADERS = bindings.h types.hpp cache.hpp locked_dataset.hpp tokens.hpp
 
-.PHONY: tests
 
 all: tests libgdalwarp_bindings.$(SO)
 
@@ -41,13 +40,12 @@ clean:
 	make -C main clean
 
 cleaner: clean
-	rm -f libgdalwarp_bindings.$(SO)
+	rm -f libgdalwarp_bindings.$(SO) com_azavea_gdal_GDALWarp.h
 	make -C experiments cleaner
 	make -C unit_tests cleaner
 	make -C main cleaner
 
 cleanest: cleaner
-	rm -f com_azavea_gdal_GDALWarp.h
 	make -C experiments cleanest
 	make -C unit_tests cleanest
 	make -C main cleanest

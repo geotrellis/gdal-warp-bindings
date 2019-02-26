@@ -37,8 +37,8 @@
 // Strings
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-const char * xres = "5";
-const char * yres = "7";
+const char *xres = "5";
+const char *yres = "7";
 char const *expected_options[] = {
     "-of", "VRT",
     "-tap", "-tr", xres, yres,
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
     GDALClose(dataset);
     GDALClose(source);
 
-    init(1 << 8);
+    init(1 << 8, 1 << 5);
     token = get_token(argv[1], const_cast<const char **>(actual_options));
     {
         t::auto_cpu_timer timer;

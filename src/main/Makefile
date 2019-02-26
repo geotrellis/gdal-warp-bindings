@@ -2,7 +2,7 @@ JAVA ?= java
 JAVAC ?= javac
 SO ?= so
 
-.PHONY: tests
+.PHONY: tests clean cleaner cleanest
 
 gdalwarp.jar: java/resources/libgdalwarp_bindings.$(SO) java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class
 	(cd java ; jar -cvf ../$@ com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*)

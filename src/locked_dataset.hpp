@@ -34,27 +34,30 @@ class locked_dataset
 {
   public:
     locked_dataset()
-        : p_dataset(nullptr), p_source(nullptr),
+        : p_dataset(nullptr),
+          p_source(nullptr),
+          m_uri_options(),
+          m_tag(0),
           m_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER),
-          m_uri_options()
+          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
     }
 
     locked_dataset(const uri_options_t &uri_options)
-        : p_dataset(nullptr), p_source(nullptr),
+        : p_dataset(nullptr),
+          p_source(nullptr),
+          m_uri_options(uri_options),
           m_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER),
-          m_uri_options(uri_options)
+          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
         open();
     }
 
     locked_dataset(const locked_dataset &rhs)
         : p_dataset(nullptr), p_source(nullptr),
+          m_uri_options(rhs.m_uri_options),
           m_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER),
-          m_uri_options(rhs.m_uri_options)
+          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
 #ifdef DEBUG
         fprintf(stderr, "COPY CONSTRUCTOR\n");
@@ -65,9 +68,10 @@ class locked_dataset
     locked_dataset(locked_dataset &&rhs) noexcept
         : p_dataset(std::exchange(rhs.p_dataset, nullptr)),
           p_source(std::exchange(rhs.p_source, nullptr)),
+          m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
+          m_tag(std::exchange(rhs.m_tag, 0)),
           m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
-          m_use_count(std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER)),
-          m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t()))
+          m_use_count(std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER))
     {
         // XXX not thread safe, but the rhs should always be a
         // just-created local that is not in use.
@@ -92,12 +96,14 @@ class locked_dataset
         m_lock = rhs.m_lock;
         m_use_count = rhs.m_use_count;
         m_uri_options = std::move(rhs.m_uri_options);
+        m_tag = rhs.m_tag;
 
         rhs.p_dataset = nullptr;
         rhs.p_source = nullptr;
         rhs.m_lock = PTHREAD_MUTEX_INITIALIZER;
         rhs.m_use_count = PTHREAD_RWLOCK_INITIALIZER;
         rhs.m_uri_options = uri_options_t();
+        rhs.m_tag = 0;
 
         return *this;
         // XXX not thread safe, but the rhs should always be a
@@ -206,6 +212,11 @@ class locked_dataset
         return m_uri_options;
     }
 
+    const size_t tag() const
+    {
+        return m_tag;
+    }
+
     bool valid() const
     {
         return ((p_source != nullptr) && (p_dataset != nullptr));
@@ -243,7 +254,7 @@ class locked_dataset
      */
     bool lock_for_deletion()
     {
-        if (pthread_rwlock_trywrlock(&m_use_count) != 0 && valid())
+        if (pthread_rwlock_trywrlock(&m_use_count) != 0)
         {
             return false;
         }
@@ -268,6 +279,9 @@ class locked_dataset
      */
     void open()
     {
+        auto h = uri_options_hash_t();
+        m_tag = h(m_uri_options);
+
         pthread_mutex_lock(&m_lock);
         if (p_source == nullptr || p_dataset == nullptr)
         {
@@ -336,9 +350,10 @@ class locked_dataset
   private:
     GDALDatasetH p_dataset;
     GDALDatasetH p_source;
+    uri_options_t m_uri_options;
+    size_t m_tag;
     mutable pthread_mutex_t m_lock;
     mutable pthread_rwlock_t m_use_count;
-    uri_options_t m_uri_options;
 };
 
 namespace std

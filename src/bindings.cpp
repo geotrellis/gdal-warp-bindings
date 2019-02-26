@@ -23,6 +23,7 @@
 #include <map>
 #include <vector>
 
+#include <sched.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <gdal.h>
@@ -57,7 +58,7 @@ cache_t *cache = nullptr;
         {                                                              \
             auto locked_datasets = cache->get(uri_options);            \
             TRY(fn)                                                    \
-            usleep(1 << i);                                            \
+            sched_yield();                                             \
         }                                                              \
     }                                                                  \
     return done;

@@ -37,16 +37,12 @@ class lru_cache
     lru_cache(size_t capacity, size_t copies = 1)
         : m_tags(std::vector<size_t>(capacity)),
           m_atimes(std::vector<atime_t>(capacity)),
-          m_keys(std::vector<key_t>(capacity)),
           m_values(std::vector<value_t>(capacity)),
+          m_time(0),
           m_capacity(capacity),
           m_copies(copies),
-          m_tag_lock(PTHREAD_RWLOCK_INITIALIZER),
-          m_atimes_lock(PTHREAD_RWLOCK_INITIALIZER),
-          m_keys_lock(PTHREAD_RWLOCK_INITIALIZER),
-          m_values_lock(PTHREAD_RWLOCK_INITIALIZER),
-          m_time(0),
-          m_size(0)
+          m_size(0),
+          m_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
         clear();
     }
@@ -72,16 +68,15 @@ class lru_cache
 
     void clear()
     {
-        pthread_rwlock_wrlock(&m_values_lock);
+        pthread_rwlock_wrlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             m_tags[i] = 0;
             m_atimes[i] = 0;
-            m_keys[i] = uri_options_t();
             m_values[i] = locked_dataset();
             m_size = 0;
         }
-        pthread_rwlock_unlock(&m_values_lock);
+        pthread_rwlock_unlock(&m_lock);
     }
 
     bool contains(const uri_options_t &key) const
@@ -89,22 +84,19 @@ class lru_cache
         auto h = uri_options_hash_t();
         auto tag = h(key);
 
-        pthread_rwlock_rdlock(&m_tag_lock);
-        pthread_rwlock_rdlock(&m_keys_lock);
+        pthread_rwlock_rdlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag)
             {
-                if (m_keys[i] == key)
+                if (m_values[i] == key)
                 {
-                    pthread_rwlock_unlock(&m_keys_lock);
-                    pthread_rwlock_unlock(&m_tag_lock);
+                    pthread_rwlock_unlock(&m_lock);
                     return true;
                 }
             }
         }
-        pthread_rwlock_unlock(&m_keys_lock);
-        pthread_rwlock_unlock(&m_tag_lock);
+        pthread_rwlock_unlock(&m_lock);
         return false;
     }
 
@@ -114,17 +106,15 @@ class lru_cache
         auto tag = h(key);
         size_t result = 0;
 
-        pthread_rwlock_rdlock(&m_tag_lock);
-        pthread_rwlock_rdlock(&m_keys_lock);
+        pthread_rwlock_rdlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
-            if (m_tags[i] == tag && m_keys[i] == key)
+            if (m_tags[i] == tag && m_values[i] == key)
             {
                 result += 1;
             }
         }
-        pthread_rwlock_unlock(&m_keys_lock);
-        pthread_rwlock_unlock(&m_tag_lock);
+        pthread_rwlock_unlock(&m_lock);
         return result;
     }
 
@@ -135,11 +125,10 @@ class lru_cache
         auto return_list = return_list_t();
         auto current_time = ++m_time; // XXX
 
-        pthread_rwlock_rdlock(&m_tag_lock);
-        pthread_rwlock_rdlock(&m_keys_lock);
+        pthread_rwlock_rdlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
-            if (m_tags[i] == tag && m_keys[i] == key)
+            if (m_tags[i] == tag && m_values[i] == key)
             {
                 auto &value = m_values[i];
                 value.inc();
@@ -147,24 +136,23 @@ class lru_cache
                 m_atimes[i] = current_time;
             }
         }
-        pthread_rwlock_unlock(&m_keys_lock);
-        pthread_rwlock_unlock(&m_tag_lock);
+        pthread_rwlock_unlock(&m_lock);
 
         if (return_list.size() < 1) // Try hard to return at least one
         {
-            pthread_rwlock_wrlock(&m_values_lock);
+            pthread_rwlock_wrlock(&m_lock);
             auto ld = insert(tag, key);
             if (ld != nullptr)
             {
                 ld->inc();
                 return_list.push_back(ld);
             }
-            pthread_rwlock_unlock(&m_values_lock);
+            pthread_rwlock_unlock(&m_lock);
         }
 
         if (return_list.size() < copies()) // Try to return an extra one
         {
-            if (pthread_rwlock_trywrlock(&m_values_lock) == 0)
+            if (pthread_rwlock_trywrlock(&m_lock) == 0)
             {
                 auto ld = insert(tag, key);
                 if (ld != nullptr)
@@ -172,7 +160,7 @@ class lru_cache
                     ld->inc();
                     return_list.push_back(ld);
                 }
-                pthread_rwlock_unlock(&m_values_lock);
+                pthread_rwlock_unlock(&m_lock);
             }
         }
 
@@ -202,7 +190,6 @@ class lru_cache
         {
             m_tags[best_index] = tag;
             m_atimes[best_index] = current_time;
-            m_keys[best_index] = key;
             m_values[best_index] = std::move(locked_dataset(key));
             m_size++;
             return &(m_values[best_index]);
@@ -216,16 +203,12 @@ class lru_cache
   private:
     std::vector<size_t> m_tags;
     std::vector<atime_t> m_atimes;
-    std::vector<key_t> m_keys;
     std::vector<value_t> m_values;
+    atime_t m_time;
     size_t m_capacity;
     size_t m_copies;
-    mutable pthread_rwlock_t m_tag_lock;
-    mutable pthread_rwlock_t m_atimes_lock;
-    mutable pthread_rwlock_t m_keys_lock;
-    mutable pthread_rwlock_t m_values_lock;
-    atime_t m_time;
     size_t m_size;
+    mutable pthread_rwlock_t m_lock;
 };
 
 #endif // __CACHE_HPP__
