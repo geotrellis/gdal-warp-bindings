@@ -37,14 +37,14 @@ public class GDALWarp {
     public static int GDT_CFloat64 = 11;
     public static int GDT_TypeCount = 12;
 
-    private static native void _init(int size);
+    private static native void _init(int size, int copies);
 
-    public static void init(int size) throws Exception {
+    public static void init(int size, int copies) throws Exception {
         boolean so_loaded = false;
 
         // Try to load ELF shared object from JAR file ...
         if (so_loaded == false) {
-           try {
+            try {
                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ELF);
                 so_loaded = true;
             } catch (Exception e) {
@@ -65,7 +65,7 @@ public class GDALWarp {
             throw new Exception("Unable to load shared object.");
         }
 
-        _init(size);
+        _init(size, copies);
     }
 
     public static native void deinit();
@@ -74,10 +74,11 @@ public class GDALWarp {
 
     public static native void surrender_token(long token);
 
-    public static native int get_width_height(long token, int[] width_height);
+    public static native int get_width_height(long token, int attempts, int[] width_height);
 
     public static native boolean read_data( /* */
             long token, /* */
+            int attemps, /* */
             int[] src_window, /* */
             int[] dst_window, /* */
             int band_number, /* */

@@ -62,13 +62,13 @@ cache_t *cache = nullptr;
     }                                                                  \
     return done;
 
-void init(int size)
+void init(int size, int copies)
 {
     deinit();
 
     GDALAllRegister();
 
-    cache = new cache_t(size);
+    cache = new cache_t(size, copies);
     if (cache == nullptr)
     {
         throw std::bad_alloc();

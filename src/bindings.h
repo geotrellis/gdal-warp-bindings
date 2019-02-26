@@ -24,7 +24,7 @@ extern "C"
 {
 #endif
 
-    void init(int size);
+    void init(int size, int copies);
     void deinit();
     uint64_t get_token(const char *uri, const char **options);
     void surrender_token(uint64_t token);

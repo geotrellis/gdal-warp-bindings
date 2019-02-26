@@ -22,10 +22,10 @@
 const int MAX_OPTIONS = 1 << 10;
 int gc_lock = 0;
 
-JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size)
+JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size, jint copies)
 {
-    init(size);
     gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe
+    init(size, copies);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
@@ -63,11 +63,11 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *en
     surrender_token(token);
 }
 
-JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jintArray _width_height)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jint attempts, jintArray _width_height)
 {
     int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 
-    jboolean retval = get_width_height(token, 0, width_height, width_height + 1);
+    jboolean retval = get_width_height(token, attempts, width_height, width_height + 1);
     (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
 
     return retval;
@@ -75,6 +75,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *
 
 JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env, jobject obj,
                                                                     jlong token,
+                                                                    jint attempts,
                                                                     jintArray _src_window,
                                                                     jintArray _dst_window,
                                                                     jint band_number,
@@ -93,7 +94,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env,
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jboolean retval = read_data(token, 0, src_window, dst_window, band_number, type, data);
+    jboolean retval = read_data(token, attempts, src_window, dst_window, band_number, type, data);
     if (gc_lock)
     {
         (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);
