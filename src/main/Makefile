@@ -13,7 +13,7 @@ gdalwarp.jar: java/resources/libgdalwarp_bindings.$(SO) java/com/azavea/gdal/GDA
 java/resources/libgdalwarp_bindings.$(SO): ../libgdalwarp_bindings.$(SO)
 	cp -f $< $@
 
-java/com/azavea/gdal/GDALWarp.class: java/com/azavea/gdal/GDALWarp.java java/cz/adamh/utils/NativeUtils.java
+java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class: java/com/azavea/gdal/GDALWarp.java java/cz/adamh/utils/NativeUtils.java
 	$(JAVAC) -h .. -cp java $<
 
 GDALWarpThreadTest.class: GDALWarpThreadTest.java gdalwarp.jar

@@ -1,4 +1,4 @@
-CFLAGS ?= -Wall -Werror -Og -ggdb3
+CFLAGS ?= -Wall -Werror -O0 -ggdb3
 CXXFLAGS ?= -std=c++1z
 LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
@@ -6,7 +6,7 @@ GDALCFLAGS = $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so
-HEADERS = bindings.h types.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
+HEADERS = bindings.h types.hpp cache.hpp locked_dataset.hpp tokens.hpp
 
 .PHONY: tests
 

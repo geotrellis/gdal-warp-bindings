@@ -17,6 +17,8 @@
 #ifndef __locked_dataset_H__
 #define __locked_dataset_H__
 
+#include <functional>
+
 #ifdef DEBUG
 #include <cstdio>
 #endif
@@ -199,6 +201,11 @@ class locked_dataset
         return true;
     }
 
+    const uri_options_t &uri_options() const
+    {
+        return m_uri_options;
+    }
+
     bool valid() const
     {
         return ((p_source != nullptr) && (p_dataset != nullptr));
@@ -234,7 +241,7 @@ class locked_dataset
      *
      * @return A boolean meeting the above description
      */
-    bool unused()
+    bool lock_for_deletion()
     {
         if (pthread_rwlock_trywrlock(&m_use_count) != 0 && valid())
         {
@@ -244,6 +251,14 @@ class locked_dataset
         {
             return true;
         }
+    }
+
+    /**
+     * Unlock this dataset (use only if previously locked for deletion).
+     */
+    void unlock()
+    {
+        pthread_rwlock_unlock(&m_use_count);
     }
 
   private:
@@ -325,5 +340,18 @@ class locked_dataset
     mutable pthread_rwlock_t m_use_count;
     uri_options_t m_uri_options;
 };
+
+namespace std
+{
+template <>
+struct hash<locked_dataset>
+{
+    size_t operator()(const locked_dataset &rhs) const
+    {
+        auto h = uri_options_hash_t();
+        return h(rhs.uri_options());
+    }
+};
+} // namespace std
 
 #endif

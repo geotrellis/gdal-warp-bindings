@@ -29,7 +29,7 @@
 
 #include "bindings.h"
 #include "types.hpp"
-#include "lru_cache.hpp"
+#include "cache.hpp"
 #include "locked_dataset.hpp"
 #include "tokens.hpp"
 
