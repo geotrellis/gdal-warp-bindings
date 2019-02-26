@@ -1,11 +1,11 @@
-CFLAGS ?= -Wall -Werror -Og -ggdb3 -I..
+CFLAGS ?= -Wall -Werror -O0 -ggdb3 -I..
 CXXFLAGS ?= -std=c++1z
 LDFLAGS += $(shell pkg-config gdal --libs) -L.. -lgdalwarp_bindings -lpthread
 GDALCFLAGS = $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 SO ?= so
 
-.PHONY: tests
+.PHONY: tests clean cleaner cleanest
 .SILENT: tests
 
 tests: ../libgdalwarp_bindings.$(SO) ../experiments/data/c41078a1.tif token_tests dataset_tests cache_tests

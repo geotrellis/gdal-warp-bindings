@@ -20,6 +20,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <functional>
 
 typedef std::vector<std::string> options_t;
 typedef std::string uri_t;
@@ -27,5 +28,40 @@ typedef std::pair<uri_t, options_t> uri_options_t;
 typedef uint64_t token_t;
 typedef std::map<uri_options_t, token_t> token_map_t;
 typedef std::map<token_t, uri_options_t> reverse_token_map_t;
+
+typedef std::hash<std::string> string_hash_t;
+typedef std::hash<options_t> options_hash_t;
+typedef std::hash<uri_options_t> uri_options_hash_t;
+
+namespace std
+{
+template <>
+struct hash<options_t>
+{
+    size_t operator()(const options_t &rhs) const
+    {
+        auto h = string_hash_t();
+        size_t result = 0;
+
+        for (auto str : rhs)
+        {
+            result += h(str);
+        }
+        return result;
+    }
+};
+
+template <>
+struct hash<uri_options_t>
+{
+    size_t operator()(const uri_options_t &rhs) const
+    {
+        auto h1 = string_hash_t();
+        auto h2 = options_hash_t();
+
+        return h1(rhs.first) + h2(rhs.second);
+    }
+};
+} // namespace std
 
 #endif

@@ -63,7 +63,7 @@ class GDALWarpThreadTest extends Thread {
             src_window[0] = i * WINDOW_SIZE;
             src_window[1] = j * WINDOW_SIZE;
 
-            boolean success = GDALWarp.read_data(token, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+            boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
             int h = data.hashCode();
             assert (success == true);
             assert (h == EXPECTED[i + j * x]);
@@ -71,7 +71,7 @@ class GDALWarpThreadTest extends Thread {
     }
 
     public static void main(String[] args) throws Exception {
-        GDALWarp.init(127);
+        GDALWarp.init(128, 4);
 
         int[] width_height = new int[2];
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
@@ -95,7 +95,7 @@ class GDALWarpThreadTest extends Thread {
             THREADS = 1 << 4;
         }
 
-        GDALWarp.get_width_height(token, width_height);
+        GDALWarp.get_width_height(token, 0, width_height);
         int x = (width_height[0] / WINDOW_SIZE) - 1;
         int y = (width_height[1] / WINDOW_SIZE) - 1;
 
@@ -108,7 +108,7 @@ class GDALWarpThreadTest extends Thread {
                 for (int j = 0; j < y; ++j) {
                     src_window[0] = i * WINDOW_SIZE;
                     src_window[1] = j * WINDOW_SIZE;
-                    boolean success = GDALWarp.read_data(token, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+                    boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
                     assert (success == true);
                     EXPECTED[i + j * x] = data.hashCode();
                 }

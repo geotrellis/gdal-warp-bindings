@@ -1,4 +1,4 @@
-CFLAGS ?= -Wall -Werror -Og -ggdb3
+CFLAGS ?= -Wall -Werror -O0 -ggdb3
 CXXFLAGS ?= -std=c++1z
 LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
@@ -6,14 +6,13 @@ GDALCFLAGS = $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so
-HEADERS = bindings.h types.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
+HEADERS = bindings.h types.hpp cache.hpp locked_dataset.hpp tokens.hpp
 
-.PHONY: tests
 
 all: tests libgdalwarp_bindings.$(SO)
 
 com_azavea_gdal_GDALWarp.h: main/java/com/azavea/gdal/GDALWarp.java
-	make -BC main java/com/azavea/gdal/GDALWarp.class
+	make -C main java/com/azavea/gdal/GDALWarp.class
 
 com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c com_azavea_gdal_GDALWarp.h
 	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
@@ -36,15 +35,17 @@ tests: libgdalwarp_bindings.$(SO)
 
 clean:
 	rm -f *.o
+	make -C experiments clean
 	make -C unit_tests clean
 	make -C main clean
 
 cleaner: clean
-	rm -f libgdalwarp_bindings.$(SO)
+	rm -f libgdalwarp_bindings.$(SO) com_azavea_gdal_GDALWarp.h
+	make -C experiments cleaner
 	make -C unit_tests cleaner
 	make -C main cleaner
 
 cleanest: cleaner
-	rm -f com_azavea_gdal_GDALWarp.h
+	make -C experiments cleanest
 	make -C unit_tests cleanest
 	make -C main cleanest

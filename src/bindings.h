@@ -24,12 +24,13 @@ extern "C"
 {
 #endif
 
-    void init(int size);
+    void init(int size, int copies);
     void deinit();
     uint64_t get_token(const char *uri, const char **options);
     void surrender_token(uint64_t token);
-    int get_width_height(uint64_t token, int *width, int *height);
+    int get_width_height(uint64_t token, int attempts, int *width, int *height);
     int read_data(uint64_t token,
+                  int attempts,
                   int src_window[4],
                   int dst_window[2],
                   int band_number,
