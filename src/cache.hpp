@@ -141,7 +141,7 @@ class lru_cache
         if (return_list.size() < 1) // Try hard to return at least one
         {
             pthread_rwlock_wrlock(&m_lock);
-            auto ld = insert(key);
+            auto ld = insert(tag, key);
             if (ld != nullptr)
             {
                 ld->inc();
@@ -154,11 +154,11 @@ class lru_cache
         {
             if (pthread_rwlock_trywrlock(&m_lock) == 0)
             {
-                auto ld = insert(key);
                 if (ld != nullptr)
                 {
                     ld->inc();
                     return_list.push_back(ld);
+                    auto ld = insert(tag, key);
                 }
                 pthread_rwlock_unlock(&m_lock);
             }
@@ -188,9 +188,9 @@ class lru_cache
         }
         if (best_index != -1)
         {
+            m_tags[best_index] = tag;
             m_atimes[best_index] = current_time;
             m_values[best_index] = std::move(locked_dataset(key));
-            m_tags[best_index] = m_values[best_index].tag();
             m_size++;
             return &(m_values[best_index]);
         }
