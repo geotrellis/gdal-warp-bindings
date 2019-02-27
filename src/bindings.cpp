@@ -95,13 +95,13 @@ int get_width_height(uint64_t token, int attempts, int *width, int *height)
     DOIT(get_width_height(width, height))
 }
 
-int read_data(uint64_t token,
-              int attempts,
-              int src_window[4],
-              int dst_window[2],
-              int band_number,
-              int _type,
-              void *data)
+int get_data(uint64_t token,
+             int attempts,
+             int src_window[4],
+             int dst_window[2],
+             int band_number,
+             int _type,
+             void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
     DOIT(get_pixels(src_window, dst_window, band_number, type, data))

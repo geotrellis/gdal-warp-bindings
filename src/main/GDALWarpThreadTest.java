@@ -63,7 +63,7 @@ class GDALWarpThreadTest extends Thread {
             src_window[0] = i * WINDOW_SIZE;
             src_window[1] = j * WINDOW_SIZE;
 
-            boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+            boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
             int h = data.hashCode();
             assert (success == true);
             assert (h == EXPECTED[i + j * x]);
@@ -79,18 +79,16 @@ class GDALWarpThreadTest extends Thread {
         byte[] data = new byte[TILE_SIZE * TILE_SIZE];
         boolean large = true;
         long token;
-    
+
         if (args.length > 1 && args[1].equals("small")) {
             large = false;
-        }
-        else {
+        } else {
             large = true;
         }
 
         if (large) {
             token = GDALWarp.get_token(args[0], options_large);
-        }
-        else {
+        } else {
             token = GDALWarp.get_token(args[0], options_small);
             THREADS = 1 << 4;
         }
@@ -108,7 +106,7 @@ class GDALWarpThreadTest extends Thread {
                 for (int j = 0; j < y; ++j) {
                     src_window[0] = i * WINDOW_SIZE;
                     src_window[1] = j * WINDOW_SIZE;
-                    boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+                    boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
                     assert (success == true);
                     EXPECTED[i + j * x] = data.hashCode();
                 }

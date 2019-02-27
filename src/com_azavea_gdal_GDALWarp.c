@@ -73,14 +73,14 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *
     return retval;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env, jobject obj,
-                                                                    jlong token,
-                                                                    jint attempts,
-                                                                    jintArray _src_window,
-                                                                    jintArray _dst_window,
-                                                                    jint band_number,
-                                                                    jint type,
-                                                                    jbyteArray _data)
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobject obj,
+                                                                   jlong token,
+                                                                   jint attempts,
+                                                                   jintArray _src_window,
+                                                                   jintArray _dst_window,
+                                                                   jint band_number,
+                                                                   jint type,
+                                                                   jbyteArray _data)
 {
     int *src_window = (*env)->GetIntArrayElements(env, _src_window, NULL);
     int *dst_window = (*env)->GetIntArrayElements(env, _dst_window, NULL);
@@ -94,7 +94,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_read_1data(JNIEnv *env,
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jboolean retval = read_data(token, attempts, src_window, dst_window, band_number, type, data);
+    jboolean retval = get_data(token, attempts, src_window, dst_window, band_number, type, data);
     if (gc_lock)
     {
         (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);

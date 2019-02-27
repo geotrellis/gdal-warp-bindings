@@ -109,7 +109,7 @@ void *reader(void *)
         int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
         int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 
-        if (read_data(token, 0, src_window, dst_window, 1, GDT_Byte, buffer))
+        if (get_data(token, 0, src_window, dst_window, 1, GDT_Byte, buffer))
         {
             auto s = std::string(reinterpret_cast<char *>(buffer));
             auto h = hash(s);

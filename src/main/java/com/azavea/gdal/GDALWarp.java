@@ -76,7 +76,7 @@ public class GDALWarp {
 
     public static native int get_width_height(long token, int attempts, int[] width_height);
 
-    public static native boolean read_data( /* */
+    public static native boolean get_data( /* */
             long token, /* */
             int attemps, /* */
             int[] src_window, /* */
