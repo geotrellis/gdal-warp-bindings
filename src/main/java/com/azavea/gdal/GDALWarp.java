@@ -74,7 +74,7 @@ public class GDALWarp {
 
     public static native void surrender_token(long token);
 
-    public static native int get_width_height(long token, int attempts, int[] width_height);
+    public static native boolean get_width_height(long token, int attempts, int[] width_height);
 
     public static native boolean get_data( /* */
             long token, /* */

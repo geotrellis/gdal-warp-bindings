@@ -63,7 +63,7 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *en
     surrender_token(token);
 }
 
-JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jint attempts, jintArray _width_height)
+jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jint attempts, jintArray _width_height)
 {
     int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 
