@@ -118,7 +118,7 @@ class lru_cache
         return result;
     }
 
-    return_list_t get(const uri_options_t &key)
+    return_list_t get(const uri_options_t &key, bool eager = false)
     {
         auto h = uri_options_hash_t();
         auto tag = h(key);
@@ -150,15 +150,18 @@ class lru_cache
             pthread_rwlock_unlock(&m_lock);
         }
 
-        if ((return_list.size() < copies()) && (rand() % 151 == 0)) // Occasionally try to return an extra one
+        if (eager && (return_list.size() < copies())) // Try return extra ones
         {
             if (pthread_rwlock_trywrlock(&m_lock) == 0)
             {
-                if (ld != nullptr)
+                for (size_t i = copies() - return_list.size(); i > 0; --i)
                 {
-                    ld->inc();
-                    return_list.push_back(ld);
                     auto ld = insert(tag, key);
+                    if (ld != nullptr)
+                    {
+                        ld->inc();
+                        return_list.push_back(ld);
+                    }
                 }
                 pthread_rwlock_unlock(&m_lock);
             }
@@ -168,7 +171,7 @@ class lru_cache
     }
 
   private:
-    locked_dataset *insert(const uri_options_t &key)
+    locked_dataset *insert(size_t tag, const uri_options_t &key)
     {
         auto current_time = m_time; // XXX
         int best_index = -1;
