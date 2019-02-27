@@ -108,3 +108,13 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, 
 
     return retval;
 }
+
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env, jclass obj,
+                                                                        jlong token, jint attempts, jdoubleArray _transform)
+{
+    double *transform = (*env)->GetDoubleArrayElements(env, _transform, NULL);
+    jboolean retval = get_transform(token, attempts, transform);
+    (*env)->ReleaseDoubleArrayElements(env, _transform, transform, 0);
+
+    return retval;
+}

@@ -84,4 +84,6 @@ public class GDALWarp {
             int band_number, /* */
             int type, /* */
             byte[] data);
+
+    public static native boolean get_transform(long token, int attempts, double[] transform);
 }

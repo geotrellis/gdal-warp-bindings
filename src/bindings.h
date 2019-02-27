@@ -36,6 +36,7 @@ extern "C"
                  int band_number,
                  int type,
                  void *data);
+    int get_transform(uint64_t token, int attempts, double transform[6]);
 
 #ifdef __cplusplus
 }

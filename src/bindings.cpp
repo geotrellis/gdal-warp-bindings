@@ -106,3 +106,8 @@ int get_data(uint64_t token,
     auto type = static_cast<GDALDataType>(_type);
     DOIT(get_pixels(src_window, dst_window, band_number, type, data))
 }
+
+int get_transform(uint64_t token, int attempts, double transform[6])
+{
+    DOIT(get_transform(transform))
+}
