@@ -90,6 +90,17 @@ void deinit()
     token_deinit();
 }
 
+int get_band_nodata(uint64_t token, int attempts, int band, double *nodata, int *success)
+{
+    DOIT(get_band_nodata(band, nodata, success))
+}
+
+int get_band_data_type(uint64_t token, int attempts, int band, int *data_type)
+{
+    auto p = reinterpret_cast<GDALDataType *>(data_type);
+    DOIT(get_band_data_type(band, p));
+}
+
 int get_band_count(uint64_t token, int attempts, int *band_count)
 {
     DOIT(get_band_count(band_count))

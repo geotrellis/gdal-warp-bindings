@@ -117,12 +117,51 @@ class locked_dataset
     }
 
     /**
-     * Get the number of raster bands in the underlying warped dataset.
+     * Get the NODATA value associated with a particular band of the
+     * underlying warped dataset.
+     *
+     * @param band The band in question
+     * @return A boolean: True iff the operation succeeded
+     */
+    bool get_band_nodata(int band, double *nodata, int *success)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH bandh = GDALGetRasterBand(p_dataset, band);
+        *nodata = GDALGetRasterNoDataValue(bandh, success);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the data type of a particular band of the underlying warped
+     * dataset.
+     *
+     * @param band The band in question
+     * @return A boolean: True iff the operation succeeded
+     */
+    bool get_band_data_type(int band, GDALDataType *data_type)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH bandh = GDALGetRasterBand(p_dataset, band);
+        *data_type = GDALGetRasterDataType(bandh);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the number of raster bands in the underlying warped
+     * dataset.
      *
      * @param band_count The return-location for the integer band count
      * @return A boolean: True iff the operation succeeded
      */
-    bool get_band_count(int * band_count) const
+    bool get_band_count(int *band_count) const
     {
         if (pthread_mutex_trylock(&m_lock) != 0)
         {

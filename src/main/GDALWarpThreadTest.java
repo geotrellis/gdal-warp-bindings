@@ -29,6 +29,7 @@ class GDALWarpThreadTest extends Thread {
     private static int[] EXPECTED;
 
     private static String options_small[] = { /* */
+            "-dstnodata", "107", /* */
             "-tap", "-tr", "33", "42", /* */
             "-r", "bilinear", /* */
             "-t_srs", "epsg:3857" /* */
@@ -76,8 +77,6 @@ class GDALWarpThreadTest extends Thread {
         int[] width_height = new int[2];
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
         int[] dst_window = new int[] { TILE_SIZE, TILE_SIZE };
-        int[] band_count = new int[1];
-        double[] transform = new double[6];
         byte[] data = new byte[TILE_SIZE * TILE_SIZE];
         boolean large = true;
         long token;
@@ -96,18 +95,37 @@ class GDALWarpThreadTest extends Thread {
         }
 
         // Band Count
-        GDALWarp.get_band_count(token, 0, band_count);
         {
+            int[] band_count = new int[1];
+            GDALWarp.get_band_count(token, 0, band_count);
             System.out.println("Band Count: " + band_count[0]);
         }
 
-        // Transform
-        GDALWarp.get_transform(token, 0, transform);
-        System.out.print("Transform:");
-        for (int i = 0; i < 6; ++i) {
-            System.out.print(" " + transform[i]);
+        // Band Type
+        {
+            int[] data_type = new int[1];
+            GDALWarp.get_band_data_type(token, 0, 1, data_type);
+            System.out.println("Data Type: " + data_type[0]);
         }
-        System.out.println();
+
+        // NoData
+        {
+            double[] nodata = new double[1];
+            int[] success = new int[1];
+            GDALWarp.get_band_nodata(token, 0, 1, nodata, success);
+            System.out.println("NoData: " + nodata[0] + " " + success[0]);
+        }
+
+        // Transform
+        {
+            double[] transform = new double[6];
+            GDALWarp.get_transform(token, 0, transform);
+            System.out.print("Transform:");
+            for (int i = 0; i < 6; ++i) {
+                System.out.print(" " + transform[i]);
+            }
+            System.out.println();
+        }
 
         // Dimensions
         GDALWarp.get_width_height(token, 0, width_height);

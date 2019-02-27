@@ -74,6 +74,10 @@ public class GDALWarp {
 
     public static native void surrender_token(long token);
 
+    public static native boolean get_band_nodata(long token, int attempts, int band, double[] nodata, int[] success);
+
+    public static native boolean get_band_data_type(long token, int attempts, int band, int[] data_type);
+
     public static native boolean get_band_count(long token, int attempts, int[] band_count);
 
     public static native boolean get_width_height(long token, int attempts, int[] width_height);
