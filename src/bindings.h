@@ -28,6 +28,7 @@ extern "C"
     void deinit();
     uint64_t get_token(const char *uri, const char **options);
     void surrender_token(uint64_t token);
+    int get_band_count(uint64_t token, int attempts, int *band_count);
     int get_width_height(uint64_t token, int attempts, int *width, int *height);
     int get_data(uint64_t token,
                  int attempts,

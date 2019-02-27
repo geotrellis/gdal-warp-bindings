@@ -90,6 +90,11 @@ void deinit()
     token_deinit();
 }
 
+int get_band_count(uint64_t token, int attempts, int *band_count)
+{
+    DOIT(get_band_count(band_count))
+}
+
 int get_width_height(uint64_t token, int attempts, int *width, int *height)
 {
     DOIT(get_width_height(width, height))

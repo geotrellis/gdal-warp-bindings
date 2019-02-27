@@ -32,6 +32,16 @@ BOOST_AUTO_TEST_CASE(init)
     GDALAllRegister();
 }
 
+BOOST_AUTO_TEST_CASE(get_band_count_test)
+{
+    int band_count;
+    auto ld = locked_dataset(uri_options);
+
+    ld.get_band_count(&band_count);
+
+    BOOST_TEST(band_count == 1);
+}
+
 BOOST_AUTO_TEST_CASE(get_transform_test)
 {
     double transform[6];

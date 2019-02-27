@@ -117,6 +117,23 @@ class locked_dataset
     }
 
     /**
+     * Get the number of raster bands in the underlying warped dataset.
+     *
+     * @param band_count The return-location for the integer band count
+     * @return A boolean: True iff the operation succeeded
+     */
+    bool get_band_count(int * band_count) const
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        *band_count = GDALGetRasterCount(p_dataset);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
      * Get the transform of the underlying warped dataset.
      *
      * @param transform The return-location of the transform

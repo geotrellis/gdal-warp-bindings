@@ -76,6 +76,7 @@ class GDALWarpThreadTest extends Thread {
         int[] width_height = new int[2];
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
         int[] dst_window = new int[] { TILE_SIZE, TILE_SIZE };
+        int[] band_count = new int[1];
         double[] transform = new double[6];
         byte[] data = new byte[TILE_SIZE * TILE_SIZE];
         boolean large = true;
@@ -94,6 +95,12 @@ class GDALWarpThreadTest extends Thread {
             THREADS = 1 << 4;
         }
 
+        // Band Count
+        GDALWarp.get_band_count(token, 0, band_count);
+        {
+            System.out.println("Band Count: " + band_count[0]);
+        }
+
         // Transform
         GDALWarp.get_transform(token, 0, transform);
         System.out.print("Transform:");
@@ -107,6 +114,8 @@ class GDALWarpThreadTest extends Thread {
         System.out.println("Dimensions: " + width_height[0] + " " + width_height[1]);
         int x = (width_height[0] / WINDOW_SIZE) - 1;
         int y = (width_height[1] / WINDOW_SIZE) - 1;
+
+        System.out.println();
 
         EXPECTED = new int[x * y];
 

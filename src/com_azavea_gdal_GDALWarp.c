@@ -63,6 +63,16 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *en
     surrender_token(token);
 }
 
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv * env, jclass obj,
+ jlong token, jint attempts, jintArray _band_count)
+ {
+     int * band_count = (*env)->GetIntArrayElements(env, _band_count, NULL);
+     jboolean retval = get_band_count(token, attempts, band_count);
+     (*env)->ReleaseIntArrayElements(env, _band_count, band_count, 0);
+
+     return retval;
+ }
+
 jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jint attempts, jintArray _width_height)
 {
     int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
