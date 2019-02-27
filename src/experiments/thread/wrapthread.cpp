@@ -220,7 +220,7 @@ int main(int argc, char **argv)
     GDALClose(dataset);
     GDALClose(source);
 
-    init(1 << 8, 1 << 5);
+    init(1 << 7, 1 << 5);
     token = get_token(argv[1], const_cast<const char **>(actual_options));
     {
         t::auto_cpu_timer timer;
@@ -260,6 +260,7 @@ int main(int argc, char **argv)
     }
 
     surrender_token(token);
+    deinit();
     GDALWarpAppOptionsFree(app_options);
 
     return 0;

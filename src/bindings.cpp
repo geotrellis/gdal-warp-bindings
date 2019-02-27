@@ -84,6 +84,7 @@ void deinit()
 {
     if (cache != nullptr)
     {
+        fprintf(stderr, "%ld\n", cache->size());
         delete cache;
     }
     token_deinit();
