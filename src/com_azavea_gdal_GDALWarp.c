@@ -63,7 +63,23 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *en
     surrender_token(token);
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj, jlong token, jint attempts, jbyteArray _crs)
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heights(JNIEnv *env, jclass obj,
+                                                                                        jlong token, jint attempts, jintArray _widths, jintArray _heights)
+{
+    int *widths = (*env)->GetIntArrayElements(env, _widths, NULL);
+    int *heights = (*env)->GetIntArrayElements(env, _heights, NULL);
+    int width_length = (*env)->GetArrayLength(env, _widths);
+    int height_length = (*env)->GetArrayLength(env, _heights);
+    int max_length = width_length < height_length ? width_length : height_length;
+    jboolean retval = get_overview_widths_heights(token, attempts, widths, heights, max_length);
+    (*env)->ReleaseIntArrayElements(env, _heights, heights, 0);
+    (*env)->ReleaseIntArrayElements(env, _widths, widths, 0);
+
+    return retval;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj,
+                                                                       jlong token, jint attempts, jbyteArray _crs)
 {
     jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
     int max_size = (*env)->GetArrayLength(env, _crs);
@@ -105,7 +121,8 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv
     return retval;
 }
 
-jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj, jlong token, jint attempts, jintArray _width_height)
+jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj,
+                                                                  jlong token, jint attempts, jintArray _width_height)
 {
     int *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 

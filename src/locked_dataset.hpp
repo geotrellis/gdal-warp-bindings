@@ -118,10 +118,42 @@ class locked_dataset
     }
 
     /**
-     * Get the CRS of the underyling warped dataset in WKT.
+     * Get the widths and heights of all overviews associated with the
+     * first band of the underlying warped dataset.
+     *
+     * @param widths The array in which to return the widths
+     * @param heights The array in which to return the heights
+     * @param max_length The maximum of number of widths and heights to return
+     * @return True iff the operation succeeded
+     */
+    bool get_overview_widths_heights(int *widths, int *heights, int max_length)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH band = GDALGetRasterBand(p_dataset, 1);
+        int overview_count = GDALGetOverviewCount(band);
+        for (int i = 0; i < overview_count && i < max_length; ++i)
+        {
+            GDALRasterBandH overview = GDALGetOverview(band, i);
+            widths[i] = GDALGetRasterBandXSize(overview);
+            heights[i] = GDALGetRasterBandYSize(overview);
+        }
+        for (int i = overview_count; i < max_length; ++i)
+        {
+            widths[i] = heights[i] = -1;
+        }
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the CRS of the underlying warped dataset in WKT.
      *
      * @param crs The location at-which to return the WKT string
      * @param max_size The maximum WKT string size
+     * @return True iff the operation succeeded
      */
     bool get_crs_wkt(char *crs, int max_size)
     {
@@ -139,7 +171,9 @@ class locked_dataset
      * underlying warped dataset.
      *
      * @param band The band in question
-     * @return A boolean: True iff the operation succeeded
+     * @param nodata The return-location for the nodata value
+     * @param success The return slot for the "is there nodata" value
+     * @return True iff the operation succeeded
      */
     bool get_band_nodata(int band, double *nodata, int *success)
     {
@@ -158,7 +192,8 @@ class locked_dataset
      * dataset.
      *
      * @param band The band in question
-     * @return A boolean: True iff the operation succeeded
+     * @param data_type The type of the band in question
+     * @return True iff the operation succeeded
      */
     bool get_band_data_type(int band, GDALDataType *data_type)
     {
@@ -177,7 +212,7 @@ class locked_dataset
      * dataset.
      *
      * @param band_count The return-location for the integer band count
-     * @return A boolean: True iff the operation succeeded
+     * @return True iff the operation succeeded
      */
     bool get_band_count(int *band_count) const
     {
@@ -194,7 +229,7 @@ class locked_dataset
      * Get the transform of the underlying warped dataset.
      *
      * @param transform The return-location of the transform
-     * @return A boolean: True iff the operation succeeded
+     * @return True iff the operation succeeded
      */
     bool get_transform(double transform[6]) const
     {
@@ -212,7 +247,7 @@ class locked_dataset
      *
      * @param width The return-location for the width
      * @param height The return-location for the height
-     * @return A boolean: True iff the operation succeed
+     * @return True iff the operation succeed
      */
     bool get_width_height(int *width, int *height)
     {
@@ -242,7 +277,7 @@ class locked_dataset
      * @param band_number The band from which to read
      * @param type The datatype of the destination buffer
      * @param data A pointer to the destination buffer
-     * @return A boolean: True iff the read succeeded
+     * @return True iff the read succeeded
      */
     bool get_pixels(const int src_window[4],
                     int dst_window[2],

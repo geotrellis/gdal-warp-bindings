@@ -25,13 +25,31 @@
 
 auto uri = uri_t("../experiments/data/c41078a1.tif");
 auto options1 = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
-auto options2 = options_t{"-r", "bilinear", "-t_srs", "epsg:3857", "-dstnodata", "107"};
+auto options2 = options_t{"-r", "bilinear",
+                          "-t_srs", "epsg:3857",
+                          "-dstnodata", "107"};
 auto uri_options1 = std::make_pair(uri, options1);
 auto uri_options2 = std::make_pair(uri, options2);
 
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
+}
+
+BOOST_AUTO_TEST_CASE(overview_test)
+{
+    constexpr int N = 3;
+    auto ld = locked_dataset(uri_options1);
+    int actual_widths[N];
+    int actual_heights[N];
+    auto actual = std::vector<int>();
+    auto expected = std::vector<int>{-1, -1, -1, -1, -1, -1};
+
+    ld.get_overview_widths_heights(actual_widths, actual_heights, N);
+    actual.insert(actual.begin(), actual_widths, actual_widths + 3);
+    actual.insert(actual.begin(), actual_heights, actual_heights + 3);
+
+    BOOST_TEST(actual == expected);
 }
 
 BOOST_AUTO_TEST_CASE(get_crs_wkt_test)

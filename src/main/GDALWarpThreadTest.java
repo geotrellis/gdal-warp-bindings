@@ -134,6 +134,20 @@ class GDALWarpThreadTest extends Thread {
             System.out.println("CRS: " + new String(crs, "UTF-8"));
         }
 
+        // Overviews
+        {
+            int[] widths = new int[1 << 8];
+            int[] heights = new int[1 << 9];
+            GDALWarp.get_overview_widths_heights(token, 0, widths, heights);
+            int i = 0;
+            for (i = 0; i < Math.min(widths.length, heights.length); ++i) {
+                if (widths[i] == -1 || heights[i] == -1) {
+                    break;
+                }
+            }
+            System.out.println("Overviews: " + i);
+        }
+
         // Dimensions
         GDALWarp.get_width_height(token, 0, width_height);
         System.out.println("Dimensions: " + width_height[0] + " " + width_height[1]);

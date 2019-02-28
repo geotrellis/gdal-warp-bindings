@@ -8,13 +8,10 @@ OS ?= linux
 SO ?= so
 HEADERS = bindings.h types.hpp cache.hpp locked_dataset.hpp tokens.hpp
 
-
 all: tests libgdalwarp_bindings.$(SO)
 
-com_azavea_gdal_GDALWarp.h: main/java/com/azavea/gdal/GDALWarp.java
+com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c
 	make -C main java/com/azavea/gdal/GDALWarp.class
-
-com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c com_azavea_gdal_GDALWarp.h
 	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
 %.o: %.cpp $(HEADERS)
