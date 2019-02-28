@@ -90,6 +90,11 @@ void deinit()
     token_deinit();
 }
 
+int get_crs_wkt(uint64_t token, int attempts, char *crs, int max_size)
+{
+    DOIT(get_crs_wkt(crs, max_size))
+}
+
 int get_band_nodata(uint64_t token, int attempts, int band, double *nodata, int *success)
 {
     DOIT(get_band_nodata(band, nodata, success))

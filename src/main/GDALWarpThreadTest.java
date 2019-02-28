@@ -127,6 +127,13 @@ class GDALWarpThreadTest extends Thread {
             System.out.println();
         }
 
+        // CRS
+        {
+            byte[] crs = new byte[1 << 12];
+            GDALWarp.get_crs_wkt(token, 0, crs);
+            System.out.println("CRS: " + new String(crs, "UTF-8"));
+        }
+
         // Dimensions
         GDALWarp.get_width_height(token, 0, width_height);
         System.out.println("Dimensions: " + width_height[0] + " " + width_height[1]);

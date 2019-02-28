@@ -22,6 +22,7 @@
 #ifdef DEBUG
 #include <cstdio>
 #endif
+#include <cstring>
 
 #include <pthread.h>
 
@@ -114,6 +115,23 @@ class locked_dataset
     ~locked_dataset()
     {
         close();
+    }
+
+    /**
+     * Get the CRS of the underyling warped dataset in WKT.
+     *
+     * @param crs The location at-which to return the WKT string
+     * @param max_size The maximum WKT string size
+     */
+    bool get_crs_wkt(char *crs, int max_size)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        strncpy(crs, GDALGetProjectionRef(p_dataset), max_size);
+        pthread_mutex_unlock(&m_lock);
+        return true;
     }
 
     /**
