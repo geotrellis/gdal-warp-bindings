@@ -23,19 +23,19 @@ public class GDALWarp {
     private static final String GDALWARP_BINDINGS_RESOURCE_ELF = "/resources/libgdalwarp_bindings.so";
     private static final String GDALWARP_BINDINGS_RESOURCE_MACHO = "/resources/libgdalwarp_bindings.dylib";
 
-    public static int GDT_Unknown = 0;
-    public static int GDT_Byte = 1;
-    public static int GDT_UInt16 = 2;
-    public static int GDT_Int16 = 3;
-    public static int GDT_UInt32 = 4;
-    public static int GDT_Int32 = 5;
-    public static int GDT_Float32 = 6;
-    public static int GDT_Float64 = 7;
-    public static int GDT_CInt16 = 8;
-    public static int GDT_CInt32 = 9;
-    public static int GDT_CFloat32 = 10;
-    public static int GDT_CFloat64 = 11;
-    public static int GDT_TypeCount = 12;
+    public static final int GDT_Unknown = 0;
+    public static final int GDT_Byte = 1;
+    public static final int GDT_UInt16 = 2;
+    public static final int GDT_Int16 = 3;
+    public static final int GDT_UInt32 = 4;
+    public static final int GDT_Int32 = 5;
+    public static final int GDT_Float32 = 6;
+    public static final int GDT_Float64 = 7;
+    public static final int GDT_CInt16 = 8;
+    public static final int GDT_CInt32 = 9;
+    public static final int GDT_CFloat32 = 10;
+    public static final int GDT_CFloat64 = 11;
+    public static final int GDT_TypeCount = 12;
 
     private static native void _init(int size, int copies);
 
