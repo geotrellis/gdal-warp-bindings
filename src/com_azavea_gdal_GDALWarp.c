@@ -78,6 +78,17 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1
     return retval;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env, jclass obj,
+                                                                         jlong token, jint attempts, jbyteArray _crs)
+{
+    jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
+    int max_size = (*env)->GetArrayLength(env, _crs);
+    jboolean retval = get_crs_proj4(token, attempts, (char *)crs, max_size);
+    (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
+
+    return retval;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj,
                                                                        jlong token, jint attempts, jbyteArray _crs)
 {

@@ -52,6 +52,18 @@ BOOST_AUTO_TEST_CASE(overview_test)
     BOOST_TEST(actual == expected);
 }
 
+BOOST_AUTO_TEST_CASE(get_crs_proj4_test)
+{
+    constexpr int N = 1 << 10;
+    auto ld = locked_dataset(uri_options1);
+    char actual[N];
+    auto expected = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs";
+
+    ld.get_crs_proj4(actual, N);
+
+    BOOST_TEST(std::string(actual) == expected);
+}
+
 BOOST_AUTO_TEST_CASE(get_crs_wkt_test)
 {
     constexpr int N = 1 << 10;

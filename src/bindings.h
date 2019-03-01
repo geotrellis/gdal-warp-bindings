@@ -30,6 +30,7 @@ extern "C"
     void surrender_token(uint64_t token);
     int get_overview_widths_heights(uint64_t token, int attempts, int *widths, int *heights, int max_length);
     int get_crs_wkt(uint64_t token, int attempts, char *crs, int max_size);
+    int get_crs_proj4(uint64_t token, int attempts, char *crs, int max_size);
     int get_band_nodata(uint64_t token, int attempts, int band, double *nodata, int *success);
     int get_band_data_type(uint64_t token, int attempts, int band, int *data_type);
     int get_band_count(uint64_t token, int attempts, int *band_count);

@@ -28,6 +28,8 @@
 
 #include <gdal.h>
 #include <gdal_utils.h>
+#include <cpl_conv.h>
+#include <ogr_spatialref.h>
 
 #include "types.hpp"
 
@@ -144,6 +146,28 @@ class locked_dataset
         {
             widths[i] = heights[i] = -1;
         }
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the CRS of the underlying warped dataset in PROJ.4.
+     *
+     * @param crs The location at-which to return the PROJ.4 string
+     * @param max_size The maximum PROJ.4 string size
+     * @return True iff the operation succeeded
+     */
+    bool get_crs_proj4(char *crs, int max_size)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        char *result;
+        auto ref = OGRSpatialReference(GDALGetProjectionRef(p_dataset));
+        ref.exportToProj4(&result);
+        strncpy(crs, result, max_size);
+        CPLFree(result);
         pthread_mutex_unlock(&m_lock);
         return true;
     }
