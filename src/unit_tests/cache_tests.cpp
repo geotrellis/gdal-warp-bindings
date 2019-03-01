@@ -122,12 +122,13 @@ BOOST_AUTO_TEST_CASE(evict_correct_test)
     BOOST_TEST(cache.count(uri_options3) == 1);
 }
 
-BOOST_AUTO_TEST_CASE(non_destructive_get_test)
+BOOST_AUTO_TEST_CASE(eager_multiple_test)
 {
-    auto cache = lru_cache(4, 4);
-    cache.get(uri_options1);
-    cache.get(uri_options1);
-    cache.get(uri_options1);
-    cache.get(uri_options1);
+    auto cache = lru_cache(5, 4);
+    cache.get(uri_options1, true);
+    cache.get(uri_options1, true);
+    cache.get(uri_options1, true);
+    cache.get(uri_options1, true);
+    cache.get(uri_options1, false);
     BOOST_TEST(cache.count(uri_options1) == 4);
 }

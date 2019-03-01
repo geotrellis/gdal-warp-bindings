@@ -31,7 +31,7 @@ tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif
 	GDALWARP_GC_LOCK=1 $(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
 
 clean:
-	rm -f *.class java/cz/adamh/utils/*.class
+	rm -f *.class java/cz/adamh/utils/*.class java/com/azavea/gdal/*.class
 
 cleaner: clean
 	rm -f gdalwarp.jar

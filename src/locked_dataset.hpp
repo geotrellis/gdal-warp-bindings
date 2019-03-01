@@ -22,6 +22,7 @@
 #ifdef DEBUG
 #include <cstdio>
 #endif
+#include <cstring>
 
 #include <pthread.h>
 
@@ -37,7 +38,6 @@ class locked_dataset
         : p_dataset(nullptr),
           p_source(nullptr),
           m_uri_options(),
-          m_tag(0),
           m_lock(PTHREAD_MUTEX_INITIALIZER),
           m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
@@ -69,7 +69,6 @@ class locked_dataset
         : p_dataset(std::exchange(rhs.p_dataset, nullptr)),
           p_source(std::exchange(rhs.p_source, nullptr)),
           m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
-          m_tag(std::exchange(rhs.m_tag, 0)),
           m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
           m_use_count(std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER))
     {
@@ -96,14 +95,12 @@ class locked_dataset
         m_lock = rhs.m_lock;
         m_use_count = rhs.m_use_count;
         m_uri_options = std::move(rhs.m_uri_options);
-        m_tag = rhs.m_tag;
 
         rhs.p_dataset = nullptr;
         rhs.p_source = nullptr;
         rhs.m_lock = PTHREAD_MUTEX_INITIALIZER;
         rhs.m_use_count = PTHREAD_RWLOCK_INITIALIZER;
         rhs.m_uri_options = uri_options_t();
-        rhs.m_tag = 0;
 
         return *this;
         // XXX not thread safe, but the rhs should always be a
@@ -121,10 +118,118 @@ class locked_dataset
     }
 
     /**
+     * Get the widths and heights of all overviews associated with the
+     * first band of the underlying warped dataset.
+     *
+     * @param widths The array in which to return the widths
+     * @param heights The array in which to return the heights
+     * @param max_length The maximum of number of widths and heights to return
+     * @return True iff the operation succeeded
+     */
+    bool get_overview_widths_heights(int *widths, int *heights, int max_length)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH band = GDALGetRasterBand(p_dataset, 1);
+        int overview_count = GDALGetOverviewCount(band);
+        for (int i = 0; i < overview_count && i < max_length; ++i)
+        {
+            GDALRasterBandH overview = GDALGetOverview(band, i);
+            widths[i] = GDALGetRasterBandXSize(overview);
+            heights[i] = GDALGetRasterBandYSize(overview);
+        }
+        for (int i = overview_count; i < max_length; ++i)
+        {
+            widths[i] = heights[i] = -1;
+        }
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the CRS of the underlying warped dataset in WKT.
+     *
+     * @param crs The location at-which to return the WKT string
+     * @param max_size The maximum WKT string size
+     * @return True iff the operation succeeded
+     */
+    bool get_crs_wkt(char *crs, int max_size)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        strncpy(crs, GDALGetProjectionRef(p_dataset), max_size);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the NODATA value associated with a particular band of the
+     * underlying warped dataset.
+     *
+     * @param band The band in question
+     * @param nodata The return-location for the nodata value
+     * @param success The return slot for the "is there nodata" value
+     * @return True iff the operation succeeded
+     */
+    bool get_band_nodata(int band, double *nodata, int *success)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH bandh = GDALGetRasterBand(p_dataset, band);
+        *nodata = GDALGetRasterNoDataValue(bandh, success);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the data type of a particular band of the underlying warped
+     * dataset.
+     *
+     * @param band The band in question
+     * @param data_type The type of the band in question
+     * @return True iff the operation succeeded
+     */
+    bool get_band_data_type(int band, GDALDataType *data_type)
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        GDALRasterBandH bandh = GDALGetRasterBand(p_dataset, band);
+        *data_type = GDALGetRasterDataType(bandh);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
+     * Get the number of raster bands in the underlying warped
+     * dataset.
+     *
+     * @param band_count The return-location for the integer band count
+     * @return True iff the operation succeeded
+     */
+    bool get_band_count(int *band_count) const
+    {
+        if (pthread_mutex_trylock(&m_lock) != 0)
+        {
+            return false;
+        }
+        *band_count = GDALGetRasterCount(p_dataset);
+        pthread_mutex_unlock(&m_lock);
+        return true;
+    }
+
+    /**
      * Get the transform of the underlying warped dataset.
      *
      * @param transform The return-location of the transform
-     * @return A boolean: True iff the operation succeeded
+     * @return True iff the operation succeeded
      */
     bool get_transform(double transform[6]) const
     {
@@ -142,7 +247,7 @@ class locked_dataset
      *
      * @param width The return-location for the width
      * @param height The return-location for the height
-     * @return A boolean: True iff the operation succeed
+     * @return True iff the operation succeed
      */
     bool get_width_height(int *width, int *height)
     {
@@ -172,7 +277,7 @@ class locked_dataset
      * @param band_number The band from which to read
      * @param type The datatype of the destination buffer
      * @param data A pointer to the destination buffer
-     * @return A boolean: True iff the read succeeded
+     * @return True iff the read succeeded
      */
     bool get_pixels(const int src_window[4],
                     int dst_window[2],
@@ -210,11 +315,6 @@ class locked_dataset
     const uri_options_t &uri_options() const
     {
         return m_uri_options;
-    }
-
-    const size_t tag() const
-    {
-        return m_tag;
     }
 
     bool valid() const
@@ -279,9 +379,6 @@ class locked_dataset
      */
     void open()
     {
-        auto h = uri_options_hash_t();
-        m_tag = h(m_uri_options);
-
         pthread_mutex_lock(&m_lock);
         if (p_source == nullptr || p_dataset == nullptr)
         {
@@ -351,7 +448,6 @@ class locked_dataset
     GDALDatasetH p_dataset;
     GDALDatasetH p_source;
     uri_options_t m_uri_options;
-    size_t m_tag;
     mutable pthread_mutex_t m_lock;
     mutable pthread_rwlock_t m_use_count;
 };

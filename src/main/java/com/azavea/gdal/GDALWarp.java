@@ -23,19 +23,19 @@ public class GDALWarp {
     private static final String GDALWARP_BINDINGS_RESOURCE_ELF = "/resources/libgdalwarp_bindings.so";
     private static final String GDALWARP_BINDINGS_RESOURCE_MACHO = "/resources/libgdalwarp_bindings.dylib";
 
-    public static int GDT_Unknown = 0;
-    public static int GDT_Byte = 1;
-    public static int GDT_UInt16 = 2;
-    public static int GDT_Int16 = 3;
-    public static int GDT_UInt32 = 4;
-    public static int GDT_Int32 = 5;
-    public static int GDT_Float32 = 6;
-    public static int GDT_Float64 = 7;
-    public static int GDT_CInt16 = 8;
-    public static int GDT_CInt32 = 9;
-    public static int GDT_CFloat32 = 10;
-    public static int GDT_CFloat64 = 11;
-    public static int GDT_TypeCount = 12;
+    public static final int GDT_Unknown = 0;
+    public static final int GDT_Byte = 1;
+    public static final int GDT_UInt16 = 2;
+    public static final int GDT_Int16 = 3;
+    public static final int GDT_UInt32 = 4;
+    public static final int GDT_Int32 = 5;
+    public static final int GDT_Float32 = 6;
+    public static final int GDT_Float64 = 7;
+    public static final int GDT_CInt16 = 8;
+    public static final int GDT_CInt32 = 9;
+    public static final int GDT_CFloat32 = 10;
+    public static final int GDT_CFloat64 = 11;
+    public static final int GDT_TypeCount = 12;
 
     private static native void _init(int size, int copies);
 
@@ -74,9 +74,19 @@ public class GDALWarp {
 
     public static native void surrender_token(long token);
 
-    public static native int get_width_height(long token, int attempts, int[] width_height);
+    public static native boolean get_overview_widths_heights(long token, int attempts, int[] widths, int heights[]);
 
-    public static native boolean read_data( /* */
+    public static native boolean get_crs_wkt(long token, int attempts, byte[] crs);
+
+    public static native boolean get_band_nodata(long token, int attempts, int band, double[] nodata, int[] success);
+
+    public static native boolean get_band_data_type(long token, int attempts, int band, int[] data_type);
+
+    public static native boolean get_band_count(long token, int attempts, int[] band_count);
+
+    public static native boolean get_width_height(long token, int attempts, int[] width_height);
+
+    public static native boolean get_data( /* */
             long token, /* */
             int attemps, /* */
             int[] src_window, /* */
@@ -84,4 +94,6 @@ public class GDALWarp {
             int band_number, /* */
             int type, /* */
             byte[] data);
+
+    public static native boolean get_transform(long token, int attempts, double[] transform);
 }

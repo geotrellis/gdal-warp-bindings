@@ -29,6 +29,7 @@ class GDALWarpThreadTest extends Thread {
     private static int[] EXPECTED;
 
     private static String options_small[] = { /* */
+            "-dstnodata", "107", /* */
             "-tap", "-tr", "33", "42", /* */
             "-r", "bilinear", /* */
             "-t_srs", "epsg:3857" /* */
@@ -63,7 +64,7 @@ class GDALWarpThreadTest extends Thread {
             src_window[0] = i * WINDOW_SIZE;
             src_window[1] = j * WINDOW_SIZE;
 
-            boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+            boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
             int h = data.hashCode();
             assert (success == true);
             assert (h == EXPECTED[i + j * x]);
@@ -79,25 +80,81 @@ class GDALWarpThreadTest extends Thread {
         byte[] data = new byte[TILE_SIZE * TILE_SIZE];
         boolean large = true;
         long token;
-    
+
         if (args.length > 1 && args[1].equals("small")) {
             large = false;
-        }
-        else {
+        } else {
             large = true;
         }
 
         if (large) {
             token = GDALWarp.get_token(args[0], options_large);
-        }
-        else {
+        } else {
             token = GDALWarp.get_token(args[0], options_small);
             THREADS = 1 << 4;
         }
 
+        // Band Count
+        {
+            int[] band_count = new int[1];
+            GDALWarp.get_band_count(token, 0, band_count);
+            System.out.println("Band Count: " + band_count[0]);
+        }
+
+        // Band Type
+        {
+            int[] data_type = new int[1];
+            GDALWarp.get_band_data_type(token, 0, 1, data_type);
+            System.out.println("Data Type: " + data_type[0]);
+        }
+
+        // NoData
+        {
+            double[] nodata = new double[1];
+            int[] success = new int[1];
+            GDALWarp.get_band_nodata(token, 0, 1, nodata, success);
+            System.out.println("NoData: " + nodata[0] + " " + success[0]);
+        }
+
+        // Transform
+        {
+            double[] transform = new double[6];
+            GDALWarp.get_transform(token, 0, transform);
+            System.out.print("Transform:");
+            for (int i = 0; i < 6; ++i) {
+                System.out.print(" " + transform[i]);
+            }
+            System.out.println();
+        }
+
+        // CRS
+        {
+            byte[] crs = new byte[1 << 12];
+            GDALWarp.get_crs_wkt(token, 0, crs);
+            System.out.println("CRS: " + new String(crs, "UTF-8"));
+        }
+
+        // Overviews
+        {
+            int[] widths = new int[1 << 8];
+            int[] heights = new int[1 << 9];
+            GDALWarp.get_overview_widths_heights(token, 0, widths, heights);
+            int i = 0;
+            for (i = 0; i < Math.min(widths.length, heights.length); ++i) {
+                if (widths[i] == -1 || heights[i] == -1) {
+                    break;
+                }
+            }
+            System.out.println("Overviews: " + i);
+        }
+
+        // Dimensions
         GDALWarp.get_width_height(token, 0, width_height);
+        System.out.println("Dimensions: " + width_height[0] + " " + width_height[1]);
         int x = (width_height[0] / WINDOW_SIZE) - 1;
         int y = (width_height[1] / WINDOW_SIZE) - 1;
+
+        System.out.println();
 
         EXPECTED = new int[x * y];
 
@@ -108,7 +165,7 @@ class GDALWarpThreadTest extends Thread {
                 for (int j = 0; j < y; ++j) {
                     src_window[0] = i * WINDOW_SIZE;
                     src_window[1] = j * WINDOW_SIZE;
-                    boolean success = GDALWarp.read_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+                    boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
                     assert (success == true);
                     EXPECTED[i + j * x] = data.hashCode();
                 }

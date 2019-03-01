@@ -1,4 +1,5 @@
-CFLAGS ?= -Wall -Werror -O0 -ggdb3 -I..
+CFLAGS ?= -Wall -Werror -O0 -ggdb3
+CFLAGS += -I..
 CXXFLAGS ?= -std=c++1z
 LDFLAGS += $(shell pkg-config gdal --libs) -L.. -lgdalwarp_bindings -lpthread
 GDALCFLAGS = $(shell pkg-config gdal --cflags)
