@@ -76,6 +76,8 @@ public class GDALWarp {
 
     public static native boolean get_overview_widths_heights(long token, int attempts, int[] widths, int heights[]);
 
+    public static native boolean get_crs_proj4(long token, int attempts, byte[] crs);
+
     public static native boolean get_crs_wkt(long token, int attempts, byte[] crs);
 
     public static native boolean get_band_nodata(long token, int attempts, int band, double[] nodata, int[] success);

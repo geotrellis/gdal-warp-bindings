@@ -95,6 +95,11 @@ int get_overview_widths_heights(uint64_t token, int attempts, int *widths, int *
     DOIT(get_overview_widths_heights(widths, heights, max_length))
 }
 
+int get_crs_proj4(uint64_t token, int attempts, char *crs, int max_size)
+{
+    DOIT(get_crs_proj4(crs, max_size));
+}
+
 int get_crs_wkt(uint64_t token, int attempts, char *crs, int max_size)
 {
     DOIT(get_crs_wkt(crs, max_size))

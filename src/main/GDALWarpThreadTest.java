@@ -127,10 +127,17 @@ class GDALWarpThreadTest extends Thread {
             System.out.println();
         }
 
-        // CRS
+        // CRS in WKT
         {
             byte[] crs = new byte[1 << 12];
             GDALWarp.get_crs_wkt(token, 0, crs);
+            System.out.println("CRS: " + new String(crs, "UTF-8"));
+        }
+
+        // CRS in PROJ.4
+        {
+            byte[] crs = new byte[1 << 12];
+            GDALWarp.get_crs_proj4(token, 0, crs);
             System.out.println("CRS: " + new String(crs, "UTF-8"));
         }
 
