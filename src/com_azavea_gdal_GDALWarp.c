@@ -16,6 +16,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <endian.h>
+
 #include "com_azavea_gdal_GDALWarp.h"
 #include "bindings.h"
 
@@ -154,6 +156,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, 
 {
     int *src_window = (*env)->GetIntArrayElements(env, _src_window, NULL);
     int *dst_window = (*env)->GetIntArrayElements(env, _dst_window, NULL);
+    int length = (*env)->GetArrayLength(env, _data);
     void *data = NULL;
 
     if (gc_lock)
@@ -165,6 +168,36 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, 
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
     jboolean retval = get_data(token, attempts, src_window, dst_window, band_number, type, data);
+    switch (type)
+    {
+    case com_azavea_gdal_GDALWarp_GDT_Int16:
+    case com_azavea_gdal_GDALWarp_GDT_UInt16:
+    case com_azavea_gdal_GDALWarp_GDT_CInt16:
+        for (int i = 0; i <= length - sizeof(uint16_t); i += sizeof(uint16_t))
+        {
+            uint16_t *ptr = (uint16_t *)(data + i);
+            *ptr = htobe16(*ptr);
+        }
+        break;
+    case com_azavea_gdal_GDALWarp_GDT_Int32:
+    case com_azavea_gdal_GDALWarp_GDT_UInt32:
+    case com_azavea_gdal_GDALWarp_GDT_CInt32:
+    case com_azavea_gdal_GDALWarp_GDT_Float32:
+    case com_azavea_gdal_GDALWarp_GDT_CFloat32:
+        for (int i = 0; i <= length - sizeof(uint32_t); i += sizeof(uint32_t))
+        {
+            uint32_t *ptr = (uint32_t *)(data + i);
+            *ptr = htobe32(*ptr);
+        }
+        break;
+    case com_azavea_gdal_GDALWarp_GDT_Float64:
+    case com_azavea_gdal_GDALWarp_GDT_CFloat64:
+        for (int i = 0; i <= length - sizeof(uint64_t); i += sizeof(uint64_t))
+        {
+            uint64_t *ptr = (uint64_t *)(data + i);
+            *ptr = htobe64(*ptr);
+        }
+    }
     if (gc_lock)
     {
         (*env)->ReleasePrimitiveArrayCritical(env, _data, data, 0);
