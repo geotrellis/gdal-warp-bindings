@@ -9,5 +9,4 @@ mvn deploy:deploy-file \
   -Dpackaging="jar" \
   -Dfile="/tmp/src/main/gdalwarp.jar" \
   -DrepositoryId="bintray" \
-  -Durl="https://api.bintray.com/maven/azavea/geotrellis/gdal-warp-bindings/;publish=1" \
-  -DgeneratePom="false"
+  -Durl="https://api.bintray.com/maven/azavea/geotrellis/gdal-warp-bindings/;publish=1"
