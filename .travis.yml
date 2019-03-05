@@ -5,9 +5,10 @@ env:
    global:
       CLEAN_TRAVIS_TAG=${TRAVIS_TAG/[[:space:]]/}
       COMMIT=${CLEAN_TRAVIS_TAG:-${TRAVIS_COMMIT:0:7}}
+      JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 before_install:
-   docker pull jamesmcclain/gdal-build-environment:1
+   docker pull jamesmcclain/gdal-build-environment:2
 
 script:
    .travis/tests.sh
