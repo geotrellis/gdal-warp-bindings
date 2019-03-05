@@ -22,4 +22,4 @@ deploy:
    on:
       all_branches: true
       condition:
-         $TRAVIS_BRANCH =~ ^publishment$
+         $TRAVIS_BRANCH =~ ^master$
