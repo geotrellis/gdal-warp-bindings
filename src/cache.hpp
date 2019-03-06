@@ -183,7 +183,7 @@ class lru_cache
             {
                 if (best_index != -1)
                 {
-                    m_values[best_index].unlock();
+                    m_values[best_index].unlock_for_nondeletion();
                 }
                 best_index = i;
                 best_atime = m_atimes[i];

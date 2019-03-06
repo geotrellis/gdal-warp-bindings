@@ -90,43 +90,44 @@ void deinit()
     token_deinit();
 }
 
-int get_overview_widths_heights(uint64_t token, int attempts, int *widths, int *heights, int max_length)
+int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int *widths, int *heights, int max_length)
 {
-    DOIT(get_overview_widths_heights(widths, heights, max_length))
+    DOIT(get_overview_widths_heights(dataset, widths, heights, max_length))
 }
 
-int get_crs_proj4(uint64_t token, int attempts, char *crs, int max_size)
+int get_crs_proj4(uint64_t token, int dataset, int attempts, char *crs, int max_size)
 {
-    DOIT(get_crs_proj4(crs, max_size));
+    DOIT(get_crs_proj4(dataset, crs, max_size));
 }
 
-int get_crs_wkt(uint64_t token, int attempts, char *crs, int max_size)
+int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_size)
 {
-    DOIT(get_crs_wkt(crs, max_size))
+    DOIT(get_crs_wkt(dataset, crs, max_size))
 }
 
-int get_band_nodata(uint64_t token, int attempts, int band, double *nodata, int *success)
+int get_band_nodata(uint64_t token, int dataset, int attempts, int band, double *nodata, int *success)
 {
-    DOIT(get_band_nodata(band, nodata, success))
+    DOIT(get_band_nodata(dataset, band, nodata, success))
 }
 
-int get_band_data_type(uint64_t token, int attempts, int band, int *data_type)
+int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int *data_type)
 {
-    auto p = reinterpret_cast<GDALDataType *>(data_type);
-    DOIT(get_band_data_type(band, p));
+    auto ptr = reinterpret_cast<GDALDataType *>(data_type);
+    DOIT(get_band_data_type(dataset, band, ptr));
 }
 
-int get_band_count(uint64_t token, int attempts, int *band_count)
+int get_band_count(uint64_t token, int dataset, int attempts, int *band_count)
 {
-    DOIT(get_band_count(band_count))
+    DOIT(get_band_count(dataset, band_count))
 }
 
-int get_width_height(uint64_t token, int attempts, int *width, int *height)
+int get_width_height(uint64_t token, int dataset, int attempts, int *width, int *height)
 {
-    DOIT(get_width_height(width, height))
+    DOIT(get_width_height(dataset, width, height))
 }
 
 int get_data(uint64_t token,
+             int dataset,
              int attempts,
              int src_window[4],
              int dst_window[2],
@@ -135,10 +136,10 @@ int get_data(uint64_t token,
              void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
-    DOIT(get_pixels(src_window, dst_window, band_number, type, data))
+    DOIT(get_pixels(dataset, src_window, dst_window, band_number, type, data))
 }
 
-int get_transform(uint64_t token, int attempts, double transform[6])
+int get_transform(uint64_t token, int dataset, int attempts, double transform[6])
 {
-    DOIT(get_transform(transform))
+    DOIT(get_transform(dataset, transform))
 }
