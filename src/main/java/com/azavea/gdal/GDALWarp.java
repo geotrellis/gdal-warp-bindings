@@ -37,6 +37,9 @@ public class GDALWarp {
     public static final int GDT_CFloat64 = 11;
     public static final int GDT_TypeCount = 12;
 
+    public static final int SOURCE = 0;
+    public static final int WARPED = 1;
+
     private static native void _init(int size, int copies);
 
     public static void init(int size, int copies) throws Exception {
@@ -74,22 +77,30 @@ public class GDALWarp {
 
     public static native void surrender_token(long token);
 
-    public static native boolean get_overview_widths_heights(long token, int attempts, int[] widths, int heights[]);
+    public static native boolean get_overview_widths_heights(long token, int dataset, int attempts, /* */
+            int[] widths, int heights[]);
 
-    public static native boolean get_crs_proj4(long token, int attempts, byte[] crs);
+    public static native boolean get_crs_proj4(long token, int dataset, int attempts, /* */
+            byte[] crs);
 
-    public static native boolean get_crs_wkt(long token, int attempts, byte[] crs);
+    public static native boolean get_crs_wkt(long token, int dataset, int attempts, /* */
+            byte[] crs);
 
-    public static native boolean get_band_nodata(long token, int attempts, int band, double[] nodata, int[] success);
+    public static native boolean get_band_nodata(long token, int dataset, int attempts, /* */
+            int band, double[] nodata, int[] success);
 
-    public static native boolean get_band_data_type(long token, int attempts, int band, int[] data_type);
+    public static native boolean get_band_data_type(long token, int dataset, int attempts, /* */
+            int band, int[] data_type);
 
-    public static native boolean get_band_count(long token, int attempts, int[] band_count);
+    public static native boolean get_band_count(long token, int dataset, int attempts, /* */
+            int[] band_count);
 
-    public static native boolean get_width_height(long token, int attempts, int[] width_height);
+    public static native boolean get_width_height(long token, int dataset, int attempts, /* */
+            int[] width_height);
 
     public static native boolean get_data( /* */
             long token, /* */
+            int dataset, /* */
             int attemps, /* */
             int[] src_window, /* */
             int[] dst_window, /* */
@@ -97,5 +108,6 @@ public class GDALWarp {
             int type, /* */
             byte[] data);
 
-    public static native boolean get_transform(long token, int attempts, double[] transform);
+    public static native boolean get_transform(long token, int dataset, int attempts, /* */
+            double[] transform);
 }
