@@ -30,11 +30,11 @@
 
 #include "bindings.h"
 #include "types.hpp"
-#include "cache.hpp"
+#include "flat_lru_cache.hpp"
 #include "locked_dataset.hpp"
 #include "tokens.hpp"
 
-typedef lru_cache cache_t;
+typedef flat_lru_cache cache_t;
 
 cache_t *cache = nullptr;
 

@@ -19,7 +19,7 @@
 
 #include <gdal.h>
 
-#include "cache.hpp"
+#include "flat_lru_cache.hpp"
 
 auto uri1 = uri_t("../experiments/data/c41078a1.tif");
 auto options1 = options_t{
@@ -59,13 +59,13 @@ BOOST_AUTO_TEST_CASE(init)
 
 BOOST_AUTO_TEST_CASE(get_capacity_test)
 {
-    auto cache = lru_cache(33);
+    auto cache = flat_lru_cache(33);
     BOOST_TEST(cache.capacity() == 33);
 }
 
 BOOST_AUTO_TEST_CASE(get_same_test)
 {
-    auto cache = lru_cache(4);
+    auto cache = flat_lru_cache(4);
     BOOST_TEST(cache.size() == 0);
     cache.get(uri_options1);
     BOOST_TEST(cache.size() == 1);
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(get_same_test)
 
 BOOST_AUTO_TEST_CASE(get_different_test)
 {
-    auto cache = lru_cache(4);
+    auto cache = flat_lru_cache(4);
     BOOST_TEST(cache.size() == 0);
     cache.get(uri_options1);
     BOOST_TEST(cache.size() == 1);
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(get_different_test)
 
 BOOST_AUTO_TEST_CASE(enforce_capacity_limit_test)
 {
-    auto cache = lru_cache(1);
+    auto cache = flat_lru_cache(1);
     cache.get(uri_options1);
     cache.get(uri_options2);
     BOOST_TEST(cache.size() == 1);
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(enforce_capacity_limit_test)
 
 BOOST_AUTO_TEST_CASE(evict_unused_test)
 {
-    auto cache = lru_cache(1);
+    auto cache = flat_lru_cache(1);
     auto v = cache.get(uri_options1);
     v[0]->dec();
     cache.get(uri_options2);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(evict_unused_test)
 
 BOOST_AUTO_TEST_CASE(evict_correct_test)
 {
-    auto cache = lru_cache(2);
+    auto cache = flat_lru_cache(2);
     auto v = cache.get(uri_options1);
     v[0]->dec();
     v = cache.get(uri_options2);
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(evict_correct_test)
 
 BOOST_AUTO_TEST_CASE(eager_multiple_test)
 {
-    auto cache = lru_cache(5, 4);
+    auto cache = flat_lru_cache(5, 4);
     cache.get(uri_options1, true);
     cache.get(uri_options1, true);
     cache.get(uri_options1, true);
