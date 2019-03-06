@@ -4,7 +4,7 @@ services:
 env:
    global:
       CLEAN_TRAVIS_TAG=${TRAVIS_TAG/[[:space:]]/}
-      COMMIT=${CLEAN_TRAVIS_TAG:-${TRAVIS_COMMIT:0:7}}
+      COMMIT=${CLEAN_TRAVIS_TAG:-${TRAVIS_COMMIT:0:6}}
       JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 before_install:
