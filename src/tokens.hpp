@@ -20,7 +20,7 @@
 #include <optional>
 #include "types.hpp"
 
-void token_init();
+void token_init(size_t size);
 void token_deinit();
 std::optional<uri_options_t> query_token(uint64_t token);
 

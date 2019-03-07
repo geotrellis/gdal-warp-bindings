@@ -24,25 +24,27 @@ extern "C"
 {
 #endif
 
-    void init(int size, int copies);
+    void init(size_t size, size_t copies);
     void deinit();
+
     uint64_t get_token(const char *uri, const char **options);
-    void surrender_token(uint64_t token);
-    int get_overview_widths_heights(uint64_t token, int attempts, int *widths, int *heights, int max_length);
-    int get_crs_wkt(uint64_t token, int attempts, char *crs, int max_size);
-    int get_crs_proj4(uint64_t token, int attempts, char *crs, int max_size);
-    int get_band_nodata(uint64_t token, int attempts, int band, double *nodata, int *success);
-    int get_band_data_type(uint64_t token, int attempts, int band, int *data_type);
-    int get_band_count(uint64_t token, int attempts, int *band_count);
-    int get_width_height(uint64_t token, int attempts, int *width, int *height);
+
+    int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int *widths, int *heights, int max_length);
+    int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_size);
+    int get_crs_proj4(uint64_t token, int dataset, int attempts, char *crs, int max_size);
+    int get_band_nodata(uint64_t token, int dataset, int attempts, int band, double *nodata, int *success);
+    int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int *data_type);
+    int get_band_count(uint64_t token, int dataset, int attempts, int *band_count);
+    int get_width_height(uint64_t token, int dataset, int attempts, int *width, int *height);
     int get_data(uint64_t token,
+                 int dataset,
                  int attempts,
                  int src_window[4],
                  int dst_window[2],
                  int band_number,
                  int type,
                  void *data);
-    int get_transform(uint64_t token, int attempts, double transform[6]);
+    int get_transform(uint64_t token, int dataset, int attempts, double transform[6]);
 
 #ifdef __cplusplus
 }

@@ -21,6 +21,16 @@ import java.util.Random;
 
 class GDALWarpThreadTest extends Thread {
 
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_BLACK = "\u001B[30m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_BLUE = "\u001B[34m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
+    private static final String ANSI_CYAN = "\u001B[36m";
+    private static final String ANSI_WHITE = "\u001B[37m";
+
     private static int WINDOW_SIZE = 1 << 8;
     private static int TILE_SIZE = 1 << 8;
     private static int STEPS = 1 << 12;
@@ -64,7 +74,8 @@ class GDALWarpThreadTest extends Thread {
             src_window[0] = i * WINDOW_SIZE;
             src_window[1] = j * WINDOW_SIZE;
 
-            boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+            boolean success = GDALWarp.get_data(token, GDALWarp.WARPED, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte,
+                    data);
             int h = data.hashCode();
             assert (success == true);
             assert (h == EXPECTED[i + j * x]);
@@ -97,67 +108,80 @@ class GDALWarpThreadTest extends Thread {
         // Band Count
         {
             int[] band_count = new int[1];
-            GDALWarp.get_band_count(token, 0, band_count);
-            System.out.println("Band Count: " + band_count[0]);
+            GDALWarp.get_band_count(token, GDALWarp.WARPED, 0, band_count);
+            System.out.println(ANSI_BLUE + "Band Count: " + ANSI_GREEN + band_count[0] + ANSI_RESET);
         }
 
         // Band Type
         {
             int[] data_type = new int[1];
-            GDALWarp.get_band_data_type(token, 0, 1, data_type);
-            System.out.println("Data Type: " + data_type[0]);
+            GDALWarp.get_band_data_type(token, GDALWarp.WARPED, 0, 1, data_type);
+            System.out.println(ANSI_BLUE + "Data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
         }
 
         // NoData
         {
             double[] nodata = new double[1];
             int[] success = new int[1];
-            GDALWarp.get_band_nodata(token, 0, 1, nodata, success);
-            System.out.println("NoData: " + nodata[0] + " " + success[0]);
+            GDALWarp.get_band_nodata(token, GDALWarp.SOURCE, 0, 1, nodata, success);
+            System.out.println(ANSI_BLUE + "Source NoData: " + ANSI_GREEN + nodata[0] + " " + success[0] + ANSI_RESET);
+            GDALWarp.get_band_nodata(token, GDALWarp.WARPED, 0, 1, nodata, success);
+            System.out.println(ANSI_BLUE + "Warped NoData: " + ANSI_GREEN + nodata[0] + " " + success[0] + ANSI_RESET);
         }
 
         // Transform
         {
             double[] transform = new double[6];
-            GDALWarp.get_transform(token, 0, transform);
-            System.out.print("Transform:");
+            GDALWarp.get_transform(token, GDALWarp.SOURCE, 0, transform);
+            System.out.print(ANSI_BLUE + "Source Transform:" + ANSI_GREEN);
             for (int i = 0; i < 6; ++i) {
                 System.out.print(" " + transform[i]);
             }
-            System.out.println();
+            System.out.println(ANSI_RESET);
+            GDALWarp.get_transform(token, GDALWarp.WARPED, 0, transform);
+            System.out.print(ANSI_BLUE + "Warped Transform:" + ANSI_GREEN);
+            for (int i = 0; i < 6; ++i) {
+                System.out.print(" " + transform[i]);
+            }
+            System.out.println(ANSI_RESET);
         }
 
         // CRS in WKT
         {
             byte[] crs = new byte[1 << 12];
-            GDALWarp.get_crs_wkt(token, 0, crs);
-            System.out.println("CRS: " + new String(crs, "UTF-8"));
+            GDALWarp.get_crs_wkt(token, GDALWarp.SOURCE, 0, crs);
+            System.out.println(ANSI_BLUE + "Source WKT CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
+            GDALWarp.get_crs_wkt(token, GDALWarp.WARPED, 0, crs);
+            System.out.println(ANSI_BLUE + "Warped WKT CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
         // CRS in PROJ.4
         {
             byte[] crs = new byte[1 << 12];
-            GDALWarp.get_crs_proj4(token, 0, crs);
-            System.out.println("CRS: " + new String(crs, "UTF-8"));
+            GDALWarp.get_crs_proj4(token, GDALWarp.SOURCE, 0, crs);
+            System.out.println(ANSI_BLUE + "Source PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
+            GDALWarp.get_crs_proj4(token, GDALWarp.WARPED, 0, crs);
+            System.out.println(ANSI_BLUE + "Source PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
         // Overviews
         {
             int[] widths = new int[1 << 8];
             int[] heights = new int[1 << 9];
-            GDALWarp.get_overview_widths_heights(token, 0, widths, heights);
+            GDALWarp.get_overview_widths_heights(token, GDALWarp.WARPED, 0, widths, heights);
             int i = 0;
             for (i = 0; i < Math.min(widths.length, heights.length); ++i) {
                 if (widths[i] == -1 || heights[i] == -1) {
                     break;
                 }
             }
-            System.out.println("Overviews: " + i);
+            System.out.println(ANSI_BLUE + "Overviews: " + ANSI_GREEN + i + ANSI_RESET);
         }
 
         // Dimensions
-        GDALWarp.get_width_height(token, 0, width_height);
-        System.out.println("Dimensions: " + width_height[0] + " " + width_height[1]);
+        GDALWarp.get_width_height(token, GDALWarp.WARPED, 0, width_height);
+        System.out.println(
+                ANSI_BLUE + "Dimensions: " + ANSI_GREEN + width_height[0] + " " + width_height[1] + ANSI_RESET);
         int x = (width_height[0] / WINDOW_SIZE) - 1;
         int y = (width_height[1] / WINDOW_SIZE) - 1;
 
@@ -165,23 +189,24 @@ class GDALWarpThreadTest extends Thread {
 
         EXPECTED = new int[x * y];
 
-        System.out.println("EXPECTED");
+        System.out.println(ANSI_YELLOW + "EXPECTED");
         {
             long start = System.currentTimeMillis();
             for (int i = 0; i < x; ++i) {
                 for (int j = 0; j < y; ++j) {
                     src_window[0] = i * WINDOW_SIZE;
                     src_window[1] = j * WINDOW_SIZE;
-                    boolean success = GDALWarp.get_data(token, 0, src_window, dst_window, 1, GDALWarp.GDT_Byte, data);
+                    boolean success = GDALWarp.get_data(token, GDALWarp.WARPED, 0, src_window, dst_window, 1,
+                            GDALWarp.GDT_Byte, data);
                     assert (success == true);
                     EXPECTED[i + j * x] = data.hashCode();
                 }
             }
             long end = System.currentTimeMillis();
-            System.out.println(end - start);
+            System.out.println("" + (end - start) + ANSI_RESET);
         }
 
-        System.out.println("ACTUAL");
+        System.out.println(ANSI_YELLOW + "ACTUAL");
         {
             GDALWarpThreadTest[] threads = new GDALWarpThreadTest[THREADS];
             long start = System.currentTimeMillis();
@@ -195,10 +220,9 @@ class GDALWarpThreadTest extends Thread {
             }
             long end = System.currentTimeMillis();
             System.out.println();
-            System.out.println(end - start);
+            System.out.println("" + (end - start) + ANSI_RESET);
         }
 
-        GDALWarp.surrender_token(token);
         GDALWarp.deinit();
         return;
     }

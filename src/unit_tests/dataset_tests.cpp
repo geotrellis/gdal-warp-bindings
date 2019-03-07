@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(overview_test)
     auto actual = std::vector<int>();
     auto expected = std::vector<int>{-1, -1, -1, -1, -1, -1};
 
-    ld.get_overview_widths_heights(actual_widths, actual_heights, N);
+    ld.get_overview_widths_heights(locked_dataset::WARPED, actual_widths, actual_heights, N);
     actual.insert(actual.begin(), actual_widths, actual_widths + 3);
     actual.insert(actual.begin(), actual_heights, actual_heights + 3);
 
@@ -57,11 +57,29 @@ BOOST_AUTO_TEST_CASE(get_crs_proj4_test)
     constexpr int N = 1 << 10;
     auto ld = locked_dataset(uri_options1);
     char actual[N];
-    auto expected = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs";
+    auto expected = std::string("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
 
-    ld.get_crs_proj4(actual, N);
+    ld.get_crs_proj4(locked_dataset::WARPED, actual, N);
 
     BOOST_TEST(std::string(actual) == expected);
+}
+
+BOOST_AUTO_TEST_CASE(get_source_test)
+{
+    constexpr int N = 1 << 10;
+    auto ld = locked_dataset(uri_options1);
+    char actual[N];
+    auto expected = std::string("+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs ");
+
+    ld.get_crs_proj4(locked_dataset::SOURCE, actual, N);
+    BOOST_TEST(std::string(actual) == expected);
+
+    int width = -1;
+    int height = -1;
+
+    ld.get_width_height(locked_dataset::SOURCE, &width, &height);
+    BOOST_TEST(width == 7202);
+    BOOST_TEST(height == 5593);
 }
 
 BOOST_AUTO_TEST_CASE(get_crs_wkt_test)
@@ -69,9 +87,9 @@ BOOST_AUTO_TEST_CASE(get_crs_wkt_test)
     constexpr int N = 1 << 10;
     auto ld = locked_dataset(uri_options1);
     char actual[N];
-    auto expected = "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]";
+    auto expected = std::string("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]");
 
-    ld.get_crs_wkt(actual, N);
+    ld.get_crs_wkt(locked_dataset::WARPED, actual, N);
 
     BOOST_TEST(std::string(actual) == expected);
 }
@@ -81,7 +99,7 @@ BOOST_AUTO_TEST_CASE(get_band_count_test)
     int band_count;
     auto ld = locked_dataset(uri_options1);
 
-    ld.get_band_count(&band_count);
+    ld.get_band_count(locked_dataset::WARPED, &band_count);
 
     BOOST_TEST(band_count == 1);
 }
@@ -91,7 +109,7 @@ BOOST_AUTO_TEST_CASE(get_band_data_type)
     GDALDataType data_type;
     auto ld = locked_dataset(uri_options1);
 
-    ld.get_band_data_type(1, &data_type);
+    ld.get_band_data_type(locked_dataset::WARPED, 1, &data_type);
 
     BOOST_TEST(data_type == GDT_Byte);
 }
@@ -102,7 +120,7 @@ BOOST_AUTO_TEST_CASE(get_band_nodata)
     int success;
     auto ld = locked_dataset(uri_options2);
 
-    ld.get_band_nodata(1, &nodata, &success);
+    ld.get_band_nodata(locked_dataset::WARPED, 1, &nodata, &success);
 
     BOOST_TEST(nodata == 107.0);
     BOOST_TEST(success);
@@ -117,7 +135,7 @@ BOOST_AUTO_TEST_CASE(get_transform_test)
         -8915910.5905594081, 33.88424960091178, 0,
         5174836.3438357478, 0, -33.88424960091178}; // Manually verified
 
-    ld.get_transform(transform);
+    ld.get_transform(locked_dataset::WARPED, transform);
     actual.insert(actual.end(), transform, transform + 6);
 
     BOOST_TEST(actual == expected);
@@ -131,7 +149,7 @@ BOOST_AUTO_TEST_CASE(get_pixels_test)
     uint64_t actual = 0;
     uint64_t expected = 0x101010001010100; // Manually verified
 
-    ld.get_pixels(src_window, dst_window, 1, GDT_Byte, &actual);
+    ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 1, GDT_Byte, &actual);
 
     BOOST_TEST(actual == expected);
 }
@@ -180,7 +198,7 @@ BOOST_AUTO_TEST_CASE(width_height_test)
     int width = -1;
     int height = -1;
 
-    ld.get_width_height(&width, &height);
+    ld.get_width_height(locked_dataset::WARPED, &width, &height);
     BOOST_TEST(width == 7319);  // Manually verified (VRT different from raw TIF)
     BOOST_TEST(height == 5771); // Manually verified (VRT different from raw TIF)
 }

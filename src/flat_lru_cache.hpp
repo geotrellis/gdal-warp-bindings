@@ -26,7 +26,7 @@
 #include "types.hpp"
 #include "locked_dataset.hpp"
 
-class lru_cache
+class flat_lru_cache
 {
   public:
     typedef uri_options_t key_t;
@@ -34,7 +34,7 @@ class lru_cache
     typedef uint64_t atime_t;
     typedef std::vector<locked_dataset *> return_list_t;
 
-    lru_cache(size_t capacity, size_t copies = 1)
+    flat_lru_cache(size_t capacity, size_t copies = 1)
         : m_tags(std::vector<size_t>(capacity)),
           m_atimes(std::vector<atime_t>(capacity)),
           m_values(std::vector<value_t>(capacity)),
@@ -47,7 +47,7 @@ class lru_cache
         clear();
     }
 
-    ~lru_cache()
+    ~flat_lru_cache()
     {
     }
 
@@ -183,7 +183,7 @@ class lru_cache
             {
                 if (best_index != -1)
                 {
-                    m_values[best_index].unlock();
+                    m_values[best_index].unlock_for_nondeletion();
                 }
                 best_index = i;
                 best_atime = m_atimes[i];

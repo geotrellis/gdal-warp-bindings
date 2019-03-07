@@ -6,7 +6,7 @@ GDALCFLAGS = $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so
-HEADERS = bindings.h types.hpp cache.hpp locked_dataset.hpp tokens.hpp
+HEADERS = bindings.h types.hpp flat_lru_cache.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
 
 all: tests libgdalwarp_bindings.$(SO)
 

@@ -55,6 +55,7 @@
         "algorithm": "cpp",
         "string": "cpp",
         "unordered_set": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "mutex": "cpp"
     }
 }
