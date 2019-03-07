@@ -259,7 +259,6 @@ int main(int argc, char **argv)
         }
     }
 
-    surrender_token(token);
     deinit();
     GDALWarpAppOptionsFree(app_options);
 

@@ -44,7 +44,7 @@ extern "C"
 
 BOOST_AUTO_TEST_CASE(get_unique_token_test)
 {
-    token_init();
+    token_init(16);
     auto token = get_token(uri1, options1);
 
     BOOST_TEST(token == static_cast<token_t>(33));
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(get_unique_token_test)
 
 BOOST_AUTO_TEST_CASE(get_same_token_test)
 {
-    token_init();
+    token_init(16);
     auto token1 = get_token(uri1, options1);
     auto token2 = get_token(uri1, options1);
 
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(get_same_token_test)
 
 BOOST_AUTO_TEST_CASE(get_different_uri_tokens_test)
 {
-    token_init();
+    token_init(16);
     auto token1 = get_token(uri1, options1);
     auto token2 = get_token(uri2, options1);
 
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(get_different_uri_tokens_test)
 
 BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
 {
-    token_init();
+    token_init(16);
     auto token1 = get_token(uri1, options1);
     auto token2 = get_token(uri1, options2);
 
@@ -84,9 +84,58 @@ BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
     token_deinit();
 }
 
+BOOST_AUTO_TEST_CASE(different_and_same_test)
+{
+    token_init(16);
+    auto token0 = get_token(uri2, options2);
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri1, options1);
+    auto token3 = get_token(uri2, options1);
+    auto token4 = get_token(uri2, options1);
+    auto token5 = get_token(uri1, options1);
+
+    BOOST_TEST(token1 == token2);
+    BOOST_TEST(token2 != token3);
+    BOOST_TEST(token3 == token4);
+    BOOST_TEST(token4 != token5);
+    BOOST_TEST(token5 == token1);
+    BOOST_TEST(token0 != token1);
+    BOOST_TEST(token0 != token3);
+}
+
+BOOST_AUTO_TEST_CASE(token_eviction_test)
+{
+    token_init(3);
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri1, options2);
+    auto token3 = get_token(uri2, options1);
+    auto token4 = get_token(uri2, options2);
+
+    BOOST_TEST(query_token(token1).has_value() == false);
+    BOOST_TEST(query_token(token2).has_value() == true);
+    BOOST_TEST(query_token(token3).has_value() == true);
+    BOOST_TEST(query_token(token4).has_value() == true);
+}
+
+BOOST_AUTO_TEST_CASE(token_lru_eviction_test)
+{
+    token_init(3);
+    auto token1 = get_token(uri1, options1);
+    auto token2 = get_token(uri1, options2);
+    auto token3 = get_token(uri2, options1);
+    query_token(token1);
+    auto token4 = get_token(uri2, options2);
+
+    BOOST_TEST(query_token(token1).has_value() == true);
+    BOOST_TEST(query_token(token2).has_value() == false);
+    BOOST_TEST(query_token(token3).has_value() == true);
+    BOOST_TEST(query_token(token4).has_value() == true);
+}
+
+#if 0
 BOOST_AUTO_TEST_CASE(surrender_token_test)
 {
-    token_init();
+    token_init(16);
     auto token1 = get_token(uri1, options1);
     surrender_token(token1);
     auto token2 = get_token(uri2, options1);
@@ -97,13 +146,14 @@ BOOST_AUTO_TEST_CASE(surrender_token_test)
 
 BOOST_AUTO_TEST_CASE(double_free_test)
 {
-    token_init();
+    token_init(16);
     auto token = get_token(uri1, options1);
     surrender_token(token);
     surrender_token(token);
 
     token_deinit();
 }
+#endif
 
 namespace std
 {
@@ -115,7 +165,7 @@ std::ostream &operator<<(std::ostream &out, const uri_options_t &rhs)
 
 BOOST_AUTO_TEST_CASE(query_test)
 {
-    token_init();
+    token_init(16);
 
     auto token1 = static_cast<uint64_t>(42);
     auto actual1 = query_token(token1).has_value();

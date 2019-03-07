@@ -63,7 +63,7 @@ cache_t *cache = nullptr;
     }                                                                  \
     return done;
 
-void init(int size, int copies)
+void init(size_t size, size_t copies)
 {
     deinit();
 
@@ -75,7 +75,7 @@ void init(int size, int copies)
         throw std::bad_alloc();
     }
 
-    token_init();
+    token_init(size << 1);
 
     return;
 }

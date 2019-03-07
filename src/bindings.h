@@ -24,11 +24,10 @@ extern "C"
 {
 #endif
 
-    void init(int size, int copies);
+    void init(size_t size, size_t copies);
     void deinit();
 
     uint64_t get_token(const char *uri, const char **options);
-    void surrender_token(uint64_t token);
 
     int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int *widths, int *heights, int max_length);
     int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_size);

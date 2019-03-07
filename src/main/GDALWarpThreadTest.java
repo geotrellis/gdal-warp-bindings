@@ -223,7 +223,6 @@ class GDALWarpThreadTest extends Thread {
             System.out.println("" + (end - start) + ANSI_RESET);
         }
 
-        GDALWarp.surrender_token(token);
         GDALWarp.deinit();
         return;
     }

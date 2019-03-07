@@ -60,11 +60,6 @@ JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jo
     return token;
 }
 
-JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_surrender_1token(JNIEnv *env, jobject obj, jlong token)
-{
-    surrender_token(token);
-}
-
 JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heights(JNIEnv *env, jclass obj,
                                                                                         jlong token,
                                                                                         jint dataset,
