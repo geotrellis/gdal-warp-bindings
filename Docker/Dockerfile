@@ -9,6 +9,11 @@ RUN apt-get update -q && \
 
 RUN wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O /tmp/c41078a1.tif
 
+RUN apt-get install gcc-mingw-w64 g++-mingw-w64 -y && \
+    apt-get autoremove && \
+    apt-get autoclean && \
+    apt-get clean
+
 WORKDIR /usr/local/src
 
-# docker build -f Dockerfile -t jamesmcclain/gdal-build-environment:2 .
+# docker build -f Dockerfile -t jamesmcclain/gdal-build-environment:3 .

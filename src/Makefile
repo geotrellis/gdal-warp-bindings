@@ -1,8 +1,8 @@
 CFLAGS ?= -Wall -Werror -O0 -ggdb3
 CXXFLAGS ?= -std=c++1z
-LDFLAGS += $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
+LDFLAGS ?= $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
-GDALCFLAGS = $(shell pkg-config gdal --cflags)
+GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so

@@ -193,7 +193,7 @@ class flat_lru_cache
         {
             m_tags[best_index] = tag;
             m_atimes[best_index] = current_time;
-            m_values[best_index] = std::move(locked_dataset(key));
+            m_values[best_index] = locked_dataset(key);
             m_size++;
             return &(m_values[best_index]);
         }

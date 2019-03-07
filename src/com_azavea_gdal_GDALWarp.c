@@ -16,7 +16,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if !defined(__APPLE__)
 #include <endian.h>
+#else
+#include <arpa/inet.h>
+#define htobe16(x) htons(x)
+#define htobe32(x) htonl(x)
+#define htobe64(x) htonll(x)
+#endif
 
 #include "com_azavea_gdal_GDALWarp.h"
 #include "bindings.h"
