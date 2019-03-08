@@ -92,12 +92,6 @@ RUN for triple in $(echo ${DARWIN_TRIPLES} | tr "," " "); do                    
 # we need to use default clang binary to avoid a bug in osxcross that recursively call himself
 # with more and more parameters
 
-RUN wget 'https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.bz2' -O /tmp/boost.tar.bz2 && \
-  mkdir -p /usr/local/include && \
-  cd /usr/local/include && \
-  tar axvf /tmp/boost.tar.bz2 && \
-  rm /tmp/boost.tar.bz2
-
 # Image metadata
 ENTRYPOINT ["/usr/bin/crossbuild"]
 CMD ["/bin/bash"]
@@ -105,4 +99,4 @@ WORKDIR /workdir
 RUN wget -k 'https://raw.githubusercontent.com/multiarch/crossbuild/master/assets/crossbuild' -O /usr/bin/crossbuild && \
     chmod ugo+x /usr/bin/crossbuild
 
-# docker build -f Dockerfile.multiarch -t jamesmcclain/crossbuild:0 .
+# docker build -f Dockerfile.crossbuild -t jamesmcclain/crossbuild:0 .
