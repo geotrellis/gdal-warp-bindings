@@ -14,7 +14,7 @@
 #include <map>
 #include <list>
 #include <utility>
-#include <optional>
+#include <boost/optional.hpp>
 
 // a cache which evicts the least recently used item when it is full
 template <class Key, class Value>
@@ -76,7 +76,7 @@ class lru_cache
         }
     }
 
-    std::optional<key_type> get(const value_type &value) const
+    boost::optional<key_type> get(const value_type &value) const
     {
         for (auto i = m_map.begin(); i != m_map.end(); ++i)
         {
@@ -85,17 +85,17 @@ class lru_cache
                 return i->first;
             }
         }
-        return std::nullopt;
+        return boost::optional<key_type>{};
     }
 
-    std::optional<value_type> get(const key_type &key)
+    boost::optional<value_type> get(const key_type &key)
     {
         // lookup value in the cache
         typename map_type::iterator i = m_map.find(key);
         if (i == m_map.end())
         {
             // value not in cache
-            return std::nullopt;
+            return boost::optional<value_type>{};
         }
 
         // return the value, but first update its place in the most

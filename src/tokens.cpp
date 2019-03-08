@@ -16,7 +16,8 @@
 
 #include <cstdint>
 #include <exception>
-#include <optional>
+#include <boost/optional.hpp>
+#include <pthread.h>
 #include "lru_cache.hpp"
 #include "bindings.h"
 #include "tokens.hpp"
@@ -61,7 +62,7 @@ uint64_t get_token(const char *_uri, const char **_options)
     pthread_mutex_lock(&token_lock);
     auto maybe_token = cache->get(uri_options);
 
-    if (maybe_token.has_value()) // uri ⨯ options pair already registered
+    if (maybe_token) // uri ⨯ options pair already registered
     {
         pthread_mutex_unlock(&token_lock);
         return maybe_token.value();
@@ -79,7 +80,7 @@ uint64_t get_token(const char *_uri, const char **_options)
     return static_cast<uint64_t>(token);
 }
 
-std::optional<uri_options_t> query_token(uint64_t _token)
+boost::optional<uri_options_t> query_token(uint64_t _token)
 {
     pthread_mutex_lock(&token_lock);
     auto token = static_cast<token_t>(_token);

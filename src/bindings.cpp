@@ -51,9 +51,9 @@ cache_t *cache = nullptr;
 #define DOIT(fn)                                                       \
     bool done = false;                                                 \
     auto query_result = query_token(token);                            \
-    if (query_result.has_value())                                      \
+    if (query_result)                                                  \
     {                                                                  \
-        auto uri_options = query_result.value();                       \
+        auto uri_options = query_result.get();                         \
         for (int i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
         {                                                              \
             auto locked_datasets = cache->get(uri_options);            \
