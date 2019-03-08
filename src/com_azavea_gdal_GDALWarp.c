@@ -16,13 +16,27 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if !defined(__APPLE__)
-#include <endian.h>
-#else
+#if defined(__APPLE__)
 #include <arpa/inet.h>
 #define htobe16(x) htons(x)
 #define htobe32(x) htonl(x)
 #define htobe64(x) htonll(x)
+#elif defined(__MINGW32__)
+#include <stdint.h>
+#include <winsock2.h>
+#define htobe16(x) htons(x)
+#define htobe32(x) htonl(x)
+
+uint64_t htobe64(uint64_t x) {
+    uint64_t retval;
+    uint32_t * p1 = (uint32_t *)&retval;
+    uint32_t * p2 = (uint32_t *)&x;
+    p1[0] = htonl(p2[1]);
+    p1[1] = htonl(p2[0]);
+    return retval;
+}
+#else
+#include <endian.h>
 #endif
 
 #include "com_azavea_gdal_GDALWarp.h"

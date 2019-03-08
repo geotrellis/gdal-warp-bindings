@@ -15,6 +15,7 @@
  */
 
 #include <cstdint>
+#include <ctime>
 #include <exception>
 #include <boost/optional.hpp>
 #include <pthread.h>

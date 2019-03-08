@@ -14,13 +14,20 @@ com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c
 	make -C main java/com/azavea/gdal/GDALWarp.class
 	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
+com_azavea_gdal_GDALWarp.obj: com_azavea_gdal_GDALWarp.c
+	make -C main java/com/azavea/gdal/GDALWarp.class
+	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
+
 %.o: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) -fPIC $< -c -o $@
 
-bindings.o: bindings.cpp $(HEADERS)
+%.obj: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) -fPIC $< -c -o $@
 
 libgdalwarp_bindings.$(SO): com_azavea_gdal_GDALWarp.o bindings.o tokens.o
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
+
+gdalwarp_bindings.dll: com_azavea_gdal_GDALWarp.obj bindings.obj tokens.obj
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 experiments/data:
