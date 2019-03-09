@@ -22,6 +22,7 @@ public class GDALWarp {
     private static final String GDALWARP_BINDINGS_LIB = "gdalwarp_bindings";
     private static final String GDALWARP_BINDINGS_RESOURCE_ELF = "/resources/libgdalwarp_bindings.so";
     private static final String GDALWARP_BINDINGS_RESOURCE_MACHO = "/resources/libgdalwarp_bindings.dylib";
+    private static final String GDALWARP_BINDINGS_RESOURCE_DLL = "/resources/gdalwarp_bindings.dll";
 
     public static final int GDT_Unknown = 0;
     public static final int GDT_Byte = 1;
@@ -43,29 +44,22 @@ public class GDALWarp {
     private static native void _init(int size, int copies);
 
     public static void init(int size, int copies) throws Exception {
-        boolean so_loaded = false;
+
+        String os = System.getProperty("os.name").toLowerCase();
 
         // Try to load ELF shared object from JAR file ...
-        if (so_loaded == false) {
-            try {
-                NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ELF);
-                so_loaded = true;
-            } catch (Exception e) {
-                ;
-            }
+        if (os.contains("linux")) {
+            NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ELF);
         }
         // Try to Load Mach-O shared object from JAR file ...
-        if (so_loaded == false) {
-            try {
-                NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_MACHO);
-                so_loaded = true;
-            } catch (Exception e) {
-                ;
-            }
+        else if (os.contains("mac")) {
+            NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_MACHO);
         }
-
-        if (so_loaded == false) {
-            throw new Exception("Unable to load shared object.");
+        // Try to load Windows DLL from JAR file ...
+        else if (os.contains("win")) {
+            NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_DLL);
+        } else {
+            throw new Exception("Unsupported platform");
         }
 
         _init(size, copies);
