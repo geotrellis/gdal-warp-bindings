@@ -11,6 +11,7 @@ docker run -it --rm \
 rm -f $(find | grep '\.o$')
 docker run -it --rm \
       -v $(pwd):/workdir \
+      -e OSXCROSS_NO_INCLUDE_PATH_WARNINGS \
       -e CROSS_TRIPLE="x86_64-apple-darwin" \
       -e OS=darwin -e SO=dylib \
       -e CC=cc -e CXX=c++ \
