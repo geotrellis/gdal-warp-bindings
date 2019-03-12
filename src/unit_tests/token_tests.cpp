@@ -111,10 +111,10 @@ BOOST_AUTO_TEST_CASE(token_eviction_test)
     auto token3 = get_token(uri2, options1);
     auto token4 = get_token(uri2, options2);
 
-    BOOST_TEST(query_token(token1).has_value() == false);
-    BOOST_TEST(query_token(token2).has_value() == true);
-    BOOST_TEST(query_token(token3).has_value() == true);
-    BOOST_TEST(query_token(token4).has_value() == true);
+    BOOST_TEST(query_token(token1).is_initialized() == false);
+    BOOST_TEST(query_token(token2).is_initialized() == true);
+    BOOST_TEST(query_token(token3).is_initialized() == true);
+    BOOST_TEST(query_token(token4).is_initialized() == true);
 }
 
 BOOST_AUTO_TEST_CASE(token_lru_eviction_test)
@@ -126,10 +126,10 @@ BOOST_AUTO_TEST_CASE(token_lru_eviction_test)
     query_token(token1);
     auto token4 = get_token(uri2, options2);
 
-    BOOST_TEST(query_token(token1).has_value() == true);
-    BOOST_TEST(query_token(token2).has_value() == false);
-    BOOST_TEST(query_token(token3).has_value() == true);
-    BOOST_TEST(query_token(token4).has_value() == true);
+    BOOST_TEST(query_token(token1).is_initialized() == true);
+    BOOST_TEST(query_token(token2).is_initialized() == false);
+    BOOST_TEST(query_token(token3).is_initialized() == true);
+    BOOST_TEST(query_token(token4).is_initialized() == true);
 }
 
 #if 0
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(query_test)
     token_init(16);
 
     auto token1 = static_cast<uint64_t>(42);
-    auto actual1 = query_token(token1).has_value();
+    auto actual1 = query_token(token1).is_initialized();
     auto expected1 = false;
     BOOST_TEST(actual1 == expected1);
 

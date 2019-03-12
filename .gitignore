@@ -1,5 +1,8 @@
 *.o
+*.obj
 *.so
+*.dylib
+*.dll
 *.tif
 *.vrt
 .vscode/launch.json

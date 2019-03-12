@@ -17,12 +17,12 @@
 #ifndef __TOKENS_HPP__
 #define __TOKENS_HPP__
 
-#include <optional>
+#include <boost/optional.hpp>
 #include "types.hpp"
 
 void token_init(size_t size);
 void token_deinit();
-std::optional<uri_options_t> query_token(uint64_t token);
+boost::optional<uri_options_t> query_token(uint64_t token);
 
 // The prototypes for get_token and surrender_token are in bindings.h
 

@@ -8,7 +8,7 @@ env:
       JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 before_install:
-   docker pull jamesmcclain/gdal-build-environment:2
+   docker pull jamesmcclain/gdal-build-environment:3
 
 script:
    .travis/tests.sh
@@ -22,4 +22,4 @@ deploy:
    on:
       all_branches: true
       condition:
-         $TRAVIS_BRANCH =~ ^master$
+         $TRAVIS_BRANCH =~ ^(master|publishment)$

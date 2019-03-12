@@ -22,14 +22,17 @@
 #ifdef DEBUG
 #include <cstdio>
 #endif
+
+#if defined(__MINGW32__)
+typedef _locale_t locale_t;
+#endif
+
 #include <cstring>
-
 #include <pthread.h>
-
 #include <gdal.h>
 #include <gdal_utils.h>
 #include <cpl_conv.h>
-#include <ogr_spatialref.h>
+#include <ogr_srs_api.h>
 
 #include "types.hpp"
 
@@ -158,8 +161,8 @@ class locked_dataset
             return false;
         }
         char *result;
-        auto ref = OGRSpatialReference(GDALGetProjectionRef(m_datasets[dataset]));
-        ref.exportToProj4(&result);
+        OGRSpatialReferenceH ref = OSRNewSpatialReference(GDALGetProjectionRef(m_datasets[dataset]));
+        OSRExportToProj4(ref, &result);
         strncpy(crs, result, max_size);
         CPLFree(result);
         pthread_mutex_unlock(&m_lock);
@@ -444,7 +447,11 @@ class locked_dataset
                 return; // Lock intentionally not unlocked
             }
 
+#if !defined(__MINGW__)
             m_datasets[WARPED] = GDALWarp("/dev/null", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
+#else
+            m_datasets[WARPED] = GDALWarp("nul", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
+#endif
             if (m_datasets[SOURCE] == nullptr)
             {
                 GDALClose(m_datasets[SOURCE]);
