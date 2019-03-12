@@ -84,7 +84,9 @@ void deinit()
 {
     if (cache != nullptr)
     {
+#if !defined(__MINGW32__)
         fprintf(stderr, "%ld\n", cache->size());
+#endif
         delete cache;
     }
     token_deinit();
