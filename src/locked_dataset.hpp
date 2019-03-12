@@ -447,7 +447,11 @@ class locked_dataset
                 return; // Lock intentionally not unlocked
             }
 
+#if !defined(__MINGW__)
             m_datasets[WARPED] = GDALWarp("/dev/null", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
+#else
+            m_datasets[WARPED] = GDALWarp("nul", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
+#endif
             if (m_datasets[SOURCE] == nullptr)
             {
                 GDALClose(m_datasets[SOURCE]);
