@@ -83,8 +83,6 @@ class GDALWarpThreadTest extends Thread {
     }
 
     public static void main(String[] args) throws Exception {
-        GDALWarp.init(128, 4);
-
         int[] width_height = new int[2];
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
         int[] dst_window = new int[] { TILE_SIZE, TILE_SIZE };
