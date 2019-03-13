@@ -41,6 +41,9 @@ public class GDALWarp {
     public static final int SOURCE = 0;
     public static final int WARPED = 1;
 
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
+
     private static native void _init(int size, int copies);
 
     public static void init(int size, int copies) throws Exception {
@@ -63,6 +66,15 @@ public class GDALWarp {
         }
 
         _init(size, copies);
+    }
+
+    static {
+        try {
+                init(1 << 8, 1 << 4);
+        }
+        catch (Exception e) {
+                System.err.println(ANSI_RED + "INITIALIZATION FAILED" + ANSI_RESET);
+        }
     }
 
     public static native void deinit();
