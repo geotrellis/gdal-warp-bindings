@@ -36,4 +36,4 @@ cp src/libgdalwarp_bindings.dylib src/main/java/resources/
 cp src/gdalwarp_bindings.dll src/main/java/resources/
 (cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*)
 
-rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\)$')
+rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
