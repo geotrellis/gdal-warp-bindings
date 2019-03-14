@@ -18,20 +18,21 @@
 #include <ctime>
 #include <exception>
 #include <boost/optional.hpp>
+#include <boost/compute/detail/lru_cache.hpp>
 #include <pthread.h>
-#include "lru_cache.hpp"
 #include "bindings.h"
 #include "tokens.hpp"
 
+typedef boost::compute::detail::lru_cache<token_t, uri_options_t> lru_cache;
 static pthread_mutex_t token_lock;
-static lru_cache<token_t, uri_options_t> *cache;
+static lru_cache *cache;
 
 void token_init(size_t size)
 {
     srand(time(nullptr));
 
     token_lock = PTHREAD_MUTEX_INITIALIZER;
-    cache = new lru_cache<token_t, uri_options_t>(size);
+    cache = new lru_cache(size);
 }
 
 void token_deinit()
@@ -61,22 +62,12 @@ uint64_t get_token(const char *_uri, const char **_options)
     }
 
     pthread_mutex_lock(&token_lock);
-    auto maybe_token = cache->get(uri_options);
-
-    if (maybe_token) // uri ⨯ options pair already registered
+    while (cache->contains(token))
     {
-        pthread_mutex_unlock(&token_lock);
-        return maybe_token.value();
+        token = generate_token();
     }
-    else // uri ⨯ options pair not already registered
-    {
-        while (cache->contains(token))
-        {
-            token = generate_token();
-        }
-        cache->insert(token, uri_options);
-        pthread_mutex_unlock(&token_lock);
-    }
+    cache->insert(token, uri_options);
+    pthread_mutex_unlock(&token_lock);
 
     return static_cast<uint64_t>(token);
 }

@@ -75,7 +75,7 @@ void init(size_t size, size_t copies)
         throw std::bad_alloc();
     }
 
-    token_init(size << 1);
+    token_init(640 * (1 << 10)); // This should be enough for anyone
 
     return;
 }
