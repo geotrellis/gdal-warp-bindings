@@ -467,18 +467,21 @@ class locked_dataset
      */
     void close()
     {
-        pthread_mutex_lock(&m_lock);
-        if (m_datasets[WARPED] != nullptr)
+        if (valid())
         {
-            GDALClose(m_datasets[WARPED]);
-            m_datasets[WARPED] = nullptr;
+            pthread_mutex_lock(&m_lock);
+            if (m_datasets[WARPED] != nullptr)
+            {
+                GDALClose(m_datasets[WARPED]);
+                m_datasets[WARPED] = nullptr;
+            }
+            if (m_datasets[SOURCE] != nullptr)
+            {
+                GDALClose(m_datasets[SOURCE]);
+                m_datasets[SOURCE] = nullptr;
+            }
+            pthread_mutex_unlock(&m_lock);
         }
-        if (m_datasets[SOURCE] != nullptr)
-        {
-            GDALClose(m_datasets[SOURCE]);
-            m_datasets[SOURCE] = nullptr;
-        }
-        pthread_mutex_unlock(&m_lock);
     }
 
   public:
