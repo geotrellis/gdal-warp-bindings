@@ -191,11 +191,20 @@ class flat_lru_cache
         }
         if (best_index != -1)
         {
-            m_tags[best_index] = tag;
-            m_atimes[best_index] = current_time;
-            m_values[best_index] = locked_dataset(key);
-            m_size++;
-            return &(m_values[best_index]);
+            auto ds = locked_dataset(key);
+
+            if (ds.valid())
+            {
+                m_tags[best_index] = tag;
+                m_atimes[best_index] = current_time;
+                m_values[best_index] = std::move(ds);
+                m_size++;
+                return &(m_values[best_index]);
+            }
+            else
+            {
+                return nullptr;
+            }
         }
         else
         {
