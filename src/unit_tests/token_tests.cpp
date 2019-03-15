@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(get_same_token_test)
     auto token2 = get_token(uri1, options1);
 
     BOOST_TEST(token1 == static_cast<token_t>(33));
-    BOOST_TEST(token1 == token2);
+    BOOST_TEST(token1 != token2);
     token_deinit();
 }
 
@@ -82,25 +82,6 @@ BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
     BOOST_TEST(token1 == static_cast<token_t>(33));
     BOOST_TEST(token1 != token2);
     token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(different_and_same_test)
-{
-    token_init(16);
-    auto token0 = get_token(uri2, options2);
-    auto token1 = get_token(uri1, options1);
-    auto token2 = get_token(uri1, options1);
-    auto token3 = get_token(uri2, options1);
-    auto token4 = get_token(uri2, options1);
-    auto token5 = get_token(uri1, options1);
-
-    BOOST_TEST(token1 == token2);
-    BOOST_TEST(token2 != token3);
-    BOOST_TEST(token3 == token4);
-    BOOST_TEST(token4 != token5);
-    BOOST_TEST(token5 == token1);
-    BOOST_TEST(token0 != token1);
-    BOOST_TEST(token0 != token3);
 }
 
 BOOST_AUTO_TEST_CASE(token_eviction_test)
