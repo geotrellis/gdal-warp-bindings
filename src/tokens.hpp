@@ -24,6 +24,6 @@ void token_init(size_t size);
 void token_deinit();
 boost::optional<uri_options_t> query_token(uint64_t token);
 
-// The prototypes for get_token and surrender_token are in bindings.h
+// The prototypes for get_token are in bindings.h
 
 #endif
