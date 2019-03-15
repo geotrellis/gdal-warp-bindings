@@ -23,6 +23,7 @@
 #include <map>
 #include <vector>
 
+#include <errno.h>
 #include <sched.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -41,27 +42,39 @@ cache_t *cache = nullptr;
 #define TRY(fn)                     \
     for (auto ld : locked_datasets) \
     {                               \
-        if (!done && ld->fn)        \
+        if (!done && (ld->fn != 0)) \
         {                           \
             done = true;            \
         }                           \
         ld->dec();                  \
     }
 
-#define DOIT(fn)                                                       \
-    bool done = false;                                                 \
-    auto query_result = query_token(token);                            \
-    if (query_result)                                                  \
-    {                                                                  \
-        auto uri_options = query_result.get();                         \
-        for (int i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
-        {                                                              \
-            auto locked_datasets = cache->get(uri_options);            \
-            TRY(fn)                                                    \
-            sched_yield();                                             \
-        }                                                              \
-    }                                                                  \
-    return done;
+#define DOIT(fn)                                                   \
+    bool done = false;                                             \
+    auto query_result = query_token(token);                        \
+    if (query_result)                                              \
+    {                                                              \
+        auto uri_options = query_result.get();                     \
+        int i;                                                     \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
+        {                                                          \
+            auto locked_datasets = cache->get(uri_options);        \
+            TRY(fn)                                                \
+            sched_yield();                                         \
+        }                                                          \
+        if (i < attempts || (i > 0 && attempts == 0))              \
+        {                                                          \
+            return i;                                              \
+        }                                                          \
+        else                                                       \
+        {                                                          \
+            return -EAGAIN;                                        \
+        }                                                          \
+    }                                                              \
+    else                                                           \
+    {                                                              \
+        return -ENOENT;                                            \
+    }
 
 void init(size_t size, size_t copies)
 {
