@@ -25,7 +25,7 @@
 
 typedef boost::compute::detail::lru_cache<token_t, uri_options_t> lru_cache;
 static pthread_mutex_t token_lock;
-static lru_cache *cache;
+static lru_cache *cache = nullptr;
 
 void token_init(size_t size)
 {
@@ -37,7 +37,11 @@ void token_init(size_t size)
 
 void token_deinit()
 {
-    delete cache;
+    if (cache != nullptr)
+    {
+        delete cache;
+    }
+    cache = nullptr;
 }
 
 static token_t generate_token()
