@@ -404,6 +404,14 @@ class locked_dataset
         pthread_rwlock_unlock(&m_use_count);
     }
 
+    /**
+     * Prepare for deletion (use only if previously locked for deletion).
+     */
+    void prepare_for_deletion()
+    {
+        pthread_rwlock_unlock(&m_use_count);
+    }
+
   private:
     /**
      * A function to open a GDAL dataset answering the given warp

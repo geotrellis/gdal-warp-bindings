@@ -120,16 +120,20 @@ class flat_lru_cache
         auto h = uri_options_hash_t();
         auto tag = h(key);
         auto return_list = return_list_t();
-        auto current_time = ++m_time; // XXX
+        atime_t current_time;
+
+        pthread_rwlock_wrlock(&m_lock); // XXX atomics?
+        current_time = ++m_time;
+        pthread_rwlock_unlock(&m_lock);
 
         pthread_rwlock_rdlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag && m_values[i] == key)
             {
-                auto &value = m_values[i];
-                value.inc();
-                return_list.push_back(&value);
+                auto &ld = m_values[i];
+                ld.inc();
+                return_list.push_back(&ld);
                 m_atimes[i] = current_time;
             }
         }
@@ -176,7 +180,7 @@ class flat_lru_cache
   private:
     locked_dataset *insert(size_t tag, const uri_options_t &key)
     {
-        auto current_time = m_time; // XXX
+        auto current_time = m_time;
         int best_index = -1;
         atime_t best_atime = -1;
 
@@ -200,6 +204,7 @@ class flat_lru_cache
             {
                 m_tags[best_index] = tag;
                 m_atimes[best_index] = current_time;
+                m_values[best_index].prepare_for_deletion(); // Helgrind and DRD
                 m_values[best_index] = std::move(ds);
                 m_size++;
                 return &(m_values[best_index]);
