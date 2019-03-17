@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <cstdint>
-#include <ctime>
 #include <exception>
+#include <random>
+
 #include <boost/optional.hpp>
 #include <boost/compute/detail/lru_cache.hpp>
+
 #include <pthread.h>
+
 #include "bindings.h"
 #include "tokens.hpp"
 
 typedef boost::compute::detail::lru_cache<token_t, uri_options_t> lru_cache;
 static pthread_mutex_t token_lock;
 static lru_cache *cache = nullptr;
+static std::mt19937_64 g;
+static std::uniform_int_distribution<token_t> dist;
 
 void token_init(size_t size)
 {
-    srand(time(nullptr));
-
+    g = std::mt19937_64(std::random_device{}());
     token_lock = PTHREAD_MUTEX_INITIALIZER;
     cache = new lru_cache(size);
 }
@@ -46,11 +51,7 @@ void token_deinit()
 
 static token_t generate_token()
 {
-    auto upper_half = static_cast<uint64_t>(rand());
-    auto lower_half = static_cast<uint64_t>(rand());
-    auto retval = (upper_half << 32) | lower_half;
-
-    return static_cast<token_t>(retval);
+    return dist(g);
 }
 
 uint64_t get_token(const char *_uri, const char **_options)
