@@ -90,6 +90,20 @@ BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
     deinit();
 }
 
+BOOST_AUTO_TEST_CASE(bad_uri_infinite_attempts_example)
+{
+    init(1 << 8);
+
+    auto token = get_token(bad_uri, options);
+    double nodata;
+    int success;
+
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, 1, &nodata, &success) == -EAGAIN);
+
+    deinit();
+}
+
 BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
 {
     init(1 << 8);

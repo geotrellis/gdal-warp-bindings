@@ -37,7 +37,7 @@
 
 typedef flat_lru_cache cache_t;
 
-constexpr useconds_t MAX_US = (1 << 20);
+constexpr useconds_t MAX_US = (1 << 16);
 
 cache_t *cache = nullptr;
 
@@ -60,7 +60,11 @@ cache_t *cache = nullptr;
         int i;                                                     \
         for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
         {                                                          \
-            auto locked_datasets = cache->get(uri_options);        \
+            auto locked_datasets = cache->get(uri_options, -4);    \
+            if (locked_datasets.size() == 0)                       \
+            {                                                      \
+                return -EAGAIN;                                    \
+            }                                                      \
             TRY(fn)                                                \
             useconds_t us = 1 << i;                                \
             usleep(us <= MAX_US ? us : MAX_US);                    \

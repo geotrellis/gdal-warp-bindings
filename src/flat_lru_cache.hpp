@@ -43,7 +43,7 @@ class flat_lru_cache
           m_time(0),
           m_capacity(capacity),
           m_size(0),
-          m_lock(PTHREAD_RWLOCK_INITIALIZER)
+          m_cache_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
         g = std::mt19937(std::random_device{}());
         clear();
@@ -65,7 +65,7 @@ class flat_lru_cache
 
     void clear()
     {
-        pthread_rwlock_wrlock(&m_lock);
+        pthread_rwlock_wrlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             m_tags[i] = 0;
@@ -73,7 +73,7 @@ class flat_lru_cache
             m_values[i] = locked_dataset();
             m_size = 0;
         }
-        pthread_rwlock_unlock(&m_lock);
+        pthread_rwlock_unlock(&m_cache_lock);
     }
 
     bool contains(const uri_options_t &key) const
@@ -81,19 +81,19 @@ class flat_lru_cache
         auto h = uri_options_hash_t();
         auto tag = h(key);
 
-        pthread_rwlock_rdlock(&m_lock);
+        pthread_rwlock_rdlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag)
             {
                 if (m_values[i] == key)
                 {
-                    pthread_rwlock_unlock(&m_lock);
+                    pthread_rwlock_unlock(&m_cache_lock);
                     return true;
                 }
             }
         }
-        pthread_rwlock_unlock(&m_lock);
+        pthread_rwlock_unlock(&m_cache_lock);
         return false;
     }
 
@@ -103,7 +103,7 @@ class flat_lru_cache
         auto tag = h(key);
         size_t result = 0;
 
-        pthread_rwlock_rdlock(&m_lock);
+        pthread_rwlock_rdlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag && m_values[i] == key)
@@ -111,7 +111,7 @@ class flat_lru_cache
                 result += 1;
             }
         }
-        pthread_rwlock_unlock(&m_lock);
+        pthread_rwlock_unlock(&m_cache_lock);
         return result;
     }
 
@@ -122,11 +122,8 @@ class flat_lru_cache
         auto return_list = return_list_t();
         atime_t current_time;
 
-        pthread_rwlock_wrlock(&m_lock); // XXX atomics?
+        pthread_rwlock_wrlock(&m_cache_lock); // XXX atomics?
         current_time = ++m_time;
-        pthread_rwlock_unlock(&m_lock);
-
-        pthread_rwlock_rdlock(&m_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag && m_values[i] == key)
@@ -141,12 +138,13 @@ class flat_lru_cache
         {
             std::shuffle(return_list.begin(), return_list.end(), g);
         }
-        pthread_rwlock_unlock(&m_lock);
+        pthread_rwlock_unlock(&m_cache_lock);
 
-        if ((copies > 0) && (return_list.size() < static_cast<unsigned int>(copies))) // Try hard to return the requested number of copies
+        int copies2 = copies < 0 ? 1 : copies;
+        if ((copies2 > 0) && (return_list.size() < static_cast<unsigned int>(copies2))) // Try hard to return the requested number of copies
         {
-            pthread_rwlock_wrlock(&m_lock);
-            for (size_t i = copies - return_list.size(); i > 0; --i)
+            pthread_rwlock_wrlock(&m_cache_lock);
+            for (size_t i = copies2 - return_list.size(); i > 0; --i)
             {
                 auto ld = insert(tag, key);
                 if (ld != nullptr)
@@ -155,11 +153,11 @@ class flat_lru_cache
                     return_list.push_back(ld);
                 }
             }
-            pthread_rwlock_unlock(&m_lock);
+            pthread_rwlock_unlock(&m_cache_lock);
         }
         else if ((copies <= 0) && (return_list.size() < static_cast<unsigned int>(-copies))) // Kind of try to return the requested number of copies
         {
-            if (pthread_rwlock_trywrlock(&m_lock) == 0)
+            if (pthread_rwlock_trywrlock(&m_cache_lock) == 0)
             {
                 for (size_t i = -copies - return_list.size(); i > 0; --i)
                 {
@@ -170,7 +168,7 @@ class flat_lru_cache
                         return_list.push_back(ld);
                     }
                 }
-                pthread_rwlock_unlock(&m_lock);
+                pthread_rwlock_unlock(&m_cache_lock);
             }
         }
 
@@ -228,7 +226,7 @@ class flat_lru_cache
     atime_t m_time;
     size_t m_capacity;
     size_t m_size;
-    mutable pthread_rwlock_t m_lock;
+    mutable pthread_rwlock_t m_cache_lock;
 };
 
 #endif // __CACHE_HPP__
