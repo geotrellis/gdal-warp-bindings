@@ -124,11 +124,34 @@ BOOST_AUTO_TEST_CASE(evict_correct_test)
 
 BOOST_AUTO_TEST_CASE(eager_multiple_test)
 {
-    auto cache = flat_lru_cache(5, 4);
-    cache.get(uri_options1, true);
-    cache.get(uri_options1, true);
-    cache.get(uri_options1, true);
-    cache.get(uri_options1, true);
-    cache.get(uri_options1, false);
+    auto cache = flat_lru_cache(8);
+    cache.get(uri_options1, 1);
+    BOOST_TEST(cache.count(uri_options1) == 1);
+    cache.get(uri_options1, 4);
     BOOST_TEST(cache.count(uri_options1) == 4);
+    cache.get(uri_options1, 8);
+    BOOST_TEST(cache.count(uri_options1) == 8);
+    cache.get(uri_options1, 16);
+    BOOST_TEST(cache.count(uri_options1) == 8);
+}
+
+BOOST_AUTO_TEST_CASE(zero_multiple_test)
+{
+    auto cache = flat_lru_cache(8);
+    BOOST_TEST(cache.count(uri_options1) == 0);
+    cache.get(uri_options1, 0);
+    BOOST_TEST(cache.count(uri_options1) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(passive_multiple_test)
+{
+    auto cache = flat_lru_cache(8);
+    cache.get(uri_options1, 1);
+    BOOST_TEST(cache.count(uri_options1) <= 1);
+    cache.get(uri_options1, 4);
+    BOOST_TEST(cache.count(uri_options1) <= 4);
+    cache.get(uri_options1, 8);
+    BOOST_TEST(cache.count(uri_options1) <= 8);
+    cache.get(uri_options1, 16);
+    BOOST_TEST(cache.count(uri_options1) <= 8);
 }

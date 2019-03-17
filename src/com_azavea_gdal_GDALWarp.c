@@ -47,10 +47,10 @@ uint64_t htobe64(uint64_t x)
 const int MAX_OPTIONS = 1 << 10;
 int gc_lock = 0;
 
-JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size, jint copies)
+JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size)
 {
-    gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe
-    init(size, copies);
+    gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe but might lead to better performance
+    init(size);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)

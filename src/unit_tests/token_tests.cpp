@@ -113,29 +113,6 @@ BOOST_AUTO_TEST_CASE(token_lru_eviction_test)
     BOOST_TEST(query_token(token4).is_initialized() == true);
 }
 
-#if 0
-BOOST_AUTO_TEST_CASE(surrender_token_test)
-{
-    token_init(16);
-    auto token1 = get_token(uri1, options1);
-    surrender_token(token1);
-    auto token2 = get_token(uri2, options1);
-
-    BOOST_TEST(token2 == static_cast<token_t>(33));
-    token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(double_free_test)
-{
-    token_init(16);
-    auto token = get_token(uri1, options1);
-    surrender_token(token);
-    surrender_token(token);
-
-    token_deinit();
-}
-#endif
-
 namespace std
 {
 std::ostream &operator<<(std::ostream &out, const uri_options_t &rhs)

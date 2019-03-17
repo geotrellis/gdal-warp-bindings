@@ -36,13 +36,12 @@ class flat_lru_cache
     typedef uint64_t atime_t;
     typedef std::vector<locked_dataset *> return_list_t;
 
-    flat_lru_cache(size_t capacity, size_t copies = 1)
+    flat_lru_cache(size_t capacity)
         : m_tags(std::vector<size_t>(capacity)),
           m_atimes(std::vector<atime_t>(capacity)),
           m_values(std::vector<value_t>(capacity)),
           m_time(0),
           m_capacity(capacity),
-          m_copies(copies),
           m_size(0),
           m_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
@@ -57,11 +56,6 @@ class flat_lru_cache
     size_t capacity() const
     {
         return m_capacity;
-    }
-
-    size_t copies() const
-    {
-        return m_copies;
     }
 
     size_t size() const
@@ -121,7 +115,7 @@ class flat_lru_cache
         return result;
     }
 
-    return_list_t get(const uri_options_t &key, bool eager = false)
+    return_list_t get(const uri_options_t &key, int copies = 1)
     {
         auto h = uri_options_hash_t();
         auto tag = h(key);
@@ -145,23 +139,25 @@ class flat_lru_cache
         }
         pthread_rwlock_unlock(&m_lock);
 
-        if (return_list.size() < 1) // Try hard to return at least one
+        if ((copies > 0) && (return_list.size() < static_cast<unsigned int>(copies))) // Try hard to return the requested number of copies
         {
             pthread_rwlock_wrlock(&m_lock);
-            auto ld = insert(tag, key);
-            if (ld != nullptr)
+            for (size_t i = copies - return_list.size(); i > 0; --i)
             {
-                ld->inc();
-                return_list.push_back(ld);
+                auto ld = insert(tag, key);
+                if (ld != nullptr)
+                {
+                    ld->inc();
+                    return_list.push_back(ld);
+                }
             }
             pthread_rwlock_unlock(&m_lock);
         }
-
-        if (eager && (return_list.size() < copies())) // Try return extra ones
+        else if ((copies <= 0) && (return_list.size() < static_cast<unsigned int>(-copies))) // Kind of try to return the requested number of copies
         {
             if (pthread_rwlock_trywrlock(&m_lock) == 0)
             {
-                for (size_t i = copies() - return_list.size(); i > 0; --i)
+                for (size_t i = -copies - return_list.size(); i > 0; --i)
                 {
                     auto ld = insert(tag, key);
                     if (ld != nullptr)
@@ -226,7 +222,6 @@ class flat_lru_cache
     std::mt19937 g;
     atime_t m_time;
     size_t m_capacity;
-    size_t m_copies;
     size_t m_size;
     mutable pthread_rwlock_t m_lock;
 };

@@ -43,9 +43,9 @@ public class GDALWarp {
         private static final String ANSI_RESET = "\u001B[0m";
         private static final String ANSI_RED = "\u001B[31m";
 
-        private static native void _init(int size, int copies);
+        private static native void _init(int size);
 
-        public static void init(int size, int copies) throws Exception {
+        public static void init(int size) throws Exception {
 
                 String os = System.getProperty("os.name").toLowerCase();
 
@@ -64,12 +64,12 @@ public class GDALWarp {
                         throw new Exception("Unsupported platform");
                 }
 
-                _init(size, copies);
+                _init(size);
         }
 
         static {
                 try {
-                        init(1 << 8, 1 << 4);
+                        init(1 << 8);
                 } catch (Exception e) {
                         System.err.println(ANSI_RED + "INITIALIZATION FAILED" + ANSI_RESET);
                 }

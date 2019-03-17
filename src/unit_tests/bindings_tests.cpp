@@ -36,13 +36,13 @@ const char *bad_uri = "HOPEFULLY_THERE_IS_NO_FILE_WITH_THIS_NAME.tif";
 
 BOOST_AUTO_TEST_CASE(initialization)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
     deinit();
 }
 
 BOOST_AUTO_TEST_CASE(good_uri_finite_attempts_example)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
 
     auto token = get_token(good_uri, options);
     double nodata;
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(good_uri_finite_attempts_example)
 
 BOOST_AUTO_TEST_CASE(good_uri_infinite_attempts_example)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
 
     auto token = get_token(good_uri, options);
     double nodata;
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(good_uri_infinite_attempts_example)
 
 BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
 
     auto token = get_token(bad_uri, options);
     double nodata;
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
 
 BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
 
     uint64_t token = 93;
     double nodata;
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
 
 BOOST_AUTO_TEST_CASE(bad_token_infinite_attempts_example)
 {
-    init(1 << 7, 1 << 2);
+    init(1 << 8);
 
     uint64_t token = 93;
     double nodata;
