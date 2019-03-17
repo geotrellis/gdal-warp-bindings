@@ -17,9 +17,11 @@
 #ifndef __CACHE_HPP__
 #define __CACHE_HPP__
 
-#include <vector>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <random>
+#include <vector>
 
 #include <pthread.h>
 
@@ -44,6 +46,7 @@ class flat_lru_cache
           m_size(0),
           m_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
+        g = std::mt19937(std::random_device{}());
         clear();
     }
 
@@ -136,6 +139,10 @@ class flat_lru_cache
                 m_atimes[i] = current_time;
             }
         }
+        if (return_list.size() > 1)
+        {
+            std::shuffle(return_list.begin(), return_list.end(), g);
+        }
         pthread_rwlock_unlock(&m_lock);
 
         if (return_list.size() < 1) // Try hard to return at least one
@@ -216,6 +223,7 @@ class flat_lru_cache
     std::vector<size_t> m_tags;
     std::vector<atime_t> m_atimes;
     std::vector<value_t> m_values;
+    std::mt19937 g;
     atime_t m_time;
     size_t m_capacity;
     size_t m_copies;
