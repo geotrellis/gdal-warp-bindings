@@ -1,12 +1,12 @@
 CFLAGS ?= -Wall -Werror -O0 -ggdb3
-CXXFLAGS ?= -std=c++1z
+CXXFLAGS ?= -std=c++14
 LDFLAGS ?= $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
 GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so
-HEADERS = bindings.h types.hpp flat_lru_cache.hpp lru_cache.hpp locked_dataset.hpp tokens.hpp
+HEADERS = bindings.h types.hpp flat_lru_cache.hpp locked_dataset.hpp tokens.hpp
 
 all: tests libgdalwarp_bindings.$(SO)
 

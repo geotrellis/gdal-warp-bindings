@@ -1,10 +1,10 @@
 PORT ?= 8080
 NAME ?= gdal-warp-httpd
 
-.PHONY: httpd-start httpd-stop thread data thread/rawthread thread/wrapthread
-.SILENT: thread
+.PHONY: httpd-start httpd-stop tests data thread/rawthread thread/wrapthread
+.SILENT: tests
 
-all: thread clean cleaner cleanest
+all: tests cleaner
 
 httpd-start:
 	docker run -dit --rm --name $(NAME) -p $(PORT):80 -v $(shell pwd):/usr/local/apache2/htdocs/:ro httpd:2.4
@@ -47,7 +47,7 @@ thread/rawthread:
 thread/wrapthread:
 	make -C thread wrapthread
 
-thread: data thread/rawthread thread/wrapthread
+tests: data thread/rawthread thread/wrapthread
 	make -C . httpd-start
 	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-local.vrt
 	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-remote.vrt

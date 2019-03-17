@@ -14,38 +14,44 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <cstdint>
-#include <ctime>
 #include <exception>
+#include <random>
+
 #include <boost/optional.hpp>
+#include <boost/compute/detail/lru_cache.hpp>
+
 #include <pthread.h>
-#include "lru_cache.hpp"
+
 #include "bindings.h"
 #include "tokens.hpp"
 
+typedef boost::compute::detail::lru_cache<token_t, uri_options_t> lru_cache;
 static pthread_mutex_t token_lock;
-static lru_cache<token_t, uri_options_t> *cache;
+static lru_cache *cache = nullptr;
+static std::mt19937_64 g;
+static std::uniform_int_distribution<token_t> dist;
 
 void token_init(size_t size)
 {
-    srand(time(nullptr));
-
+    g = std::mt19937_64(std::random_device{}());
     token_lock = PTHREAD_MUTEX_INITIALIZER;
-    cache = new lru_cache<token_t, uri_options_t>(size);
+    cache = new lru_cache(size);
 }
 
 void token_deinit()
 {
-    delete cache;
+    if (cache != nullptr)
+    {
+        delete cache;
+    }
+    cache = nullptr;
 }
 
 static token_t generate_token()
 {
-    auto upper_half = static_cast<uint64_t>(rand());
-    auto lower_half = static_cast<uint64_t>(rand());
-    auto retval = (upper_half << 32) | lower_half;
-
-    return static_cast<token_t>(retval);
+    return dist(g);
 }
 
 uint64_t get_token(const char *_uri, const char **_options)
@@ -61,22 +67,12 @@ uint64_t get_token(const char *_uri, const char **_options)
     }
 
     pthread_mutex_lock(&token_lock);
-    auto maybe_token = cache->get(uri_options);
-
-    if (maybe_token) // uri ⨯ options pair already registered
+    while (cache->contains(token))
     {
-        pthread_mutex_unlock(&token_lock);
-        return maybe_token.value();
+        token = generate_token();
     }
-    else // uri ⨯ options pair not already registered
-    {
-        while (cache->contains(token))
-        {
-            token = generate_token();
-        }
-        cache->insert(token, uri_options);
-        pthread_mutex_unlock(&token_lock);
-    }
+    cache->insert(token, uri_options);
+    pthread_mutex_unlock(&token_lock);
 
     return static_cast<uint64_t>(token);
 }

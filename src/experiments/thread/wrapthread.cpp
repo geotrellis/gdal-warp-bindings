@@ -109,7 +109,7 @@ void *reader(void *)
         int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
         int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 
-        if (get_data(token, 1, 0, src_window, dst_window, 1, GDT_Byte, buffer))
+        if (get_data(token, 1, 0, src_window, dst_window, 1, GDT_Byte, buffer) > 0)
         {
             auto s = std::string(reinterpret_cast<char *>(buffer));
             auto h = hash(s);
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
     GDALClose(dataset);
     GDALClose(source);
 
-    init(1 << 7, 1 << 5);
+    init(1 << 8);
     token = get_token(argv[1], const_cast<const char **>(actual_options));
     {
         t::auto_cpu_timer timer;

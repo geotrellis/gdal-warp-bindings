@@ -17,6 +17,7 @@
 #define BOOST_TEST_MODULE Token Unit Tests
 #include <boost/test/included/unit_test.hpp>
 
+#include "bindings.h"
 #include "tokens.hpp"
 
 #pragma GCC diagnostic push
@@ -36,12 +37,6 @@ const char *uri1 = "geo.tif";
 const char *uri2 = "geo2.tif";
 #pragma GCC diagnostic pop
 
-extern "C"
-{
-    uint64_t get_token(const char *uri, const char **option1);
-    void surrender_token(uint64_t token);
-}
-
 BOOST_AUTO_TEST_CASE(get_unique_token_test)
 {
     token_init(16);
@@ -58,7 +53,7 @@ BOOST_AUTO_TEST_CASE(get_same_token_test)
     auto token2 = get_token(uri1, options1);
 
     BOOST_TEST(token1 == static_cast<token_t>(33));
-    BOOST_TEST(token1 == token2);
+    BOOST_TEST(token1 != token2);
     token_deinit();
 }
 
@@ -82,25 +77,6 @@ BOOST_AUTO_TEST_CASE(get_different_options_tokens_test)
     BOOST_TEST(token1 == static_cast<token_t>(33));
     BOOST_TEST(token1 != token2);
     token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(different_and_same_test)
-{
-    token_init(16);
-    auto token0 = get_token(uri2, options2);
-    auto token1 = get_token(uri1, options1);
-    auto token2 = get_token(uri1, options1);
-    auto token3 = get_token(uri2, options1);
-    auto token4 = get_token(uri2, options1);
-    auto token5 = get_token(uri1, options1);
-
-    BOOST_TEST(token1 == token2);
-    BOOST_TEST(token2 != token3);
-    BOOST_TEST(token3 == token4);
-    BOOST_TEST(token4 != token5);
-    BOOST_TEST(token5 == token1);
-    BOOST_TEST(token0 != token1);
-    BOOST_TEST(token0 != token3);
 }
 
 BOOST_AUTO_TEST_CASE(token_eviction_test)
@@ -131,29 +107,6 @@ BOOST_AUTO_TEST_CASE(token_lru_eviction_test)
     BOOST_TEST(query_token(token3).is_initialized() == true);
     BOOST_TEST(query_token(token4).is_initialized() == true);
 }
-
-#if 0
-BOOST_AUTO_TEST_CASE(surrender_token_test)
-{
-    token_init(16);
-    auto token1 = get_token(uri1, options1);
-    surrender_token(token1);
-    auto token2 = get_token(uri2, options1);
-
-    BOOST_TEST(token2 == static_cast<token_t>(33));
-    token_deinit();
-}
-
-BOOST_AUTO_TEST_CASE(double_free_test)
-{
-    token_init(16);
-    auto token = get_token(uri1, options1);
-    surrender_token(token);
-    surrender_token(token);
-
-    token_deinit();
-}
-#endif
 
 namespace std
 {

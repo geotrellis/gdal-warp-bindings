@@ -24,7 +24,7 @@ extern "C"
 {
 #endif
 
-    void init(size_t size, size_t copies);
+    void init(size_t size);
     void deinit();
 
     uint64_t get_token(const char *uri, const char **options);

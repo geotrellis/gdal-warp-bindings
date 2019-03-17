@@ -6,7 +6,7 @@ docker run -it --rm \
       -v $(pwd):/workdir \
       -e CC=gcc -e CXX=g++ \
       -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
-      jamesmcclain/gdal-build-environment:3 make -C src tests
+      jamesmcclain/gdal-build-environment:3 make -C src tests || exit -1
 
 rm -f $(find | grep '\.o$')
 docker run -it --rm \
@@ -20,7 +20,7 @@ docker run -it --rm \
       -e CXXFLAGS="-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"  \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
       -e LDFLAGS="-mmacosx-version-min=10.9 -L/macintosh/gdal/2.4.0_1/lib -lgdal -lstdc++ -lpthread" \
-      jamesmcclain/gdal-build-environment:3 make -C src libgdalwarp_bindings.dylib
+      jamesmcclain/gdal-build-environment:3 make -C src libgdalwarp_bindings.dylib || exit -1
 
 docker run -it --rm \
       -v $(pwd):/workdir \
@@ -30,10 +30,10 @@ docker run -it --rm \
       -e JAVA_HOME="/windows/jdk8u202-b08" \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
       -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" \
-      jamesmcclain/gdal-build-environment:3 make -C src gdalwarp_bindings.dll
+      jamesmcclain/gdal-build-environment:3 make -C src gdalwarp_bindings.dll || exit -1
 
-cp src/libgdalwarp_bindings.dylib src/main/java/resources/
-cp src/gdalwarp_bindings.dll src/main/java/resources/
-(cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*)
+cp src/libgdalwarp_bindings.dylib src/main/java/resources/ || exit -1
+cp src/gdalwarp_bindings.dll src/main/java/resources/ || exit -1
+(cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*) || exit -1
 
-rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\)$')
+rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')

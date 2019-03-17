@@ -42,7 +42,7 @@ class locked_dataset
     locked_dataset()
         : m_datasets{nullptr, nullptr},
           m_uri_options(),
-          m_lock(PTHREAD_MUTEX_INITIALIZER),
+          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
           m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
     }
@@ -50,7 +50,7 @@ class locked_dataset
     locked_dataset(const uri_options_t &uri_options)
         : m_datasets{nullptr, nullptr},
           m_uri_options(uri_options),
-          m_lock(PTHREAD_MUTEX_INITIALIZER),
+          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
           m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
         open();
@@ -59,7 +59,7 @@ class locked_dataset
     locked_dataset(const locked_dataset &rhs)
         : m_datasets{nullptr, nullptr},
           m_uri_options(rhs.m_uri_options),
-          m_lock(PTHREAD_MUTEX_INITIALIZER),
+          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
           m_use_count(PTHREAD_RWLOCK_INITIALIZER)
     {
 #ifdef DEBUG
@@ -70,7 +70,7 @@ class locked_dataset
 
     locked_dataset(locked_dataset &&rhs) noexcept
         : m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
-          m_lock(std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER)),
+          m_dataset_lock(std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER)),
           m_use_count(std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER))
     {
         // XXX not thread safe, but the rhs should always be a
@@ -95,7 +95,7 @@ class locked_dataset
 
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
-        m_lock = std::exchange(rhs.m_lock, PTHREAD_MUTEX_INITIALIZER);
+        m_dataset_lock = std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER);
         m_use_count = std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER);
         m_uri_options = std::exchange(rhs.m_uri_options, uri_options_t());
 
@@ -126,7 +126,7 @@ class locked_dataset
      */
     bool get_overview_widths_heights(int dataset, int *widths, int *heights, int max_length)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
@@ -142,7 +142,7 @@ class locked_dataset
         {
             widths[i] = heights[i] = -1;
         }
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -156,7 +156,7 @@ class locked_dataset
      */
     bool get_crs_proj4(int dataset, char *crs, int max_size)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
@@ -165,7 +165,7 @@ class locked_dataset
         OSRExportToProj4(ref, &result);
         strncpy(crs, result, max_size);
         CPLFree(result);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -179,12 +179,12 @@ class locked_dataset
      */
     bool get_crs_wkt(int dataset, char *crs, int max_size)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         strncpy(crs, GDALGetProjectionRef(m_datasets[dataset]), max_size);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -200,13 +200,13 @@ class locked_dataset
      */
     bool get_band_nodata(int dataset, int band, double *nodata, int *success)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
         *nodata = GDALGetRasterNoDataValue(bandh, success);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -221,13 +221,13 @@ class locked_dataset
      */
     bool get_band_data_type(int dataset, int band, GDALDataType *data_type)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
         *data_type = GDALGetRasterDataType(bandh);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -241,12 +241,12 @@ class locked_dataset
      */
     bool get_band_count(int dataset, int *band_count) const
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         *band_count = GDALGetRasterCount(m_datasets[dataset]);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -259,12 +259,12 @@ class locked_dataset
      */
     bool get_transform(int dataset, double transform[6]) const
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         GDALGetGeoTransform(m_datasets[dataset], transform);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
         return true;
     }
 
@@ -278,7 +278,7 @@ class locked_dataset
      */
     bool get_width_height(int dataset, int *width, int *height)
     {
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
@@ -286,7 +286,7 @@ class locked_dataset
         auto ds = m_datasets[dataset];
         *width = GDALGetRasterXSize(ds);
         *height = GDALGetRasterYSize(ds);
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
 
         return true;
     }
@@ -317,7 +317,7 @@ class locked_dataset
     {
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
 
-        if (pthread_mutex_trylock(&m_lock) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
@@ -332,7 +332,7 @@ class locked_dataset
             type,                         // destination type
             0, 0                          // stride
         );
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
 
         if (retval != CE_None)
         {
@@ -404,6 +404,14 @@ class locked_dataset
         pthread_rwlock_unlock(&m_use_count);
     }
 
+    /**
+     * Prepare for deletion (use only if previously locked for deletion).
+     */
+    void prepare_for_deletion()
+    {
+        pthread_rwlock_unlock(&m_use_count);
+    }
+
   private:
     /**
      * A function to open a GDAL dataset answering the given warp
@@ -411,7 +419,7 @@ class locked_dataset
      */
     void open()
     {
-        pthread_mutex_lock(&m_lock);
+        pthread_mutex_lock(&m_dataset_lock);
         auto src = m_datasets[SOURCE];
         auto warped = m_datasets[WARPED];
         if (src == nullptr || warped == nullptr)
@@ -447,11 +455,7 @@ class locked_dataset
                 return; // Lock intentionally not unlocked
             }
 
-#if !defined(__MINGW32__)
-            m_datasets[WARPED] = GDALWarp("/dev/null", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
-#else
-            m_datasets[WARPED] = GDALWarp("nul", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
-#endif
+            m_datasets[WARPED] = GDALWarp("", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
             if (m_datasets[SOURCE] == nullptr)
             {
                 GDALClose(m_datasets[SOURCE]);
@@ -462,7 +466,7 @@ class locked_dataset
 
             GDALWarpAppOptionsFree(app_options);
         }
-        pthread_mutex_unlock(&m_lock);
+        pthread_mutex_unlock(&m_dataset_lock);
     }
 
     /**
@@ -471,18 +475,21 @@ class locked_dataset
      */
     void close()
     {
-        pthread_mutex_lock(&m_lock);
-        if (m_datasets[WARPED] != nullptr)
+        if (valid())
         {
-            GDALClose(m_datasets[WARPED]);
-            m_datasets[WARPED] = nullptr;
+            pthread_mutex_lock(&m_dataset_lock);
+            if (m_datasets[WARPED] != nullptr)
+            {
+                GDALClose(m_datasets[WARPED]);
+                m_datasets[WARPED] = nullptr;
+            }
+            if (m_datasets[SOURCE] != nullptr)
+            {
+                GDALClose(m_datasets[SOURCE]);
+                m_datasets[SOURCE] = nullptr;
+            }
+            pthread_mutex_unlock(&m_dataset_lock);
         }
-        if (m_datasets[SOURCE] != nullptr)
-        {
-            GDALClose(m_datasets[SOURCE]);
-            m_datasets[SOURCE] = nullptr;
-        }
-        pthread_mutex_unlock(&m_lock);
     }
 
   public:
@@ -492,7 +499,7 @@ class locked_dataset
   private:
     GDALDatasetH m_datasets[2];
     uri_options_t m_uri_options;
-    mutable pthread_mutex_t m_lock;
+    mutable pthread_mutex_t m_dataset_lock;
     mutable pthread_rwlock_t m_use_count;
 };
 

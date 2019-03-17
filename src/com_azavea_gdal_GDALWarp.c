@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #if defined(__APPLE__)
 #include <arpa/inet.h>
 #define htobe16(x) htons(x)
@@ -27,10 +28,11 @@
 #define htobe16(x) htons(x)
 #define htobe32(x) htonl(x)
 
-uint64_t htobe64(uint64_t x) {
+uint64_t htobe64(uint64_t x)
+{
     uint64_t retval;
-    uint32_t * p1 = (uint32_t *)&retval;
-    uint32_t * p2 = (uint32_t *)&x;
+    uint32_t *p1 = (uint32_t *)&retval;
+    uint32_t *p2 = (uint32_t *)&x;
     p1[0] = htonl(p2[1]);
     p1[1] = htonl(p2[0]);
     return retval;
@@ -45,10 +47,10 @@ uint64_t htobe64(uint64_t x) {
 const int MAX_OPTIONS = 1 << 10;
 int gc_lock = 0;
 
-JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size, jint copies)
+JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject obj, jint size)
 {
-    gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe
-    init(size, copies);
+    gc_lock = (getenv("GDALWARP_GC_LOCK") != NULL); // XXX enabling this might be unsafe but might lead to better performance
+    init(size);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
@@ -81,120 +83,120 @@ JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jo
     return token;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heights(JNIEnv *env, jclass obj,
-                                                                                        jlong token,
-                                                                                        jint dataset,
-                                                                                        jint attempts,
-                                                                                        jintArray _widths,
-                                                                                        jintArray _heights)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heights(JNIEnv *env, jclass obj,
+                                                                                    jlong token,
+                                                                                    jint dataset,
+                                                                                    jint attempts,
+                                                                                    jintArray _widths,
+                                                                                    jintArray _heights)
 {
     jint *widths = (*env)->GetIntArrayElements(env, _widths, NULL);
     jint *heights = (*env)->GetIntArrayElements(env, _heights, NULL);
     int width_length = (*env)->GetArrayLength(env, _widths);
     int height_length = (*env)->GetArrayLength(env, _heights);
     int max_length = width_length < height_length ? width_length : height_length;
-    jboolean retval = get_overview_widths_heights(token, dataset, attempts, (int *)widths, (int *)heights, max_length);
+    jint retval = get_overview_widths_heights(token, dataset, attempts, (int *)widths, (int *)heights, max_length);
     (*env)->ReleaseIntArrayElements(env, _heights, heights, 0);
     (*env)->ReleaseIntArrayElements(env, _widths, widths, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env, jclass obj,
-                                                                         jlong token,
-                                                                         jint dataset,
-                                                                         jint attempts,
-                                                                         jbyteArray _crs)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env, jclass obj,
+                                                                     jlong token,
+                                                                     jint dataset,
+                                                                     jint attempts,
+                                                                     jbyteArray _crs)
 {
     jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
     int max_size = (*env)->GetArrayLength(env, _crs);
-    jboolean retval = get_crs_proj4(token, dataset, attempts, (char *)crs, max_size);
+    jint retval = get_crs_proj4(token, dataset, attempts, (char *)crs, max_size);
     (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj,
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj,
+                                                                   jlong token,
+                                                                   jint dataset,
+                                                                   jint attempts,
+                                                                   jbyteArray _crs)
+{
+    jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
+    int max_size = (*env)->GetArrayLength(env, _crs);
+    jint retval = get_crs_wkt(token, dataset, attempts, (char *)crs, max_size);
+    (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
+
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
+}
+
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *env, jclass obj,
                                                                        jlong token,
                                                                        jint dataset,
                                                                        jint attempts,
-                                                                       jbyteArray _crs)
+                                                                       jint band,
+                                                                       jdoubleArray _nodata,
+                                                                       jintArray _success)
 {
-    jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
-    int max_size = (*env)->GetArrayLength(env, _crs);
-    jboolean retval = get_crs_wkt(token, dataset, attempts, (char *)crs, max_size);
-    (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
+    double *nodata = (*env)->GetDoubleArrayElements(env, _nodata, NULL);
+    jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
+    jint retval = get_band_nodata(token, dataset, attempts, band, nodata, (int *)success);
+    (*env)->ReleaseIntArrayElements(env, _success, success, 0);
+    (*env)->ReleaseDoubleArrayElements(env, _nodata, nodata, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *env, jclass obj,
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEnv *env, jclass obj,
                                                                            jlong token,
                                                                            jint dataset,
                                                                            jint attempts,
                                                                            jint band,
-                                                                           jdoubleArray _nodata,
-                                                                           jintArray _success)
-{
-    double *nodata = (*env)->GetDoubleArrayElements(env, _nodata, NULL);
-    jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
-    jboolean retval = get_band_nodata(token, dataset, attempts, band, nodata, (int *)success);
-    (*env)->ReleaseIntArrayElements(env, _success, success, 0);
-    (*env)->ReleaseDoubleArrayElements(env, _nodata, nodata, 0);
-
-    return retval;
-}
-
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEnv *env, jclass obj,
-                                                                               jlong token,
-                                                                               jint dataset,
-                                                                               jint attempts,
-                                                                               jint band,
-                                                                               jintArray _data_type)
+                                                                           jintArray _data_type)
 {
     jint *data_type = (*env)->GetIntArrayElements(env, _data_type, NULL);
-    jboolean retval = get_band_data_type(token, dataset, attempts, band, (int *)data_type);
+    jint retval = get_band_data_type(token, dataset, attempts, band, (int *)data_type);
     (*env)->ReleaseIntArrayElements(env, _data_type, data_type, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv *env, jclass obj,
-                                                                          jlong token,
-                                                                          jint dataset,
-                                                                          jint attempts,
-                                                                          jintArray _band_count)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv *env, jclass obj,
+                                                                      jlong token,
+                                                                      jint dataset,
+                                                                      jint attempts,
+                                                                      jintArray _band_count)
 {
     jint *band_count = (*env)->GetIntArrayElements(env, _band_count, NULL);
-    jboolean retval = get_band_count(token, dataset, attempts, (int *)band_count);
+    jint retval = get_band_count(token, dataset, attempts, (int *)band_count);
     (*env)->ReleaseIntArrayElements(env, _band_count, band_count, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj,
-                                                                  jlong token,
-                                                                  jint dataset,
-                                                                  jint attempts,
-                                                                  jintArray _width_height)
+jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj,
+                                                              jlong token,
+                                                              jint dataset,
+                                                              jint attempts,
+                                                              jintArray _width_height)
 {
     jint *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 
-    jboolean retval = get_width_height(token, dataset, attempts, (int *)width_height, (int *)(width_height + 1));
+    jint retval = get_width_height(token, dataset, attempts, (int *)width_height, (int *)(width_height + 1));
     (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobject obj,
-                                                                   jlong token,
-                                                                   jint dataset,
-                                                                   jint attempts,
-                                                                   jintArray _src_window,
-                                                                   jintArray _dst_window,
-                                                                   jint band_number,
-                                                                   jint type,
-                                                                   jbyteArray _data)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobject obj,
+                                                               jlong token,
+                                                               jint dataset,
+                                                               jint attempts,
+                                                               jintArray _src_window,
+                                                               jintArray _dst_window,
+                                                               jint band_number,
+                                                               jint type,
+                                                               jbyteArray _data)
 {
     jint *src_window = (*env)->GetIntArrayElements(env, _src_window, NULL);
     jint *dst_window = (*env)->GetIntArrayElements(env, _dst_window, NULL);
@@ -209,7 +211,7 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, 
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jboolean retval = get_data(token, dataset, attempts, (int *)src_window, (int *)dst_window, band_number, type, data);
+    jint retval = get_data(token, dataset, attempts, (int *)src_window, (int *)dst_window, band_number, type, data);
     switch (type)
     {
     case com_azavea_gdal_GDALWarp_GDT_Int16:
@@ -251,18 +253,18 @@ JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, 
     (*env)->ReleaseIntArrayElements(env, _dst_window, dst_window, JNI_ABORT);
     (*env)->ReleaseIntArrayElements(env, _src_window, src_window, JNI_ABORT);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
-JNIEXPORT jboolean JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env, jclass obj,
-                                                                        jlong token,
-                                                                        jint dataset,
-                                                                        jint attempts,
-                                                                        jdoubleArray _transform)
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env, jclass obj,
+                                                                    jlong token,
+                                                                    jint dataset,
+                                                                    jint attempts,
+                                                                    jdoubleArray _transform)
 {
     double *transform = (*env)->GetDoubleArrayElements(env, _transform, NULL);
-    jboolean retval = get_transform(token, dataset, attempts, transform);
+    jint retval = get_transform(token, dataset, attempts, transform);
     (*env)->ReleaseDoubleArrayElements(env, _transform, transform, 0);
 
-    return retval;
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }

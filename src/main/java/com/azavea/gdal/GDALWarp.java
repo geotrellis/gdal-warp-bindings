@@ -43,9 +43,9 @@ public class GDALWarp {
         private static final String ANSI_RESET = "\u001B[0m";
         private static final String ANSI_RED = "\u001B[31m";
 
-        private static native void _init(int size, int copies);
+        private static native void _init(int size);
 
-        public static void init(int size, int copies) throws Exception {
+        public static void init(int size) throws Exception {
 
                 String os = System.getProperty("os.name").toLowerCase();
 
@@ -64,12 +64,12 @@ public class GDALWarp {
                         throw new Exception("Unsupported platform");
                 }
 
-                _init(size, copies);
+                _init(size);
         }
 
         static {
                 try {
-                        init(1 << 8, 1 << 4);
+                        init(1 << 8);
                 } catch (Exception e) {
                         System.err.println(ANSI_RED + "INITIALIZATION FAILED" + ANSI_RESET);
                 }
@@ -79,28 +79,28 @@ public class GDALWarp {
 
         public static native long get_token(String uri, String[] options);
 
-        public static native boolean get_overview_widths_heights(long token, int dataset, int attempts, /* */
+        public static native int get_overview_widths_heights(long token, int dataset, int attempts, /* */
                         int[] widths, int heights[]);
 
-        public static native boolean get_crs_proj4(long token, int dataset, int attempts, /* */
+        public static native int get_crs_proj4(long token, int dataset, int attempts, /* */
                         byte[] crs);
 
-        public static native boolean get_crs_wkt(long token, int dataset, int attempts, /* */
+        public static native int get_crs_wkt(long token, int dataset, int attempts, /* */
                         byte[] crs);
 
-        public static native boolean get_band_nodata(long token, int dataset, int attempts, /* */
+        public static native int get_band_nodata(long token, int dataset, int attempts, /* */
                         int band, double[] nodata, int[] success);
 
-        public static native boolean get_band_data_type(long token, int dataset, int attempts, /* */
+        public static native int get_band_data_type(long token, int dataset, int attempts, /* */
                         int band, int[] data_type);
 
-        public static native boolean get_band_count(long token, int dataset, int attempts, /* */
+        public static native int get_band_count(long token, int dataset, int attempts, /* */
                         int[] band_count);
 
-        public static native boolean get_width_height(long token, int dataset, int attempts, /* */
+        public static native int get_width_height(long token, int dataset, int attempts, /* */
                         int[] width_height);
 
-        public static native boolean get_data( /* */
+        public static native int get_data( /* */
                         long token, /* */
                         int dataset, /* */
                         int attemps, /* */
@@ -110,6 +110,6 @@ public class GDALWarp {
                         int type, /* */
                         byte[] data);
 
-        public static native boolean get_transform(long token, int dataset, int attempts, /* */
+        public static native int get_transform(long token, int dataset, int attempts, /* */
                         double[] transform);
 }

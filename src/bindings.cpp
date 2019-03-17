@@ -23,6 +23,7 @@
 #include <map>
 #include <vector>
 
+#include <errno.h>
 #include <sched.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -36,46 +37,65 @@
 
 typedef flat_lru_cache cache_t;
 
+constexpr useconds_t MAX_US = (1 << 16);
+
 cache_t *cache = nullptr;
 
 #define TRY(fn)                     \
     for (auto ld : locked_datasets) \
     {                               \
-        if (!done && ld->fn)        \
+        if (!done && (ld->fn != 0)) \
         {                           \
             done = true;            \
         }                           \
         ld->dec();                  \
     }
 
-#define DOIT(fn)                                                       \
-    bool done = false;                                                 \
-    auto query_result = query_token(token);                            \
-    if (query_result)                                                  \
-    {                                                                  \
-        auto uri_options = query_result.get();                         \
-        for (int i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
-        {                                                              \
-            auto locked_datasets = cache->get(uri_options);            \
-            TRY(fn)                                                    \
-            sched_yield();                                             \
-        }                                                              \
-    }                                                                  \
-    return done;
+#define DOIT(fn)                                                   \
+    bool done = false;                                             \
+    auto query_result = query_token(token);                        \
+    if (query_result)                                              \
+    {                                                              \
+        auto uri_options = query_result.get();                     \
+        int i;                                                     \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
+        {                                                          \
+            auto locked_datasets = cache->get(uri_options, -4);    \
+            if (locked_datasets.size() == 0)                       \
+            {                                                      \
+                return -EAGAIN;                                    \
+            }                                                      \
+            TRY(fn)                                                \
+            useconds_t us = 1 << i;                                \
+            usleep(us <= MAX_US ? us : MAX_US);                    \
+        }                                                          \
+        if (i < attempts || (i > 0 && attempts == 0))              \
+        {                                                          \
+            return i;                                              \
+        }                                                          \
+        else                                                       \
+        {                                                          \
+            return -EAGAIN;                                        \
+        }                                                          \
+    }                                                              \
+    else                                                           \
+    {                                                              \
+        return -ENOENT;                                            \
+    }
 
-void init(size_t size, size_t copies)
+void init(size_t size)
 {
     deinit();
 
     GDALAllRegister();
 
-    cache = new cache_t(size, copies);
+    cache = new cache_t(size);
     if (cache == nullptr)
     {
         throw std::bad_alloc();
     }
 
-    token_init(size << 1);
+    token_init(640 * (1 << 10)); // This should be enough for anyone
 
     return;
 }
@@ -84,10 +104,8 @@ void deinit()
 {
     if (cache != nullptr)
     {
-#if !defined(__MINGW32__)
-        fprintf(stderr, "%ld\n", cache->size());
-#endif
         delete cache;
+        cache = nullptr;
     }
     token_deinit();
 }
