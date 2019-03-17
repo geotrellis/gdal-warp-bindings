@@ -17,6 +17,7 @@
 #define BOOST_TEST_MODULE Token Unit Tests
 #include <boost/test/included/unit_test.hpp>
 
+#include "bindings.h"
 #include "tokens.hpp"
 
 #pragma GCC diagnostic push
@@ -35,12 +36,6 @@ const char *options2[] = {
 const char *uri1 = "geo.tif";
 const char *uri2 = "geo2.tif";
 #pragma GCC diagnostic pop
-
-extern "C"
-{
-    uint64_t get_token(const char *uri, const char **option1);
-    void surrender_token(uint64_t token);
-}
 
 BOOST_AUTO_TEST_CASE(get_unique_token_test)
 {
