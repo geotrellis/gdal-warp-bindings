@@ -17,6 +17,7 @@
 #ifndef __CACHE_HPP__
 #define __CACHE_HPP__
 
+#include <atomic>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -34,6 +35,7 @@ class flat_lru_cache
     typedef uri_options_t key_t;
     typedef locked_dataset value_t;
     typedef uint64_t atime_t;
+    typedef std::atomic<atime_t> atomic_atime_t;
     typedef std::vector<locked_dataset *> return_list_t;
 
     flat_lru_cache(size_t capacity)
@@ -120,10 +122,9 @@ class flat_lru_cache
         auto h = uri_options_hash_t();
         auto tag = h(key);
         auto return_list = return_list_t();
-        atime_t current_time;
+        auto current_time = ++m_time;
 
-        pthread_rwlock_wrlock(&m_cache_lock); // XXX atomics?
-        current_time = ++m_time;
+        pthread_rwlock_rdlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag && m_values[i] == key)
@@ -178,7 +179,6 @@ class flat_lru_cache
   private:
     locked_dataset *insert(size_t tag, const uri_options_t &key)
     {
-        auto current_time = m_time;
         int best_index = -1;
         atime_t best_atime = -1;
 
@@ -201,7 +201,7 @@ class flat_lru_cache
             if (ds.valid())
             {
                 m_tags[best_index] = tag;
-                m_atimes[best_index] = current_time;
+                m_atimes[best_index] = ++m_time;
                 m_values[best_index].prepare_for_deletion(); // Helgrind and DRD
                 m_values[best_index] = std::move(ds);
                 m_size++;
@@ -223,7 +223,7 @@ class flat_lru_cache
     std::vector<atime_t> m_atimes;
     std::vector<value_t> m_values;
     std::mt19937 g;
-    atime_t m_time;
+    atomic_atime_t m_time;
     size_t m_capacity;
     size_t m_size;
     mutable pthread_rwlock_t m_cache_lock;
