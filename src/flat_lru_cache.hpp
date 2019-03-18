@@ -17,10 +17,9 @@
 #ifndef __CACHE_HPP__
 #define __CACHE_HPP__
 
-#include <algorithm>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <random>
 #include <vector>
 
 #include <pthread.h>
@@ -34,18 +33,18 @@ class flat_lru_cache
     typedef uri_options_t key_t;
     typedef locked_dataset value_t;
     typedef uint64_t atime_t;
+    typedef std::atomic<atime_t> atomic_atime_t;
     typedef std::vector<locked_dataset *> return_list_t;
 
     flat_lru_cache(size_t capacity)
         : m_tags(std::vector<size_t>(capacity)),
-          m_atimes(std::vector<atime_t>(capacity)),
+          m_atimes(std::vector<atomic_atime_t>(capacity)),
           m_values(std::vector<value_t>(capacity)),
           m_time(0),
           m_capacity(capacity),
           m_size(0),
           m_cache_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
-        g = std::mt19937(std::random_device{}());
         clear();
     }
 
@@ -120,10 +119,8 @@ class flat_lru_cache
         auto h = uri_options_hash_t();
         auto tag = h(key);
         auto return_list = return_list_t();
-        atime_t current_time;
 
-        pthread_rwlock_wrlock(&m_cache_lock); // XXX atomics?
-        current_time = ++m_time;
+        pthread_rwlock_rdlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_tags[i] == tag && m_values[i] == key)
@@ -131,12 +128,13 @@ class flat_lru_cache
                 auto &ld = m_values[i];
                 ld.inc();
                 return_list.push_back(&ld);
-                m_atimes[i] = current_time;
+                // m_atimes[i] is not guranteed to increase
+                // monotonically, but that is acceptable in this
+                // situation.  See
+                // https://stackoverflow.com/questions/16190078/how-to-atomically-update-a-maximum-value
+                // for information on how to do it strictly
+                m_atimes[i] = static_cast<atime_t>(++m_time);
             }
-        }
-        if (return_list.size() > 1)
-        {
-            std::shuffle(return_list.begin(), return_list.end(), g);
         }
         pthread_rwlock_unlock(&m_cache_lock);
 
@@ -178,9 +176,8 @@ class flat_lru_cache
   private:
     locked_dataset *insert(size_t tag, const uri_options_t &key)
     {
-        auto current_time = m_time;
         int best_index = -1;
-        atime_t best_atime = -1;
+        atime_t best_atime = -1; // sic
 
         for (size_t i = 0; i < capacity(); ++i)
         {
@@ -201,7 +198,7 @@ class flat_lru_cache
             if (ds.valid())
             {
                 m_tags[best_index] = tag;
-                m_atimes[best_index] = current_time;
+                m_atimes[best_index] = ++m_time;
                 m_values[best_index].prepare_for_deletion(); // Helgrind and DRD
                 m_values[best_index] = std::move(ds);
                 m_size++;
@@ -220,10 +217,9 @@ class flat_lru_cache
 
   private:
     std::vector<size_t> m_tags;
-    std::vector<atime_t> m_atimes;
+    std::vector<atomic_atime_t> m_atimes;
     std::vector<value_t> m_values;
-    std::mt19937 g;
-    atime_t m_time;
+    atomic_atime_t m_time;
     size_t m_capacity;
     size_t m_size;
     mutable pthread_rwlock_t m_cache_lock;

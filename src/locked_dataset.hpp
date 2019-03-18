@@ -27,14 +27,19 @@
 typedef _locale_t locale_t;
 #endif
 
+#include <atomic>
 #include <cstring>
+
 #include <pthread.h>
+
 #include <gdal.h>
 #include <gdal_utils.h>
 #include <cpl_conv.h>
 #include <ogr_srs_api.h>
 
 #include "types.hpp"
+
+typedef std::atomic<int> atomic_int_t;
 
 class locked_dataset
 {
@@ -43,7 +48,7 @@ class locked_dataset
         : m_datasets{nullptr, nullptr},
           m_uri_options(),
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
+          m_use_count(0)
     {
     }
 
@@ -51,7 +56,7 @@ class locked_dataset
         : m_datasets{nullptr, nullptr},
           m_uri_options(uri_options),
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
+          m_use_count(0)
     {
         open();
     }
@@ -60,7 +65,7 @@ class locked_dataset
         : m_datasets{nullptr, nullptr},
           m_uri_options(rhs.m_uri_options),
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(PTHREAD_RWLOCK_INITIALIZER)
+          m_use_count(static_cast<int>(rhs.m_use_count))
     {
 #ifdef DEBUG
         fprintf(stderr, "COPY CONSTRUCTOR\n");
@@ -70,11 +75,12 @@ class locked_dataset
 
     locked_dataset(locked_dataset &&rhs) noexcept
         : m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
-          m_dataset_lock(std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER)),
-          m_use_count(std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER))
+          m_dataset_lock(std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER))
     {
         // XXX not thread safe, but the rhs should always be a
         // just-created local that is not in use anywhere else.
+        m_use_count = static_cast<int>(rhs.m_use_count);
+        rhs.m_use_count = 0;
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
     }
@@ -96,7 +102,8 @@ class locked_dataset
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
         m_dataset_lock = std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER);
-        m_use_count = std::exchange(rhs.m_use_count, PTHREAD_RWLOCK_INITIALIZER);
+        m_use_count = static_cast<int>(rhs.m_use_count);
+        rhs.m_use_count = 0;
         m_uri_options = std::exchange(rhs.m_uri_options, uri_options_t());
 
         return *this;
@@ -359,16 +366,9 @@ class locked_dataset
      *
      * @return A boolean which is true iff the increment succeeded
      */
-    bool inc()
+    void inc()
     {
-        if (pthread_rwlock_tryrdlock(&m_use_count) != 0)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        m_use_count++;
     }
 
     /**
@@ -376,7 +376,7 @@ class locked_dataset
      */
     void dec()
     {
-        pthread_rwlock_unlock(&m_use_count);
+        m_use_count--;
     }
 
     /**
@@ -386,14 +386,19 @@ class locked_dataset
      */
     bool lock_for_deletion()
     {
-        if (pthread_rwlock_trywrlock(&m_use_count) != 0)
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
+            if (m_use_count != 0)
+            {
+                return false;
+            }
+        }
+        else if (m_use_count != 0)
+        {
+            pthread_mutex_unlock(&m_dataset_lock);
             return false;
         }
-        else
-        {
-            return true;
-        }
+        return true;
     }
 
     /**
@@ -401,7 +406,7 @@ class locked_dataset
      */
     void unlock_for_nondeletion()
     {
-        pthread_rwlock_unlock(&m_use_count);
+        pthread_mutex_unlock(&m_dataset_lock);
     }
 
     /**
@@ -409,7 +414,7 @@ class locked_dataset
      */
     void prepare_for_deletion()
     {
-        pthread_rwlock_unlock(&m_use_count);
+        pthread_mutex_unlock(&m_dataset_lock);
     }
 
   private:
@@ -500,7 +505,7 @@ class locked_dataset
     GDALDatasetH m_datasets[2];
     uri_options_t m_uri_options;
     mutable pthread_mutex_t m_dataset_lock;
-    mutable pthread_rwlock_t m_use_count;
+    atomic_int_t m_use_count;
 };
 
 namespace std
