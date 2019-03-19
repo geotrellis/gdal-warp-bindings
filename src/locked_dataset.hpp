@@ -388,10 +388,7 @@ class locked_dataset
     {
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
-            if (m_use_count != 0)
-            {
-                return false;
-            }
+            return false;
         }
         else if (m_use_count != 0)
         {
