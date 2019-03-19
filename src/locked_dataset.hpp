@@ -446,7 +446,7 @@ class locked_dataset
     /**
      * Prepare for deletion (use only if previously locked for deletion).
      */
-    void prepare_for_deletion()
+    void prepare_for_overwrite()
     {
         pthread_mutex_unlock(&m_dataset_lock);
     }
