@@ -91,6 +91,9 @@ public class GDALWarp {
         public static native int get_band_nodata(long token, int dataset, int attempts, /* */
                         int band, double[] nodata, int[] success);
 
+        public static native int get_band_min_max(long token, int dataset, int attempts, /* */
+                        int band, boolean approx_okay, double[] minmax, int[] success);
+
         public static native int get_band_data_type(long token, int dataset, int attempts, /* */
                         int band, int[] data_type);
 
