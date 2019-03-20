@@ -130,6 +130,11 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int band, double 
     DOIT(get_band_nodata(dataset, band, nodata, success))
 }
 
+int get_band_min_max(uint64_t token, int dataset, int attempts, int band, int approx_okay, double *minmax, int *success)
+{
+    DOIT(get_band_max_min(dataset, band, approx_okay, minmax, success));
+}
+
 int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int *data_type)
 {
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);

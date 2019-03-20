@@ -113,6 +113,18 @@ class GDALWarpThreadTest extends Thread {
             System.out.println(ANSI_BLUE + "Band Count: " + ANSI_GREEN + band_count[0] + ANSI_RESET);
         }
 
+        // Min, Max
+        {
+            double[] minmax = new double[2];
+            int[] success = new int[1];
+            GDALWarp.get_band_min_max(token, GDALWarp.SOURCE, 0, 1, true, minmax, success);
+            System.out.println(ANSI_BLUE + "Source Min, Max: " + ANSI_GREEN + minmax[0] + " " + minmax[1] + " ("
+                    + success[0] + ")" + ANSI_RESET);
+            GDALWarp.get_band_min_max(token, GDALWarp.WARPED, 0, 1, true, minmax, success);
+            System.out.println(ANSI_BLUE + "Warped Min, Max: " + ANSI_GREEN + minmax[0] + " " + minmax[1] + " ("
+                    + success[0] + ")" + ANSI_RESET);
+        }
+
         // Band Type
         {
             int[] data_type = new int[1];

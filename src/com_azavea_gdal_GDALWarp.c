@@ -147,6 +147,24 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *e
     return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1min_1max(JNIEnv *env, jclass obj,
+                                                                         jlong token,
+                                                                         jint dataset,
+                                                                         jint attempts,
+                                                                         jint band,
+                                                                         jboolean approx_okay,
+                                                                         jdoubleArray _minmax,
+                                                                         jintArray _success)
+{
+    double *minmax = (*env)->GetDoubleArrayElements(env, _minmax, NULL);
+    jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
+    jint retval = get_band_min_max(token, dataset, attempts, band, approx_okay, minmax, success);
+    (*env)->ReleaseIntArrayElements(env, _success, success, 0);
+    (*env)->ReleaseDoubleArrayElements(env, _minmax, minmax, 0);
+
+    return (retval == -ENOENT ? -1 : (retval == -EAGAIN ? 0 : retval));
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEnv *env, jclass obj,
                                                                            jlong token,
                                                                            jint dataset,

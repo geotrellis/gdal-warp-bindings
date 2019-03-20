@@ -33,6 +33,7 @@ extern "C"
     int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_size);
     int get_crs_proj4(uint64_t token, int dataset, int attempts, char *crs, int max_size);
     int get_band_nodata(uint64_t token, int dataset, int attempts, int band, double *nodata, int *success);
+    int get_band_min_max(uint64_t token, int dataset, int attempts, int band, int approx_okay, double *minmax, int *success);
     int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int *data_type);
     int get_band_count(uint64_t token, int dataset, int attempts, int *band_count);
     int get_width_height(uint64_t token, int dataset, int attempts, int *width, int *height);

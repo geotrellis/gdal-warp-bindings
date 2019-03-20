@@ -114,6 +114,30 @@ BOOST_AUTO_TEST_CASE(get_band_data_type)
     BOOST_TEST(data_type == GDT_Byte);
 }
 
+BOOST_AUTO_TEST_CASE(get_min_max_noapprox)
+{
+    auto ld = locked_dataset(uri_options1);
+    double minmax[2];
+    int success;
+
+    ld.get_band_max_min(locked_dataset::SOURCE, 1, false, minmax, &success);
+
+    BOOST_TEST(success == 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_min_max_yesapprox)
+{
+    auto ld = locked_dataset(uri_options1);
+    double minmax[2];
+    int success;
+
+    ld.get_band_max_min(locked_dataset::SOURCE, 1, true, minmax, &success);
+
+    BOOST_TEST(success != 0);
+    BOOST_TEST(minmax[0] == 0.0);
+    BOOST_TEST(minmax[1] == 12.0);
+}
+
 BOOST_AUTO_TEST_CASE(get_band_nodata)
 {
     double nodata;
