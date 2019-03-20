@@ -299,6 +299,43 @@ class locked_dataset
     }
 
     /**
+     * Get the maximum and minimum values appearing in the requested band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query
+     * @param approx_okay A flag indicating whether approximate min
+     *                    and max values are okay
+     * @param minmax The return-array for the minimum and maximum
+     * @param success The return slot for the "success" flag
+     * @return True iff the operation succeeded
+     */
+    bool get_band_max_min(int dataset, int band_number, int approx_okay, double *minmax, int *success)
+    {
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
+        {
+            return false;
+        }
+
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+        if (approx_okay)
+        {
+            GDALComputeRasterMinMax(band, true, minmax);
+            *success = true;
+        }
+        else
+        {
+            minmax[0] = GDALGetRasterMinimum(band, success);
+            if (*success)
+            {
+                minmax[1] = GDALGetRasterMaximum(band, success);
+            }
+        }
+        pthread_mutex_unlock(&m_dataset_lock);
+
+        return true;
+    }
+
+    /**
      * Read pixels from the underlying dataset.  This is more-or-less
      * a direct wrapper of the GDALRasterIO function, so see
      * https://www.gdal.org/gdal_8h.html#afb94984e55f110ec5346fc7ab6a139ef
