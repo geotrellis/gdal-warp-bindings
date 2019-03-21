@@ -391,6 +391,9 @@ class locked_dataset
         return m_uri_options;
     }
 
+    /**
+     * Is the dataset valid?
+     */
     bool valid() const
     {
         auto src = m_datasets[SOURCE];
@@ -400,8 +403,6 @@ class locked_dataset
 
     /**
      * Increment the reference count of this dataset.
-     *
-     * @return A boolean which is true iff the increment succeeded
      */
     void inc()
     {
@@ -423,15 +424,19 @@ class locked_dataset
      */
     bool lock_for_deletion()
     {
+        // If the lock could not be obtained, return false
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
+        // If the lock could be obtained but the reference count is
+        // not zero, return false
         else if (m_use_count != 0)
         {
             pthread_mutex_unlock(&m_dataset_lock);
             return false;
         }
+        // Otherwise return true
         return true;
     }
 
@@ -444,9 +449,10 @@ class locked_dataset
     }
 
     /**
-     * Prepare for deletion (use only if previously locked for deletion).
+     * Prepare for overwrite (use only if previously locked for
+     * deletion).  Use this on the lhs of a move.
      */
-    void prepare_for_deletion()
+    void prepare_for_overwrite()
     {
         pthread_mutex_unlock(&m_dataset_lock);
     }
@@ -510,7 +516,7 @@ class locked_dataset
 
     /**
      * A function to close the datasets wrapped by this object.
-     * Should only be called in moves or the destrucdtor.
+     * Should only be called in moves or the destrutor.
      */
     void close()
     {

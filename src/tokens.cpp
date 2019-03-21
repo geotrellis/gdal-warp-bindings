@@ -33,6 +33,9 @@ static lru_cache *cache = nullptr;
 static std::mt19937_64 g;
 static std::uniform_int_distribution<token_t> dist;
 
+/**
+ * Initialize the token-management part of the library.
+ */
 void token_init(size_t size)
 {
     g = std::mt19937_64(std::random_device{}());
@@ -40,6 +43,9 @@ void token_init(size_t size)
     cache = new lru_cache(size);
 }
 
+/**
+ * Deinitialize the token-management part of the library.
+ */
 void token_deinit()
 {
     if (cache != nullptr)
@@ -49,11 +55,25 @@ void token_deinit()
     cache = nullptr;
 }
 
+/**
+ * Generate a token.
+ *
+ * @return A (possibly used, possibly unused) token
+ */
 static token_t generate_token()
 {
     return dist(g);
 }
 
+/**
+ * Return an unused token for the given uri ⨯ options pair.  This is
+ * not a function: two subsequent calls to it with the same pair as
+ * input may produce different output.
+ *
+ * @param _uri A C-style string containing the URI
+ * @param _options An array of C-style strings contains the warp options
+ * @return A token that was not in use prior to the call
+ */
 uint64_t get_token(const char *_uri, const char **_options)
 {
     auto token = static_cast<token_t>(33);
@@ -77,6 +97,12 @@ uint64_t get_token(const char *_uri, const char **_options)
     return static_cast<uint64_t>(token);
 }
 
+/**
+ * Get the uri ⨯ options pair associated with a token (if one exists).
+ *
+ * @param token The token of interest
+ * @return An optional of type uri_options_t
+ */
 boost::optional<uri_options_t> query_token(uint64_t _token)
 {
     pthread_mutex_lock(&token_lock);

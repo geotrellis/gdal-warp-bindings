@@ -35,6 +35,10 @@ typedef std::hash<uri_options_t> uri_options_hash_t;
 
 namespace std
 {
+
+/**
+ * Hash function for options_t.
+ */
 template <>
 struct hash<options_t>
 {
@@ -51,6 +55,9 @@ struct hash<options_t>
     }
 };
 
+/**
+ * Hash function for uri_options_t.
+ */
 template <>
 struct hash<uri_options_t>
 {

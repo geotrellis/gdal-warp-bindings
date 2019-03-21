@@ -27,6 +27,12 @@
 #include "types.hpp"
 #include "locked_dataset.hpp"
 
+/*
+ * A class implementing an LRU cache of locked_dataset objects.  It is
+ * "flat" in the sense of being implemented on top of an array instead
+ * of map (this works because the size will always be ≤ the
+ * per-process file descriptor limit).
+ */
 class flat_lru_cache
 {
   public:
@@ -36,6 +42,11 @@ class flat_lru_cache
     typedef std::atomic<atime_t> atomic_atime_t;
     typedef std::vector<locked_dataset *> return_list_t;
 
+    /*
+     * Constructor
+     *
+     * @param capacity The maximum number of objects that the cache can hold
+     */
     flat_lru_cache(size_t capacity)
         : m_tags(std::vector<size_t>(capacity)),
           m_atimes(std::vector<atomic_atime_t>(capacity)),
@@ -52,16 +63,25 @@ class flat_lru_cache
     {
     }
 
+    /*
+     * The capacity of the cache.
+     */
     size_t capacity() const
     {
         return m_capacity;
     }
 
+    /*
+     * The number of items currently in the cache.
+     */
     size_t size() const
     {
         return std::min(m_capacity, m_size);
     }
 
+    /*
+     * Clear the cache.
+     */
     void clear()
     {
         pthread_rwlock_wrlock(&m_cache_lock);
@@ -75,6 +95,12 @@ class flat_lru_cache
         pthread_rwlock_unlock(&m_cache_lock);
     }
 
+    /*
+     * Does the cache contain a value with the given key?
+     *
+     * @param key A uri ⨯ options pair
+     * @return True if there is value for the key, false otherwise
+     */
     bool contains(const uri_options_t &key) const
     {
         auto h = uri_options_hash_t();
@@ -96,6 +122,13 @@ class flat_lru_cache
         return false;
     }
 
+    /*
+     * The number of values in the cache associated with the given
+     * key.
+     *
+     * @param key A uri ⨯ options pair
+     * @return The number of values (could be zero)
+     */
     size_t count(const uri_options_t &key) const
     {
         auto h = uri_options_hash_t();
@@ -114,12 +147,25 @@ class flat_lru_cache
         return result;
     }
 
+    /*
+     * Get a list of values associated with the given key.  It is
+     * possible that not-already-present values will be created, and
+     * it is also possible that the list will be empty.
+     *
+     * @param key A uri ⨯ options pair
+     * @param copies The number of datasets to try to return: if
+     *               positive try really hard to return this many, if
+     *               negative try reasonably hard to return the
+     *               negative of this many
+     * @return A vector of values associated with the key
+     */
     return_list_t get(const uri_options_t &key, int copies = 1)
     {
         auto h = uri_options_hash_t();
         auto tag = h(key);
         auto return_list = return_list_t();
 
+        // Search the cache for existing values matching the key
         pthread_rwlock_rdlock(&m_cache_lock);
         for (size_t i = 0; i < capacity(); ++i)
         {
@@ -138,8 +184,12 @@ class flat_lru_cache
         }
         pthread_rwlock_unlock(&m_cache_lock);
 
+        // If the number of values found above is below the
+        // hard-request number (which is `copies` if that value is
+        // positive or 1 otherwise), then try hard to create enough
+        // new datasets to achieve that number.
         int copies2 = copies < 0 ? 1 : copies;
-        if ((copies2 > 0) && (return_list.size() < static_cast<unsigned int>(copies2))) // Try hard to return the requested number of copies
+        if ((copies2 > 0) && (return_list.size() < static_cast<unsigned int>(copies2)))
         {
             pthread_rwlock_wrlock(&m_cache_lock);
             for (size_t i = copies2 - return_list.size(); i > 0; --i)
@@ -153,7 +203,11 @@ class flat_lru_cache
             }
             pthread_rwlock_unlock(&m_cache_lock);
         }
-        else if ((copies <= 0) && (return_list.size() < static_cast<unsigned int>(-copies))) // Kind of try to return the requested number of copies
+        // If the number of values found above is below the
+        // soft-request number (which is the negative of `copies` if
+        // that value is negative), then try to create enough datasets
+        // to achieve that number.
+        else if ((copies <= 0) && (return_list.size() < static_cast<unsigned int>(-copies)))
         {
             if (pthread_rwlock_trywrlock(&m_cache_lock) == 0)
             {
@@ -174,11 +228,20 @@ class flat_lru_cache
     }
 
   private:
+    /*
+     * Insert a new entry into the cache.
+     *
+     * @param tag The tag of the new entry within the cache
+     * @param key The key of the new entry within the cache
+     * @return A valid pointer to the newly-created object or nullptr
+     */
     locked_dataset *insert(size_t tag, const uri_options_t &key)
     {
         int best_index = -1;
         atime_t best_atime = -1; // sic
 
+        // Scan through the cache to find the least recently used
+        // entry (for eviction)
         for (size_t i = 0; i < capacity(); ++i)
         {
             if (m_atimes[i] < best_atime && m_values[i].lock_for_deletion())
@@ -191,6 +254,10 @@ class flat_lru_cache
                 best_atime = m_atimes[i];
             }
         }
+        // If an eviction candidate has been found, then create a new
+        // value (locked_dataset) and put it into the cache if it is
+        // valid.  Invalid datasets can be caused by such things as
+        // bad URIs and low system resources
         if (best_index != -1)
         {
             auto ds = locked_dataset(key);
@@ -199,7 +266,7 @@ class flat_lru_cache
             {
                 m_tags[best_index] = tag;
                 m_atimes[best_index] = ++m_time;
-                m_values[best_index].prepare_for_deletion(); // Helgrind and DRD
+                m_values[best_index].prepare_for_overwrite(); // Helgrind and DRD
                 m_values[best_index] = std::move(ds);
                 m_size++;
                 return &(m_values[best_index]);

@@ -55,12 +55,22 @@ class GDALWarpThreadTest extends Thread {
     private int y;
     private long token;
 
+    /**
+     * Constructor.
+     *
+     * @param _token The token to use
+     * @param _x The width of the dataset
+     * @param _y The height of the dataset
+     */
     GDALWarpThreadTest(long _token, int _x, int _y) {
         token = _token;
         x = _x;
         y = _y;
     }
 
+    /**
+     * An override of the `run` method (this class derives from Thread).
+     */
     public void run() {
         int[] src_window = new int[] { -1, -1, WINDOW_SIZE, WINDOW_SIZE };
         int[] dst_window = new int[] { TILE_SIZE, TILE_SIZE };
@@ -174,7 +184,7 @@ class GDALWarpThreadTest extends Thread {
             GDALWarp.get_crs_proj4(token, GDALWarp.SOURCE, 0, crs);
             System.out.println(ANSI_BLUE + "Source PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
             GDALWarp.get_crs_proj4(token, GDALWarp.WARPED, 0, crs);
-            System.out.println(ANSI_BLUE + "Source PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
         // Overviews
