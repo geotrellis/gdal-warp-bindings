@@ -61,17 +61,7 @@ class locked_dataset
         open();
     }
 
-    locked_dataset(const locked_dataset &rhs)
-        : m_datasets{nullptr, nullptr},
-          m_uri_options(rhs.m_uri_options),
-          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(static_cast<int>(rhs.m_use_count))
-    {
-#ifdef DEBUG
-        fprintf(stderr, "COPY CONSTRUCTOR\n");
-#endif
-        open();
-    }
+    locked_dataset(locked_dataset &rhs) = delete;
 
     locked_dataset(locked_dataset &&rhs) noexcept
         : m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
@@ -85,15 +75,7 @@ class locked_dataset
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
     }
 
-    locked_dataset &operator=(const locked_dataset &rhs)
-    {
-        close();
-        *this = locked_dataset(rhs.m_uri_options);
-#ifdef DEBUG
-        fprintf(stderr, "ASSIGNMENT OPERATOR\n");
-#endif
-        return *this;
-    }
+    locked_dataset &operator=(locked_dataset &rhs) = delete;
 
     locked_dataset &operator=(locked_dataset &&rhs) noexcept
     {
