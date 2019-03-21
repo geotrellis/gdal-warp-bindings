@@ -266,7 +266,6 @@ class flat_lru_cache
             {
                 m_tags[best_index] = tag;
                 m_atimes[best_index] = ++m_time;
-                m_values[best_index].prepare_for_overwrite(); // Helgrind and DRD
                 m_values[best_index] = std::move(ds);
                 m_size++;
                 return &(m_values[best_index]);
