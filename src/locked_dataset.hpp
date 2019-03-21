@@ -87,7 +87,6 @@ class locked_dataset
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
         m_uri_options = std::move(rhs.m_uri_options);
-        //m_use_count = 0; // m_use_count already known to be zero, rhs.m_use_count also zero
         pthread_mutex_unlock(&m_dataset_lock); // m_dataset_lock known to be locked prior to this call
 
         return *this;
