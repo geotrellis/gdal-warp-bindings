@@ -34,7 +34,8 @@ If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make 
 
 ### Windows ###
 
-The Windows version has only been cross-built with [MinGW](http://www.mingw.org/wiki/InstallationHOWTOforMinGW) from within a Linux Docker image.  Please see the [continuous integration script](.travis/tests.sh) for more.
+The Windows version has only been cross-built with [MinGW](http://www.mingw.org/wiki/InstallationHOWTOforMinGW) from within a Linux Docker container.
+Please see the [continuous integration script](.travis/tests.sh) for more.
 
 # Binary Artifacts #
 
@@ -42,14 +43,14 @@ The binary artifacts are present on [Bintray](https://bintray.com/azavea/geotrel
 This jar file contains Linux, Macintosh, and Windows shared libraries.
 All native binaries are for AMD64; the Linux ones are linked against GDAL 2.4.0, The Macintosh ones are linked against GDAL 2.4.0 from Homebrew, and the Windows ones are linked against the GDAL 2.4.0 MSVC 2015 build from [GISinternals.com](http://www.gisinternals.com/release.php).
 
-The class files in the jar were built with OpenJDK 1.8.
+The class files in the jar were built with OpenJDK 8.
 
-The jar file reachable via Maven:
+The jar file is reachable via Maven:
 ```
 <dependency>
   <groupId>com.azavea.gdal</groupId>
   <artifactId>gdal-warp-bindings</artifactId>
-  <version>33.21ad90</version>
+  <version>33.xxxxxxx</version>
   <type>pom</type>
 </dependency>
 ```
