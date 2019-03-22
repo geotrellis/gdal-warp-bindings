@@ -178,32 +178,12 @@ BOOST_AUTO_TEST_CASE(get_pixels_test)
     BOOST_TEST(actual == expected);
 }
 
-BOOST_AUTO_TEST_CASE(copy_constructor_test)
-{
-    auto ld1 = locked_dataset(uri_options1);
-    auto ld2 = locked_dataset(ld1);
-
-    BOOST_TEST(ld1.valid() == true);
-    BOOST_TEST(ld2.valid() == true);
-}
-
 BOOST_AUTO_TEST_CASE(move_constructor_test)
 {
     auto ld1 = locked_dataset(uri_options1);
     auto ld2 = locked_dataset(std::move(ld1));
 
     BOOST_TEST(ld1.valid() == false);
-    BOOST_TEST(ld2.valid() == true);
-}
-
-BOOST_AUTO_TEST_CASE(assignment_test)
-{
-    auto ld1 = locked_dataset(uri_options1);
-    auto ld2 = locked_dataset();
-
-    ld2 = ld1;
-
-    BOOST_TEST(ld1.valid() == true);
     BOOST_TEST(ld2.valid() == true);
 }
 

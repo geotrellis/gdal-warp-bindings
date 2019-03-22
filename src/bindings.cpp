@@ -24,9 +24,9 @@
 #include <vector>
 
 #include <errno.h>
-#include <sched.h>
 #include <unistd.h>
 #include <pthread.h>
+
 #include <gdal.h>
 
 #include "bindings.h"
@@ -37,7 +37,8 @@
 
 typedef flat_lru_cache cache_t;
 
-constexpr useconds_t MAX_US = (1 << 16);
+constexpr int TOO_MANY_ITERATIONS = (1 << 16);
+pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 cache_t *cache = nullptr;
 
@@ -74,17 +75,33 @@ cache_t *cache = nullptr;
     if (query_result)                                              \
     {                                                              \
         auto uri_options = query_result.get();                     \
+        bool has_lock = false;                                     \
         int i;                                                     \
         for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
         {                                                          \
+            if (i >= TOO_MANY_ITERATIONS && !has_lock)             \
+            {                                                      \
+                pthread_mutex_lock(&livelock_mutex);               \
+                has_lock = true;                                   \
+            }                                                      \
             auto locked_datasets = cache->get(uri_options, -4);    \
             if (locked_datasets.size() == 0)                       \
             {                                                      \
+                if (has_lock)                                      \
+                {                                                  \
+                    pthread_mutex_unlock(&livelock_mutex);         \
+                }                                                  \
                 return -EAGAIN;                                    \
             }                                                      \
             TRY(fn)                                                \
-            useconds_t us = 1 << i;                                \
-            usleep(us <= MAX_US ? us : MAX_US);                    \
+            if (!done && !has_lock)                                \
+            {                                                      \
+                sleep(0);                                          \
+            }                                                      \
+        }                                                          \
+        if (has_lock)                                              \
+        {                                                          \
+            pthread_mutex_unlock(&livelock_mutex);                 \
         }                                                          \
         if (i < attempts || (i > 0 && attempts == 0))              \
         {                                                          \

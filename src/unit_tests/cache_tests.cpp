@@ -67,9 +67,15 @@ BOOST_AUTO_TEST_CASE(get_same_test)
 {
     auto cache = flat_lru_cache(4);
     BOOST_TEST(cache.size() == 0);
-    cache.get(uri_options1);
+    for (auto ld : cache.get(uri_options1))
+    {
+        ld->dec();
+    }
     BOOST_TEST(cache.size() == 1);
-    cache.get(uri_options1);
+    for (auto ld : cache.get(uri_options1))
+    {
+        ld->dec();
+    }
     BOOST_TEST(cache.size() == 1);
     cache.clear();
     BOOST_TEST(cache.size() == 0);
@@ -79,9 +85,15 @@ BOOST_AUTO_TEST_CASE(get_different_test)
 {
     auto cache = flat_lru_cache(4);
     BOOST_TEST(cache.size() == 0);
-    cache.get(uri_options1);
+    for (auto ld : cache.get(uri_options1))
+    {
+        ld->dec();
+    }
     BOOST_TEST(cache.size() == 1);
-    cache.get(uri_options2);
+    for (auto ld : cache.get(uri_options2))
+    {
+        ld->dec();
+    }
     BOOST_TEST(cache.size() == 2);
     cache.clear();
     BOOST_TEST(cache.size() == 0);

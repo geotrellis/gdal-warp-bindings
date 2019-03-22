@@ -5,7 +5,7 @@ LDFLAGS ?= $(shell pkg-config gdal --libs) -L$(shell pwd) -lgdalwarp_bindings -l
 BOOST_ROOT ?= /usr/include
 SO ?= so
 
-all: rawthread wrapthread pattern
+all: rawthread wrapthread pattern oversubscribe
 
 ../../libgdalwarp_bindings.$(SO):
 	make -C ../.. libgdalwarp_bindings.$(SO)
@@ -20,6 +20,9 @@ wrapthread: wrapthread.o libgdalwarp_bindings.$(SO)
 	$(CC) $< $(LDFLAGS) -o $@
 
 pattern: pattern.o libgdalwarp_bindings.$(SO)
+	$(CC) $< $(LDFLAGS) -o $@
+
+oversubscribe: oversubscribe.o libgdalwarp_bindings.$(SO)
 	$(CC) $< $(LDFLAGS) -o $@
 
 %.o: %.cpp

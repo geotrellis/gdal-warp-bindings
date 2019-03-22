@@ -19,15 +19,12 @@
 
 #include <functional>
 
-#ifdef DEBUG
-#include <cstdio>
-#endif
-
 #if defined(__MINGW32__)
 typedef _locale_t locale_t;
 #endif
 
 #include <atomic>
+#include <cassert>
 #include <cstring>
 
 #include <pthread.h>
@@ -61,54 +58,43 @@ class locked_dataset
         open();
     }
 
-    locked_dataset(const locked_dataset &rhs)
-        : m_datasets{nullptr, nullptr},
-          m_uri_options(rhs.m_uri_options),
-          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
-          m_use_count(static_cast<int>(rhs.m_use_count))
-    {
-#ifdef DEBUG
-        fprintf(stderr, "COPY CONSTRUCTOR\n");
-#endif
-        open();
-    }
+    locked_dataset(locked_dataset &rhs) = delete;
 
     locked_dataset(locked_dataset &&rhs) noexcept
-        : m_uri_options(std::exchange(rhs.m_uri_options, uri_options_t())),
-          m_dataset_lock(std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER))
+        : m_uri_options(std::move(rhs.m_uri_options)),
+          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
+          m_use_count(0) // rhs known to be zero
     {
+        assert(rhs.m_use_count == 0);
+
         // XXX not thread safe, but the rhs should always be a
         // just-created local that is not in use anywhere else.
-        m_use_count = static_cast<int>(rhs.m_use_count);
-        rhs.m_use_count = 0;
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
     }
 
-    locked_dataset &operator=(const locked_dataset &rhs)
-    {
-        close();
-        *this = locked_dataset(rhs.m_uri_options);
-#ifdef DEBUG
-        fprintf(stderr, "ASSIGNMENT OPERATOR\n");
-#endif
-        return *this;
-    }
+    locked_dataset &operator=(locked_dataset &rhs) = delete;
 
     locked_dataset &operator=(locked_dataset &&rhs) noexcept
     {
+        assert(m_use_count == 0);
+        assert(rhs.m_use_count == 0);
+
+        // XXX This does not look thread safe, but this is only called
+        // when either (a) the lhs has been locked or (b) the lhs is
+        // not in use (as when the `clear` method on the cache is
+        // called during initialization) and the rhs is a just-created
+        // dataset that is not in use anywhere else.
         close();
 
+        // m_dataset_lock known to be locked prior to this call if
+        // this is a valid dataset
+        pthread_mutex_unlock(&m_dataset_lock);
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
-        m_dataset_lock = std::exchange(rhs.m_dataset_lock, PTHREAD_MUTEX_INITIALIZER);
-        m_use_count = static_cast<int>(rhs.m_use_count);
-        rhs.m_use_count = 0;
-        m_uri_options = std::exchange(rhs.m_uri_options, uri_options_t());
+        m_uri_options = std::move(rhs.m_uri_options);
 
         return *this;
-        // XXX not thread safe, but the rhs should always be a
-        // just-created local that is not in use anywhere else.
     }
 
     bool operator==(const uri_options_t &rhs) const
@@ -448,15 +434,6 @@ class locked_dataset
         pthread_mutex_unlock(&m_dataset_lock);
     }
 
-    /**
-     * Prepare for overwrite (use only if previously locked for
-     * deletion).  Use this on the lhs of a move.
-     */
-    void prepare_for_overwrite()
-    {
-        pthread_mutex_unlock(&m_dataset_lock);
-    }
-
   private:
     /**
      * A function to open a GDAL dataset answering the given warp
@@ -522,7 +499,6 @@ class locked_dataset
     {
         if (valid())
         {
-            pthread_mutex_lock(&m_dataset_lock);
             if (m_datasets[WARPED] != nullptr)
             {
                 GDALClose(m_datasets[WARPED]);
@@ -533,7 +509,6 @@ class locked_dataset
                 GDALClose(m_datasets[SOURCE]);
                 m_datasets[SOURCE] = nullptr;
             }
-            pthread_mutex_unlock(&m_dataset_lock);
         }
     }
 
