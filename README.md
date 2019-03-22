@@ -3,7 +3,7 @@
 # Intro #
 
 Having multi-threaded access to raster data is an important prerequisite to constructing a high-performance GIS tile server.
-If one wishes to use [GDAL's VRT functionality](https://www.gdal.org/gdal_vrttut.html) in this way, then it is necessary to ensure that no VRT dataset simultaneously used by more than one thread (even for read-only operations).
+If one wishes to use [GDAL's VRT functionality](https://www.gdal.org/gdal_vrttut.html) in this way, then it is necessary to ensure that no VRT dataset is simultaneously used by more than one thread, even for read-only operations.
 The code in this repository attempts to address that issue by wrapping GDAL datasets in objects which abstract one or more identical datasets; the wrapped datasets can be safely used from multiple threads with less contention than would be the case with a simple mutex around one GDAL dataset.
 APIs are provided for C and Java.
 
