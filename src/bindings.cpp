@@ -96,7 +96,7 @@ cache_t *cache = nullptr;
             TRY(fn)                                                \
             if (!done && !has_lock)                                \
             {                                                      \
-                sleep(0 + (i % 1009 == 0 ? 1 : 0));                \
+                sleep(0);                \
             }                                                      \
         }                                                          \
         if (has_lock)                                              \
