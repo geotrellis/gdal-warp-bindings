@@ -61,7 +61,9 @@ class locked_dataset
     locked_dataset(locked_dataset &rhs) = delete;
 
     locked_dataset(locked_dataset &&rhs) noexcept
-        : m_uri_options(std::move(rhs.m_uri_options))
+        : m_uri_options(std::move(rhs.m_uri_options)),
+          m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
+          m_use_count(0) // rhs known to be zero
     {
         assert(rhs.m_use_count == 0);
 
@@ -69,7 +71,6 @@ class locked_dataset
         // just-created local that is not in use anywhere else.
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
-        m_use_count = 0; // rhs.m_use_count known to be zero
     }
 
     locked_dataset &operator=(locked_dataset &rhs) = delete;
@@ -80,14 +81,18 @@ class locked_dataset
         assert(rhs.m_use_count == 0);
 
         // XXX This does not look thread safe, but this is only called
-        // when the lhs has been locked and the rhs is a just-created
+        // when either (a) the lhs has been locked or (b) the lhs is
+        // not in use (as when the `clear` method on the cache is
+        // called during initialization) and the rhs is a just-created
         // dataset that is not in use anywhere else.
         close();
 
+        // m_dataset_lock known to be locked prior to this call if
+        // this is a valid dataset
+        pthread_mutex_unlock(&m_dataset_lock);
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
         m_uri_options = std::move(rhs.m_uri_options);
-        pthread_mutex_unlock(&m_dataset_lock); // m_dataset_lock known to be locked prior to this call
 
         return *this;
     }

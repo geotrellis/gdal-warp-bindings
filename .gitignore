@@ -7,6 +7,7 @@
 *.vrt
 .vscode/launch.json
 .vscode/c_cpp_properties.json
+.vscode/ipch
 src/experiments/bench/rawbench
 src/experiments/thread/rawthread
 src/experiments/thread/wrapthread

@@ -89,6 +89,7 @@ class flat_lru_cache
         {
             m_tags[i] = 0;
             m_atimes[i] = 0;
+            m_values[i].lock_for_deletion();
             m_values[i] = locked_dataset();
             m_size = 0;
         }
