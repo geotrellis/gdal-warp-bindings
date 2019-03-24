@@ -77,6 +77,8 @@ public class GDALWarp {
 
         public static native void deinit();
 
+        public static native void set_config_option(String key, String value);
+
         public static native long get_token(String uri, String[] options);
 
         public static native int get_overview_widths_heights(long token, int dataset, int attempts, /* */

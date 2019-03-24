@@ -59,8 +59,8 @@ class GDALWarpThreadTest extends Thread {
      * Constructor.
      *
      * @param _token The token to use
-     * @param _x The width of the dataset
-     * @param _y The height of the dataset
+     * @param _x     The width of the dataset
+     * @param _y     The height of the dataset
      */
     GDALWarpThreadTest(long _token, int _x, int _y) {
         token = _token;
@@ -115,6 +115,8 @@ class GDALWarpThreadTest extends Thread {
             token = GDALWarp.get_token(args[0], options_small);
             THREADS = 1 << 4;
         }
+
+        GDALWarp.set_config_option("COMPRESS_OVERVIEW", "DEFLATE"); // Just for fun
 
         // Band Count
         {
