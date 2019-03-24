@@ -12,11 +12,11 @@ all: tests libgdalwarp_bindings.$(SO)
 
 com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c
 	make -C main java/com/azavea/gdal/GDALWarp.class
-	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
+	$(CC) $(CFLAGS) $(GDALCFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
 com_azavea_gdal_GDALWarp.obj: com_azavea_gdal_GDALWarp.c
 	make -C main java/com/azavea/gdal/GDALWarp.class
-	$(CC) $(CFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
+	$(CC) $(CFLAGS) $(GDALCFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
 %.o: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) -fPIC $< -c -o $@

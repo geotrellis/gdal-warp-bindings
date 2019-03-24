@@ -41,6 +41,8 @@ uint64_t htobe64(uint64_t x)
 #include <endian.h>
 #endif
 
+#include <cpl_conv.h>
+
 #include "com_azavea_gdal_GDALWarp.h"
 #include "bindings.h"
 
@@ -56,6 +58,16 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
 {
     deinit();
+}
+
+JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_set_1config_1option(JNIEnv *env, jclass obj,
+                                                                         jstring _key, jstring _value)
+{
+    const jchar *key = (*env)->GetStringChars(env, _key, NULL);
+    const jchar *value = (*env)->GetStringChars(env, _value, NULL);
+    CPLSetConfigOption((const char *)key, (const char *)value);
+    (*env)->ReleaseStringChars(env, _key, key);
+    (*env)->ReleaseStringChars(env, _value, value);
 }
 
 JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jobject obj, jstring _uri, jobjectArray _options)
