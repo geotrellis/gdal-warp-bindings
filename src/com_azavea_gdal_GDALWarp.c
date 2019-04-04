@@ -63,11 +63,12 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_set_1config_1option(JNIEnv *env, jclass obj,
                                                                          jstring _key, jstring _value)
 {
-    const jchar *key = (*env)->GetStringChars(env, _key, NULL);
-    const jchar *value = (*env)->GetStringChars(env, _value, NULL);
-    CPLSetConfigOption((const char *)key, (const char *)value);
-    (*env)->ReleaseStringChars(env, _key, key);
-    (*env)->ReleaseStringChars(env, _value, value);
+    const char *key = (*env)->GetStringUTFChars(env, _key, NULL);
+    const char *value = (*env)->GetStringUTFChars(env, _value, NULL);
+
+    CPLSetConfigOption(key, value);
+    (*env)->ReleaseStringUTFChars(env, _key, key);
+    (*env)->ReleaseStringUTFChars(env, _value, value);
 }
 
 JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jobject obj, jstring _uri, jobjectArray _options)
