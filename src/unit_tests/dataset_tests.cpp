@@ -16,6 +16,7 @@
 
 #define BOOST_TEST_MODULE Locked Dataset Unit Tests
 #include <boost/test/included/unit_test.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <vector>
 
@@ -56,23 +57,27 @@ BOOST_AUTO_TEST_CASE(get_crs_proj4_test)
 {
     constexpr int N = 1 << 10;
     auto ld = locked_dataset(uri_options1);
-    char actual[N];
-    auto expected = std::string("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
+    char actual_chars[N];
+    auto expected1 = std::string("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs");
+    auto expected2 = std::string("+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs");
 
-    ld.get_crs_proj4(locked_dataset::WARPED, actual, N);
-
-    BOOST_TEST(std::string(actual) == expected);
+    ld.get_crs_proj4(locked_dataset::WARPED, actual_chars, N);
+    auto actual = std::string(actual_chars);
+    boost::trim(actual);
+    BOOST_TEST((actual == expected1 || actual == expected2));
 }
 
 BOOST_AUTO_TEST_CASE(get_source_test)
 {
     constexpr int N = 1 << 10;
     auto ld = locked_dataset(uri_options1);
-    char actual[N];
-    auto expected = std::string("+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs ");
+    char actual_chars[N];
+    auto expected = std::string("+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs");
 
-    ld.get_crs_proj4(locked_dataset::SOURCE, actual, N);
-    BOOST_TEST(std::string(actual) == expected);
+    ld.get_crs_proj4(locked_dataset::SOURCE, actual_chars, N);
+    auto actual = std::string(actual_chars);
+    boost::trim(actual);
+    BOOST_TEST(actual == expected);
 
     int width = -1;
     int height = -1;
@@ -86,12 +91,14 @@ BOOST_AUTO_TEST_CASE(get_crs_wkt_test)
 {
     constexpr int N = 1 << 10;
     auto ld = locked_dataset(uri_options1);
-    char actual[N];
-    auto expected = std::string("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]");
+    char actual_chars[N];
+    auto expected1 = std::string("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]");
+    auto expected2 = std::string("PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]");
 
-    ld.get_crs_wkt(locked_dataset::WARPED, actual, N);
-
-    BOOST_TEST(std::string(actual) == expected);
+    ld.get_crs_wkt(locked_dataset::WARPED, actual_chars, N);
+    auto actual = std::string(actual_chars);
+    boost::trim(actual);
+    BOOST_TEST((actual == expected1 || actual == expected2));
 }
 
 BOOST_AUTO_TEST_CASE(get_band_count_test)
