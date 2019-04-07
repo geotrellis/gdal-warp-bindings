@@ -53,9 +53,13 @@ cache_t *cache = nullptr;
 #define TRY(fn)                     \
     for (auto ld : locked_datasets) \
     {                               \
-        if (!done && (ld->fn != 0)) \
+        if (!done)                  \
         {                           \
-            done = true;            \
+            ++touched;              \
+            if (ld->fn != false)    \
+            {                       \
+                done = true;        \
+            }                       \
         }                           \
         ld->dec();                  \
     }
@@ -76,6 +80,7 @@ cache_t *cache = nullptr;
     {                                                              \
         auto uri_options = query_result.get();                     \
         bool has_lock = false;                                     \
+        int touched = 0;                                           \
         int i;                                                     \
         for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
         {                                                          \
@@ -85,7 +90,8 @@ cache_t *cache = nullptr;
                 has_lock = true;                                   \
             }                                                      \
             auto locked_datasets = cache->get(uri_options, -4);    \
-            if (locked_datasets.size() == 0)                       \
+            const auto num_datasets = locked_datasets.size();      \
+            if (num_datasets == 0)                                 \
             {                                                      \
                 if (has_lock)                                      \
                 {                                                  \
@@ -105,7 +111,7 @@ cache_t *cache = nullptr;
         }                                                          \
         if (i < attempts || (i > 0 && attempts == 0))              \
         {                                                          \
-            return i;                                              \
+            return touched;                                        \
         }                                                          \
         else                                                       \
         {                                                          \
