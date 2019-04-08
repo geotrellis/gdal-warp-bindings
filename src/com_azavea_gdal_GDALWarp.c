@@ -46,6 +46,8 @@ uint64_t htobe64(uint64_t x)
 #include "com_azavea_gdal_GDALWarp.h"
 #include "bindings.h"
 
+const int copies = -4;
+
 const int MAX_OPTIONS = 1 << 10;
 int gc_lock = 0;
 
@@ -108,7 +110,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heig
     int width_length = (*env)->GetArrayLength(env, _widths);
     int height_length = (*env)->GetArrayLength(env, _heights);
     int max_length = width_length < height_length ? width_length : height_length;
-    jint retval = get_overview_widths_heights(token, dataset, attempts, (int *)widths, (int *)heights, max_length);
+    jint retval = get_overview_widths_heights(token, dataset, attempts, copies, (int *)widths, (int *)heights, max_length);
     (*env)->ReleaseIntArrayElements(env, _heights, heights, 0);
     (*env)->ReleaseIntArrayElements(env, _widths, widths, 0);
 
@@ -123,7 +125,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env
 {
     jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
     int max_size = (*env)->GetArrayLength(env, _crs);
-    jint retval = get_crs_proj4(token, dataset, attempts, (char *)crs, max_size);
+    jint retval = get_crs_proj4(token, dataset, attempts, copies, (char *)crs, max_size);
     (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
@@ -137,7 +139,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, 
 {
     jbyte *crs = (*env)->GetByteArrayElements(env, _crs, NULL);
     int max_size = (*env)->GetArrayLength(env, _crs);
-    jint retval = get_crs_wkt(token, dataset, attempts, (char *)crs, max_size);
+    jint retval = get_crs_wkt(token, dataset, attempts, copies, (char *)crs, max_size);
     (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
@@ -153,7 +155,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *e
 {
     double *nodata = (*env)->GetDoubleArrayElements(env, _nodata, NULL);
     jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
-    jint retval = get_band_nodata(token, dataset, attempts, band, nodata, (int *)success);
+    jint retval = get_band_nodata(token, dataset, attempts, copies, band, nodata, (int *)success);
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _nodata, nodata, 0);
 
@@ -171,7 +173,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1min_1max(JNIEnv 
 {
     double *minmax = (*env)->GetDoubleArrayElements(env, _minmax, NULL);
     jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
-    jint retval = get_band_min_max(token, dataset, attempts, band, approx_okay, minmax, (int *)success);
+    jint retval = get_band_min_max(token, dataset, attempts, copies, band, approx_okay, minmax, (int *)success);
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _minmax, minmax, 0);
 
@@ -186,7 +188,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEn
                                                                            jintArray _data_type)
 {
     jint *data_type = (*env)->GetIntArrayElements(env, _data_type, NULL);
-    jint retval = get_band_data_type(token, dataset, attempts, band, (int *)data_type);
+    jint retval = get_band_data_type(token, dataset, attempts, copies, band, (int *)data_type);
     (*env)->ReleaseIntArrayElements(env, _data_type, data_type, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
@@ -199,7 +201,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv *en
                                                                       jintArray _band_count)
 {
     jint *band_count = (*env)->GetIntArrayElements(env, _band_count, NULL);
-    jint retval = get_band_count(token, dataset, attempts, (int *)band_count);
+    jint retval = get_band_count(token, dataset, attempts, copies, (int *)band_count);
     (*env)->ReleaseIntArrayElements(env, _band_count, band_count, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
@@ -213,7 +215,7 @@ jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclas
 {
     jint *width_height = (*env)->GetIntArrayElements(env, _width_height, NULL);
 
-    jint retval = get_width_height(token, dataset, attempts, (int *)width_height, (int *)(width_height + 1));
+    jint retval = get_width_height(token, dataset, attempts, copies, (int *)width_height, (int *)(width_height + 1));
     (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
@@ -242,7 +244,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobj
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jint retval = get_data(token, dataset, attempts, (int *)src_window, (int *)dst_window, band_number, type, data);
+    jint retval = get_data(token, dataset, attempts, copies, (int *)src_window, (int *)dst_window, band_number, type, data);
     switch (type)
     {
     case com_azavea_gdal_GDALWarp_GDT_Int16:
@@ -294,7 +296,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env,
                                                                     jdoubleArray _transform)
 {
     double *transform = (*env)->GetDoubleArrayElements(env, _transform, NULL);
-    jint retval = get_transform(token, dataset, attempts, transform);
+    jint retval = get_transform(token, dataset, attempts, copies, transform);
     (*env)->ReleaseDoubleArrayElements(env, _transform, transform, 0);
 
     return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
