@@ -30,13 +30,13 @@ extern "C"
     uint64_t get_token(const char *uri, const char **options);
 
     int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
-                                 char ***domain_list);
+                                 int band, char ***domain_list);
 
     int get_metadata(uint64_t token, int dataset, int attempts, int copies,
-                     const char *domain, char ***list);
+                     int band, const char *domain, char ***list);
 
     int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
-                          const char *key, const char *domain, const char **value);
+                          int band, const char *key, const char *domain, const char **value);
 
     int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
                                     int *widths, int *heights, int max_length);

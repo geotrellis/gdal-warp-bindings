@@ -25,25 +25,25 @@
 
 #include "locked_dataset.hpp"
 
-auto uri = uri_t("../experiments/data/c41078a1.tif");
+auto uri1 = uri_t("../experiments/data/c41078a1.tif");
 auto options1 = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
 auto options2 = options_t{"-r", "bilinear",
                           "-t_srs", "epsg:3857",
                           "-dstnodata", "107"};
-auto uri_options1 = std::make_pair(uri, options1);
-auto uri_options2 = std::make_pair(uri, options2);
+auto uri_options1 = std::make_pair(uri1, options1);
+auto uri_options2 = std::make_pair(uri1, options2);
 
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
 }
 
-BOOST_AUTO_TEST_CASE(get_metadata_domain_list)
+BOOST_AUTO_TEST_CASE(get_file_metadata_domain_list)
 {
     auto ld = locked_dataset(uri_options1);
     char **domain_list = nullptr;
 
-    ld.get_metadata_domain_list(locked_dataset::SOURCE, &domain_list);
+    ld.get_metadata_domain_list(locked_dataset::SOURCE, 0, &domain_list);
 
     BOOST_TEST(CSLCount(domain_list) == 3);
     BOOST_TEST(std::string(domain_list[0]) == "");
@@ -52,12 +52,12 @@ BOOST_AUTO_TEST_CASE(get_metadata_domain_list)
     CSLDestroy(domain_list);
 }
 
-BOOST_AUTO_TEST_CASE(get_metadata)
+BOOST_AUTO_TEST_CASE(get_file_metadata)
 {
     auto ld = locked_dataset(uri_options1);
     char **list = nullptr;
 
-    ld.get_metadata(locked_dataset::SOURCE, "", &list);
+    ld.get_metadata(locked_dataset::SOURCE, 0, "", &list);
 
     BOOST_TEST(CSLCount(list) == 4);
     BOOST_TEST(std::string(CSLFetchNameValue(list, "AREA_OR_POINT")) == "Area");
@@ -66,14 +66,44 @@ BOOST_AUTO_TEST_CASE(get_metadata)
     BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_YRESOLUTION")) == "72");
 }
 
-BOOST_AUTO_TEST_CASE(get_metadata_item)
+BOOST_AUTO_TEST_CASE(get_file_metadata_item)
 {
     auto ld = locked_dataset(uri_options1);
-    const char * value = nullptr;
+    const char *value = nullptr;
 
-    ld.get_metadata_item(locked_dataset::SOURCE, "AREA_OR_POINT", "", &value);
+    ld.get_metadata_item(locked_dataset::SOURCE, 0, "AREA_OR_POINT", "", &value);
 
     BOOST_TEST(std::string(value) == "Area");
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata_domain_list)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **domain_list = nullptr;
+
+    ld.get_metadata_domain_list(locked_dataset::SOURCE, 1, &domain_list);
+
+    BOOST_TEST(CSLCount(domain_list) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **list = nullptr;
+
+    ld.get_metadata(locked_dataset::SOURCE, 1, "", &list);
+
+    BOOST_TEST(CSLCount(list) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata_item)
+{
+    auto ld = locked_dataset(uri_options1);
+    const char *value = nullptr;
+
+    ld.get_metadata_item(locked_dataset::SOURCE, 1, "AREA_OR_POINT", "", &value);
+
+    BOOST_TEST(value == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(overview_test)

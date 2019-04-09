@@ -321,14 +321,22 @@ class locked_dataset
         return true;
     }
 
-    bool get_metadata_domain_list(int dataset, char ***domain_list)
+    bool get_metadata_domain_list(int dataset, int band_num, char ***domain_list)
     {
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
         // Must be freed with CSLDestroy
-        *domain_list = GDALGetMetadataDomainList(m_datasets[dataset]);
+        if (band_num == 0)
+        {
+            *domain_list = GDALGetMetadataDomainList(m_datasets[dataset]);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            *domain_list = GDALGetMetadataDomainList(band);
+        }
         pthread_mutex_unlock(&m_dataset_lock);
         if (*domain_list != nullptr)
         {
@@ -340,13 +348,21 @@ class locked_dataset
         }
     }
 
-    bool get_metadata(int dataset, const char * domain, char ***list)
+    bool get_metadata(int dataset, int band_num, const char *domain, char ***list)
     {
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
-        *list = GDALGetMetadata(m_datasets[dataset], domain);
+        if (band_num == 0)
+        {
+            *list = GDALGetMetadata(m_datasets[dataset], domain);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            *list = GDALGetMetadata(band, domain);
+        }
         pthread_mutex_unlock(&m_dataset_lock);
         if (*list != nullptr)
         {
@@ -358,13 +374,21 @@ class locked_dataset
         }
     }
 
-    bool get_metadata_item(int dataset, const char * key, const char * domain, const char ** value)
+    bool get_metadata_item(int dataset, int band_num, const char *key, const char *domain, const char **value)
     {
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
         }
-        *value = GDALGetMetadataItem(m_datasets[dataset], key, domain);
+        if (band_num == 0)
+        {
+            *value = GDALGetMetadataItem(m_datasets[dataset], key, domain);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            *value = GDALGetMetadataItem(band, key, domain);
+        }
         pthread_mutex_unlock(&m_dataset_lock);
         if (*value != nullptr)
         {
