@@ -321,6 +321,61 @@ class locked_dataset
         return true;
     }
 
+    bool get_metadata_domain_list(int dataset, char ***domain_list)
+    {
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
+        {
+            return false;
+        }
+        // Must be freed with CSLDestroy
+        *domain_list = GDALGetMetadataDomainList(m_datasets[dataset]);
+        pthread_mutex_unlock(&m_dataset_lock);
+        if (*domain_list != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool get_metadata(int dataset, const char * domain, char ***list)
+    {
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
+        {
+            return false;
+        }
+        *list = GDALGetMetadata(m_datasets[dataset], domain);
+        pthread_mutex_unlock(&m_dataset_lock);
+        if (*list != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool get_metadata_item(int dataset, const char * key, const char * domain, const char ** value)
+    {
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
+        {
+            return false;
+        }
+        *value = GDALGetMetadataItem(m_datasets[dataset], key, domain);
+        pthread_mutex_unlock(&m_dataset_lock);
+        if (*value != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     /**
      * Read pixels from the underlying dataset.  This is more-or-less
      * a direct wrapper of the GDALRasterIO function, so see

@@ -160,6 +160,24 @@ void deinit()
     token_deinit();
 }
 
+int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
+                             char ***domain_list)
+{
+    DOIT(get_metadata_domain_list(dataset, domain_list));
+}
+
+int get_metadata(uint64_t token, int dataset, int attempts, int copies,
+                 const char *domain, char ***list)
+{
+    DOIT(get_metadata(dataset, domain, list));
+}
+
+int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
+                      const char *key, const char *domain, const char **value)
+{
+    DOIT(get_metadata_item(dataset, key, domain, value));
+}
+
 /**
  * Get the widths and heights of all overviews.
  *

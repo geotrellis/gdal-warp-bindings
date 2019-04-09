@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <gdal.h>
+#include <gdal_priv.h>
 
 #include "locked_dataset.hpp"
 
@@ -35,6 +36,44 @@ auto uri_options2 = std::make_pair(uri, options2);
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
+}
+
+BOOST_AUTO_TEST_CASE(get_metadata_domain_list)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **domain_list = nullptr;
+
+    ld.get_metadata_domain_list(locked_dataset::SOURCE, &domain_list);
+
+    BOOST_TEST(CSLCount(domain_list) == 3);
+    BOOST_TEST(std::string(domain_list[0]) == "");
+    BOOST_TEST(std::string(domain_list[1]) == "IMAGE_STRUCTURE");
+    BOOST_TEST(std::string(domain_list[2]) == "DERIVED_SUBDATASETS");
+    CSLDestroy(domain_list);
+}
+
+BOOST_AUTO_TEST_CASE(get_metadata)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **list = nullptr;
+
+    ld.get_metadata(locked_dataset::SOURCE, "", &list);
+
+    BOOST_TEST(CSLCount(list) == 4);
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "AREA_OR_POINT")) == "Area");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_RESOLUTIONUNIT")) == "2 (pixels/inch)");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_XRESOLUTION")) == "72");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_YRESOLUTION")) == "72");
+}
+
+BOOST_AUTO_TEST_CASE(get_metadata_item)
+{
+    auto ld = locked_dataset(uri_options1);
+    const char * value = nullptr;
+
+    ld.get_metadata_item(locked_dataset::SOURCE, "AREA_OR_POINT", "", &value);
+
+    BOOST_TEST(std::string(value) == "Area");
 }
 
 BOOST_AUTO_TEST_CASE(overview_test)
