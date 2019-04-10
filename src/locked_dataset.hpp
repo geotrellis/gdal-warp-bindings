@@ -186,15 +186,15 @@ class locked_dataset
      * underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param band The band in question
+     * @param band_number The band in question
      * @param nodata The return-location for the nodata value
      * @param success The return slot for the "is there nodata" value
      * @return True iff the operation succeeded
      */
-    bool get_band_nodata(int dataset, int band, double *nodata, int *success)
+    bool get_band_nodata(int dataset, int band_number, double *nodata, int *success)
     {
         TRYLOCK
-        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *nodata = GDALGetRasterNoDataValue(bandh, success);
         UNLOCK
         return true;
@@ -205,14 +205,14 @@ class locked_dataset
      * dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param band The band in question
+     * @param band_number The band in question
      * @param data_type The type of the band in question
      * @return True iff the operation succeeded
      */
-    bool get_band_data_type(int dataset, int band, GDALDataType *data_type)
+    bool get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
     {
         TRYLOCK
-        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *data_type = GDALGetRasterDataType(bandh);
         UNLOCK
         return true;
@@ -300,17 +300,17 @@ class locked_dataset
         return true;
     }
 
-    bool get_metadata_domain_list(int dataset, int band_num, char ***domain_list)
+    bool get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
     {
         TRYLOCK
-        if (band_num == 0)
+        if (band_number == 0)
         {
             // Must be freed with CSLDestroy
             *domain_list = GDALGetMetadataDomainList(m_datasets[dataset]);
         }
         else
         {
-            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
             // Must be freed with CSLDestroy
             *domain_list = GDALGetMetadataDomainList(band);
         }
@@ -325,16 +325,16 @@ class locked_dataset
         }
     }
 
-    bool get_metadata(int dataset, int band_num, const char *domain, char ***list)
+    bool get_metadata(int dataset, int band_number, const char *domain, char ***list)
     {
         TRYLOCK
-        if (band_num == 0)
+        if (band_number == 0)
         {
             *list = GDALGetMetadata(m_datasets[dataset], domain);
         }
         else
         {
-            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
             *list = GDALGetMetadata(band, domain);
         }
         UNLOCK
@@ -348,16 +348,16 @@ class locked_dataset
         }
     }
 
-    bool get_metadata_item(int dataset, int band_num, const char *key, const char *domain, const char **value)
+    bool get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
     {
         TRYLOCK
-        if (band_num == 0)
+        if (band_number == 0)
         {
             *value = GDALGetMetadataItem(m_datasets[dataset], key, domain);
         }
         else
         {
-            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_num);
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
             *value = GDALGetMetadataItem(band, key, domain);
         }
         UNLOCK
