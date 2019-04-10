@@ -30,13 +30,13 @@ extern "C"
     uint64_t get_token(const char *uri, const char **options);
 
     int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
-                                 int band, char ***domain_list);
+                                 int band_number, char ***domain_list);
 
     int get_metadata(uint64_t token, int dataset, int attempts, int copies,
-                     int band, const char *domain, char ***list);
+                     int band_number, const char *domain, char ***list);
 
     int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
-                          int band, const char *key, const char *domain, const char **value);
+                          int band_number, const char *key, const char *domain, const char **value);
 
     int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
                                     int *widths, int *heights, int max_length);
@@ -48,13 +48,13 @@ extern "C"
                       char *crs, int max_size);
 
     int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
-                        int band, double *nodata, int *success);
+                        int band_number, double *nodata, int *success);
 
     int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
-                         int band, int approx_okay, double *minmax, int *success);
+                         int band_number, int approx_okay, double *minmax, int *success);
 
     int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
-                           int band, int *data_type);
+                           int band_number, int *data_type);
 
     int get_band_count(uint64_t token, int dataset, int attempts, int copies,
                        int *band_count);

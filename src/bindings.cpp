@@ -161,21 +161,21 @@ void deinit()
 }
 
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
-                             int band, char ***domain_list)
+                             int band_number, char ***domain_list)
 {
-    DOIT(get_metadata_domain_list(dataset, band, domain_list));
+    DOIT(get_metadata_domain_list(dataset, band_number, domain_list));
 }
 
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
-                 int band, const char *domain, char ***list)
+                 int band_number, const char *domain, char ***list)
 {
-    DOIT(get_metadata(dataset, band, domain, list));
+    DOIT(get_metadata(dataset, band_number, domain, list));
 }
 
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
-                      int band, const char *key, const char *domain, const char **value)
+                      int band_number, const char *key, const char *domain, const char **value)
 {
-    DOIT(get_metadata_item(dataset, band, key, domain, value));
+    DOIT(get_metadata_item(dataset, band_number, key, domain, value));
 }
 
 /**
@@ -252,7 +252,7 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param band The band of interest
+ * @param band_number The band of interest
  * @param nodata The return-location of the NODATA value
  * @param success The return-location of the success flag (answer
  *                whether or not there is a NODATA value)
@@ -260,9 +260,9 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
  *         errno (upon failure)
  */
 int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
-                    int band, double *nodata, int *success)
+                    int band_number, double *nodata, int *success)
 {
-    DOIT(get_band_nodata(dataset, band, nodata, success))
+    DOIT(get_band_nodata(dataset, band_number, nodata, success))
 }
 
 /**
@@ -274,7 +274,7 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param band The band of interest
+ * @param band_number The band_number of interest
  * @param approx_okay Is it okay to approximate the value if it is not
  *                    stored in the metadata, or must it be calculated
  *                    exactly?  An integer treated as a boolean
@@ -285,9 +285,9 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
  *         errno (upon failure)
  */
 int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
-                     int band, int approx_okay, double *minmax, int *success)
+                     int band_number, int approx_okay, double *minmax, int *success)
 {
-    DOIT(get_band_max_min(dataset, band, approx_okay, minmax, success));
+    DOIT(get_band_max_min(dataset, band_number, approx_okay, minmax, success));
 }
 
 /**
@@ -299,17 +299,17 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param band The band of interest
- * @param data_type The return-location of the band type (of integral
+ * @param band_number The band of interest
+ * @param data_type The return-location of the band_number type (of integral
  *                  type GDALDataType)
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
 int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
-                       int band, int *data_type)
+                       int band_number, int *data_type)
 {
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);
-    DOIT(get_band_data_type(dataset, band, ptr));
+    DOIT(get_band_data_type(dataset, band_number, ptr));
 }
 
 /**
@@ -362,7 +362,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @param copies The desired number of datasets
  * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
  * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
- * @param band_number The band number of interest
+ * @param band_number The band_number number of interest
  * @param _type The desired type of returned pixels (the argument is
  *              of integral type GDALDataType)
  * @param data The return-location of the read read data
