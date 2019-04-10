@@ -39,7 +39,7 @@ extern "C"
                           int band_number, const char *key, const char *domain, const char **value);
 
     int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
-                                    int *widths, int *heights, int max_length);
+                                    int band_number, int *widths, int *heights, int max_length);
 
     int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
                     char *crs, int max_size);

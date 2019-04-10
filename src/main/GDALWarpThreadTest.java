@@ -193,7 +193,7 @@ class GDALWarpThreadTest extends Thread {
         {
             int[] widths = new int[1 << 8];
             int[] heights = new int[1 << 9];
-            GDALWarp.get_overview_widths_heights(token, GDALWarp.WARPED, 0, widths, heights);
+            GDALWarp.get_overview_widths_heights(token, GDALWarp.WARPED, 0, 1, widths, heights);
             int i = 0;
             for (i = 0; i < Math.min(widths.length, heights.length); ++i) {
                 if (widths[i] == -1 || heights[i] == -1) {

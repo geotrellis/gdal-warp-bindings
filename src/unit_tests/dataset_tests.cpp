@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(overview_test)
     auto actual = std::vector<int>();
     auto expected = std::vector<int>{-1, -1, -1, -1, -1, -1};
 
-    ld.get_overview_widths_heights(locked_dataset::WARPED, actual_widths, actual_heights, N);
+    ld.get_overview_widths_heights(locked_dataset::WARPED, 1, actual_widths, actual_heights, N);
     actual.insert(actual.begin(), actual_widths, actual_widths + 3);
     actual.insert(actual.begin(), actual_heights, actual_heights + 3);
 

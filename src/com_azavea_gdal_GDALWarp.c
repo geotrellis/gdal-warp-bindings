@@ -102,6 +102,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heig
                                                                                     jlong token,
                                                                                     jint dataset,
                                                                                     jint attempts,
+                                                                                    jint band_number,
                                                                                     jintArray _widths,
                                                                                     jintArray _heights)
 {
@@ -110,7 +111,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heig
     int width_length = (*env)->GetArrayLength(env, _widths);
     int height_length = (*env)->GetArrayLength(env, _heights);
     int max_length = width_length < height_length ? width_length : height_length;
-    jint retval = get_overview_widths_heights(token, dataset, attempts, copies, (int *)widths, (int *)heights, max_length);
+    jint retval = get_overview_widths_heights(token, dataset, attempts, copies, band_number, (int *)widths, (int *)heights, max_length);
     (*env)->ReleaseIntArrayElements(env, _heights, heights, 0);
     (*env)->ReleaseIntArrayElements(env, _widths, widths, 0);
 

@@ -187,6 +187,7 @@ int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
+ * @param band_number The band of interest
  * @param widths An array of integers to receive the widths of the
  *               various overviews
  * @param heights An array of integers to receive the heights of the
@@ -198,9 +199,9 @@ int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
  *         errno (upon failure)
  */
 int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
-                                int *widths, int *heights, int max_length)
+                                int band_number, int *widths, int *heights, int max_length)
 {
-    DOIT(get_overview_widths_heights(dataset, widths, heights, max_length))
+    DOIT(get_overview_widths_heights(dataset, band_number, widths, heights, max_length))
 }
 
 /**

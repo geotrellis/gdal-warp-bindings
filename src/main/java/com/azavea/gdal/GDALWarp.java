@@ -82,7 +82,7 @@ public class GDALWarp {
         public static native long get_token(String uri, String[] options);
 
         public static native int get_overview_widths_heights(long token, int dataset, int attempts, /* */
-                        int[] widths, int heights[]);
+                        int band_number, int[] widths, int heights[]);
 
         public static native int get_crs_proj4(long token, int dataset, int attempts, /* */
                         byte[] crs);

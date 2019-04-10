@@ -120,15 +120,16 @@ class locked_dataset
      * first band of the underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
      * @param widths The array in which to return the widths
      * @param heights The array in which to return the heights
      * @param max_length The maximum of number of widths and heights to return
      * @return True iff the operation succeeded
      */
-    bool get_overview_widths_heights(int dataset, int *widths, int *heights, int max_length)
+    bool get_overview_widths_heights(int dataset, int band_number, int *widths, int *heights, int max_length)
     {
         TRYLOCK
-        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], 1);
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
         int overview_count = GDALGetOverviewCount(band);
         for (int i = 0; i < overview_count && i < max_length; ++i)
         {
