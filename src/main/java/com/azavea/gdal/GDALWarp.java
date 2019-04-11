@@ -81,6 +81,15 @@ public class GDALWarp {
 
         public static native long get_token(String uri, String[] options);
 
+        public static native int get_metadata_domain_list(long token, int dataset, int attempts, /* */
+                        int band_number, byte[][] domain_list);
+
+        public static native int get_metadata(long token, int dataset, int attempts, /* */
+                        int band_number, String domain, byte[][] list);
+
+        public static native int get_metadata_item(long token, int dataset, int attempts, /* */
+                        int band_number, String key, String domain, byte[] value);
+
         public static native int get_overview_widths_heights(long token, int dataset, int attempts, /* */
                         int band_number, int[] widths, int heights[]);
 

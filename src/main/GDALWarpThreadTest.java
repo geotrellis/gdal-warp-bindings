@@ -189,6 +189,65 @@ class GDALWarpThreadTest extends Thread {
             System.out.println(ANSI_BLUE + "Warped PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
+        // Domain List Metadata
+        {
+            byte[][] domain_list1 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Source domain list:" + ANSI_RESET);
+            GDALWarp.get_metadata_domain_list(token, GDALWarp.SOURCE, 0, 0, domain_list1);
+            for (int i = 0; i < domain_list1.length; ++i) {
+                String str = new String(domain_list1[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+
+            byte[][] domain_list2 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Warped domain list:" + ANSI_RESET);
+            GDALWarp.get_metadata_domain_list(token, GDALWarp.WARPED, 0, 0, domain_list2);
+            for (int i = 0; i < domain_list2.length; ++i) {
+                String str = new String(domain_list2[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+        }
+
+        // Metadata
+        {
+            byte[][] list1 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Source metadata:" + ANSI_RESET);
+            GDALWarp.get_metadata(token, GDALWarp.SOURCE, 0, 0, "", list1);
+            for (int i = 0; i < list1.length; ++i) {
+                String str = new String(list1[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+
+            byte[][] list2 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Warped metadata:" + ANSI_RESET);
+            GDALWarp.get_metadata(token, GDALWarp.WARPED, 0, 0, "", list2);
+            for (int i = 0; i < list2.length; ++i) {
+                String str = new String(list2[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+        }
+
+        // Metadata items
+        {
+            byte[] bytes1 = new byte[1 << 10];
+            System.out.print(ANSI_BLUE + "Source AREA_OR_POINT:" + ANSI_RESET);
+            GDALWarp.get_metadata_item(token, GDALWarp.SOURCE, 0, 0, "AREA_OR_POINT", "", bytes1);
+            System.out.println(ANSI_GREEN + new String(bytes1, "UTF-8").trim() + ANSI_RESET);
+
+            byte[] bytes2 = new byte[1 << 10];
+            System.out.print(ANSI_BLUE + "Warped AREA_OR_POINT:" + ANSI_RESET);
+            GDALWarp.get_metadata_item(token, GDALWarp.WARPED, 0, 0, "AREA_OR_POINT", "", bytes2);
+            System.out.println(ANSI_GREEN + new String(bytes1, "UTF-8").trim() + ANSI_RESET);
+        }
+
         // Overviews
         {
             int[] widths = new int[1 << 8];
