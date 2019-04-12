@@ -160,18 +160,57 @@ void deinit()
     token_deinit();
 }
 
+/**
+ * Get the list of metadata domain lists.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param domain_list The return-location for the list of strings
+ */
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, char ***domain_list)
 {
     DOIT(get_metadata_domain_list(dataset, band_number, domain_list));
 }
 
+/**
+ * Get the metadata found in a particular metadata domain.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param domain The metadata domain to query
+ * @param list The return-location for the list of strings
+ */
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
                  int band_number, const char *domain, char ***list)
 {
     DOIT(get_metadata(dataset, band_number, domain, list));
 }
 
+/**
+ * Get a particular metadata value associated with a key.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param key The key of the key ⨯ value metadata pair
+ * @param doamin The metadata domain to query
+ * @param value The return-location for the value of the key ⨯ value pair
+ */
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
                       int band_number, const char *key, const char *domain, const char **value)
 {

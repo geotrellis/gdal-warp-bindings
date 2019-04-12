@@ -300,6 +300,13 @@ class locked_dataset
         return true;
     }
 
+    /**
+     * Get the list of metadata domain lists.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param domain_list The return-location for the list of strings
+     */
     bool get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
     {
         TRYLOCK
@@ -325,6 +332,14 @@ class locked_dataset
         }
     }
 
+    /**
+     * Get the metadata found in a particular metadata domain.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param domain The metadata domain to query
+     * @param list The return-location for the list of strings
+     */
     bool get_metadata(int dataset, int band_number, const char *domain, char ***list)
     {
         TRYLOCK
@@ -348,6 +363,15 @@ class locked_dataset
         }
     }
 
+    /**
+     * Get a particular metadata value associated with a key.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param key The key of the key ⨯ value metadata pair
+     * @param doamin The metadata domain to query
+     * @param value The return-location for the value of the key ⨯ value pair
+     */
     bool get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
     {
         TRYLOCK
