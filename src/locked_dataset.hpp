@@ -48,7 +48,7 @@ typedef std::atomic<int> atomic_int_t;
 
 class locked_dataset
 {
-  public:
+public:
     locked_dataset()
         : m_datasets{nullptr, nullptr},
           m_uri_options(),
@@ -306,6 +306,7 @@ class locked_dataset
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band to query (zero for the file itself)
      * @param domain_list The return-location for the list of strings
+     * @return True iff the operation succeeded
      */
     bool get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
     {
@@ -339,6 +340,7 @@ class locked_dataset
      * @param band_number The band to query (zero for the file itself)
      * @param domain The metadata domain to query
      * @param list The return-location for the list of strings
+     * @return True iff the operation succeeded
      */
     bool get_metadata(int dataset, int band_number, const char *domain, char ***list)
     {
@@ -371,6 +373,7 @@ class locked_dataset
      * @param key The key of the key ⨯ value metadata pair
      * @param doamin The metadata domain to query
      * @param value The return-location for the value of the key ⨯ value pair
+     * @return True iff the operation succeeded
      */
     bool get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
     {
@@ -501,7 +504,7 @@ class locked_dataset
         UNLOCK
     }
 
-  private:
+private:
     /**
      * A function to open a GDAL dataset answering the given warp
      * options.  Should only be called from constructors.
@@ -579,11 +582,11 @@ class locked_dataset
         }
     }
 
-  public:
+public:
     static const int SOURCE = 0;
     static const int WARPED = 1;
 
-  private:
+private:
     GDALDatasetH m_datasets[2];
     uri_options_t m_uri_options;
     mutable pthread_mutex_t m_dataset_lock;

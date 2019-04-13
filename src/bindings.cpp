@@ -171,6 +171,8 @@ void deinit()
  * @param copies The desired number of datasets
  * @param band_number The band to query (zero for the file itself)
  * @param domain_list The return-location for the list of strings
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
  */
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, char ***domain_list)
@@ -190,6 +192,8 @@ int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copi
  * @param band_number The band to query (zero for the file itself)
  * @param domain The metadata domain to query
  * @param list The return-location for the list of strings
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
  */
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
                  int band_number, const char *domain, char ***list)
@@ -210,6 +214,8 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
  * @param key The key of the key ⨯ value metadata pair
  * @param doamin The metadata domain to query
  * @param value The return-location for the value of the key ⨯ value pair
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
  */
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
                       int band_number, const char *key, const char *domain, const char **value)
