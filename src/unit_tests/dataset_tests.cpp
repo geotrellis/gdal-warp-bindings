@@ -38,6 +38,16 @@ BOOST_AUTO_TEST_CASE(init)
     GDALAllRegister();
 }
 
+BOOST_AUTO_TEST_CASE(get_color_interpretation)
+{
+    auto ld = locked_dataset(uri_options1);
+    int color_interp;
+
+    ld.get_color_interpretation(locked_dataset::SOURCE, 1, &color_interp);
+
+    BOOST_TEST(color_interp == GCI_PaletteIndex);
+}
+
 BOOST_AUTO_TEST_CASE(get_file_metadata_domain_list)
 {
     auto ld = locked_dataset(uri_options1);

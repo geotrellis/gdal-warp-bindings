@@ -137,11 +137,23 @@ class GDALWarpThreadTest extends Thread {
                     + success[0] + ")" + ANSI_RESET);
         }
 
+        // Color Interpretation
+        {
+            int[] color_interp = new int[1];
+
+            GDALWarp.get_color_interpretation(token, GDALWarp.SOURCE, 0, 1, color_interp);
+            System.out.println(ANSI_BLUE + "Source color interpretation: " + ANSI_GREEN + color_interp[0] + ANSI_RESET);
+            GDALWarp.get_color_interpretation(token, GDALWarp.WARPED, 0, 1, color_interp);
+            System.out.println(ANSI_BLUE + "Warped color interpretation: " + ANSI_GREEN + color_interp[0] + ANSI_RESET);
+        }
+
         // Band Type
         {
             int[] data_type = new int[1];
+            GDALWarp.get_band_data_type(token, GDALWarp.SOURCE, 0, 1, data_type);
+            System.out.println(ANSI_BLUE + "Source data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
             GDALWarp.get_band_data_type(token, GDALWarp.WARPED, 0, 1, data_type);
-            System.out.println(ANSI_BLUE + "Data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
         }
 
         // NoData

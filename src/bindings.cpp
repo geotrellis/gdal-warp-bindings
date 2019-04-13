@@ -161,6 +161,26 @@ void deinit()
 }
 
 /**
+ * Get the color interpretation of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band in question
+ * @param color_interp The return-slot for the integer-coded color
+ *                     interpretation
+ * @return True iff the operation succeeded
+ */
+int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
+                             int band_number, int *color_interp)
+{
+    DOIT(get_color_interpretation(dataset, band_number, color_interp));
+}
+
+/**
  * Get the list of metadata domain lists.
  *
  * @param token A token associated with some uri ⨯ options pair

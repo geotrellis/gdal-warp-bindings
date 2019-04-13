@@ -116,6 +116,24 @@ public:
     }
 
     /**
+     * Get the color interpretation of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param color_interp The return-slot for the integer-coded color
+     *                     interpretation
+     * @return True iff the operation succeeded
+     */
+    bool get_color_interpretation(int dataset, int band_number, int *color_interp)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        *color_interp = GDALGetRasterColorInterpretation(bandh);
+        UNLOCK
+        return true;
+    }
+
+    /**
      * Get the widths and heights of all overviews associated with the
      * first band of the underlying warped dataset.
      *

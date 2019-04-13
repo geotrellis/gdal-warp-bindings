@@ -99,6 +99,21 @@ JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jo
     return token;
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1color_1interpretation(JNIEnv *env, jclass obj,
+                                                                                jlong token,
+                                                                                jint dataset,
+                                                                                jint attempts,
+                                                                                jint band_number,
+                                                                                jintArray _color_interp)
+{
+    jint *color_interp = (*env)->GetIntArrayElements(env, _color_interp, NULL);
+
+    jint retval = get_color_interpretation(token, dataset, attempts, copies, band_number, (int *)color_interp);
+    (*env)->ReleaseIntArrayElements(env, _color_interp, color_interp, 0);
+
+    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata_1domain_1list(JNIEnv *env, jclass obj,
                                                                                  jlong token,
                                                                                  jint dataset,

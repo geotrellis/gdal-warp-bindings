@@ -29,6 +29,9 @@ extern "C"
 
     uint64_t get_token(const char *uri, const char **options);
 
+    int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
+                                 int band_number, int *color_interp);
+
     int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                                  int band_number, char ***domain_list);
 

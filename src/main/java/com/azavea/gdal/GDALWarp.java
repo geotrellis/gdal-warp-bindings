@@ -37,6 +37,25 @@ public class GDALWarp {
         public static final int GDT_CFloat64 = 11;
         public static final int GDT_TypeCount = 12;
 
+        public static final int GCI_Undefined = 0;
+        public static final int GCI_GrayIndex = 1;
+        public static final int GCI_PaletteIndex = 2;
+        public static final int GCI_RedBand = 3;
+        public static final int GCI_GreenBand = 4;
+        public static final int GCI_BlueBand = 5;
+        public static final int GCI_AlphaBand = 6;
+        public static final int GCI_HueBand = 7;
+        public static final int GCI_SaturationBand = 8;
+        public static final int GCI_LightnessBand = 9;
+        public static final int GCI_CyanBand = 10;
+        public static final int GCI_MagentaBand = 11;
+        public static final int GCI_YellowBand = 12;
+        public static final int GCI_BlackBand = 13;
+        public static final int GCI_YCbCr_YBand = 14;
+        public static final int GCI_YCbCr_CbBand = 15;
+        public static final int GCI_YCbCr_CrBand = 16;
+        public static final int GCI_Max = 16;
+
         public static final int SOURCE = 0;
         public static final int WARPED = 1;
 
@@ -80,6 +99,9 @@ public class GDALWarp {
         public static native void set_config_option(String key, String value);
 
         public static native long get_token(String uri, String[] options);
+
+        public static native int get_color_interpretation(long token, int dataset, int attempts, /* */
+                        int band_number, int color_interp[]);
 
         public static native int get_metadata_domain_list(long token, int dataset, int attempts, /* */
                         int band_number, byte[][] domain_list);
