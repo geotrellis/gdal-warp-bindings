@@ -38,6 +38,22 @@ BOOST_AUTO_TEST_CASE(init)
     GDALAllRegister();
 }
 
+BOOST_AUTO_TEST_CASE(get_scale)
+{
+    auto ld = locked_dataset(uri_options1);
+    double scale;
+    int success = false;
+
+    ld.get_scale(locked_dataset::SOURCE, 1, &scale, &success);
+    BOOST_TEST(scale == 1);
+    BOOST_TEST(success != false);
+    success = false;
+
+    ld.get_scale(locked_dataset::WARPED, 1, &scale, &success);
+    BOOST_TEST(scale == 1);
+    BOOST_TEST(success != false);
+}
+
 BOOST_AUTO_TEST_CASE(get_color_interpretation)
 {
     auto ld = locked_dataset(uri_options1);

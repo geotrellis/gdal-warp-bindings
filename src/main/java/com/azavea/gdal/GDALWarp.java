@@ -100,6 +100,9 @@ public class GDALWarp {
 
         public static native long get_token(String uri, String[] options);
 
+        public static native int get_scale(long token, int dataset, int attempts, /* */
+                        int band_number, double[] scale, int[] success);
+
         public static native int get_color_interpretation(long token, int dataset, int attempts, /* */
                         int band_number, int color_interp[]);
 
