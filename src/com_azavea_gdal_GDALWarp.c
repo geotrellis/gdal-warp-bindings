@@ -99,6 +99,24 @@ JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jo
     return token;
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jclass obj,
+                                                                 jlong token,
+                                                                 jint dataset,
+                                                                 jint attempts,
+                                                                 jint band_number,
+                                                                 jdoubleArray _offset,
+                                                                 jintArray _success)
+{
+    jdouble *offset = (*env)->GetDoubleArrayElements(env, _offset, NULL);
+    jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
+
+    jint retval = get_offset(token, dataset, attempts, copies, band_number, offset, success);
+    (*env)->ReleaseIntArrayElements(env, _success, success, 0);
+    (*env)->ReleaseDoubleArrayElements(env, _offset, offset, 0);
+
+    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jclass obj,
                                                                 jlong token,
                                                                 jint dataset,
@@ -107,8 +125,8 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jcl
                                                                 jdoubleArray _scale,
                                                                 jintArray _success)
 {
-    jdouble * scale = (*env)->GetDoubleArrayElements(env, _scale, NULL);
-    jint * success = (*env)->GetIntArrayElements(env, _success, NULL);
+    jdouble *scale = (*env)->GetDoubleArrayElements(env, _scale, NULL);
+    jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
 
     jint retval = get_scale(token, dataset, attempts, copies, band_number, scale, success);
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);

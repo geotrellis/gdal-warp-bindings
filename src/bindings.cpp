@@ -161,6 +161,27 @@ void deinit()
 }
 
 /**
+ * Get the offset of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param dataset The index of the dataset (source == 0, warped == 1)
+ * @param band_number The band in question
+ * @param offset The return-location of the offset
+ * @param success The return-location of the success flag
+ * @return True iff the operation succeeded
+ */
+int get_offset(uint64_t token, int dataset, int attempts, int copies,
+               int band_number, double *offset, int *success)
+{
+    DOIT(get_offset(dataset, band_number, offset, success));
+}
+
+/**
  * Get the scale of the given band.
  *
  * @param token A token associated with some uri ⨯ options pair

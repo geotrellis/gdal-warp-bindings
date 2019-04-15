@@ -38,10 +38,26 @@ BOOST_AUTO_TEST_CASE(init)
     GDALAllRegister();
 }
 
+BOOST_AUTO_TEST_CASE(get_offset)
+{
+    auto ld = locked_dataset(uri_options1);
+    double offset = 42;
+    int success = false;
+
+    ld.get_offset(locked_dataset::SOURCE, 1, &offset, &success);
+    BOOST_TEST(offset == 0);
+    BOOST_TEST(success != false);
+    success = false;
+
+    ld.get_offset(locked_dataset::WARPED, 1, &offset, &success);
+    BOOST_TEST(offset == 0);
+    BOOST_TEST(success != false);
+}
+
 BOOST_AUTO_TEST_CASE(get_scale)
 {
     auto ld = locked_dataset(uri_options1);
-    double scale;
+    double scale = 42;
     int success = false;
 
     ld.get_scale(locked_dataset::SOURCE, 1, &scale, &success);

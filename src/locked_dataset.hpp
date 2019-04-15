@@ -116,6 +116,25 @@ public:
     }
 
     /**
+     * Get the offset of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param offset The return-location of the offset
+     * @param success The return-location of the success flag
+     *
+     * @return True iff the operation succeeded
+     */
+    bool get_offset(int dataset, int band_number, double *offset, int *success)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        *offset = GDALGetRasterOffset(bandh, success);
+        UNLOCK
+        return true;
+    }
+
+    /**
      * Get the scale of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)

@@ -201,6 +201,16 @@ class GDALWarpThreadTest extends Thread {
             System.out.println(ANSI_BLUE + "Warped PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
+        // Offset
+        {
+            double[] offset = new double[1];
+            int[] success = new int[1];
+            GDALWarp.get_offset(token, GDALWarp.SOURCE, 0, 1, offset, success);
+            System.out.println(ANSI_BLUE + "Source offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
+            GDALWarp.get_offset(token, GDALWarp.WARPED, 0, 1, offset, success);
+            System.out.println(ANSI_BLUE + "Source offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
+        }
+
         // Scale
         {
             double[] scale = new double[1];
