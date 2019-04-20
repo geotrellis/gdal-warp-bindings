@@ -8,6 +8,12 @@ docker run -it --rm \
       -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
       jamesmcclain/gdal-build-environment:3 make -j4 -C src tests || exit -1
 
+docker run -it --rm \
+      -v $(pwd):/workdir \
+      -e CC=gcc -e CXX=g++ \
+      -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
+      jamesmcclain/gdal-build-environment:3 make -j4 -C src/experiments/thread pattern oversubscribe || exit -1
+
 rm -f $(find | grep '\.o$')
 docker run -it --rm \
       -v $(pwd):/workdir \
@@ -37,3 +43,4 @@ cp src/gdalwarp_bindings.dll src/main/java/resources/ || exit -1
 (cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*) || exit -1
 
 rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
+rm -f src/experiments/thread/oversubscribe src/experiments/thread/pattern

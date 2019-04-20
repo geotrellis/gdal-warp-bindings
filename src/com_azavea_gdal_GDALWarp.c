@@ -110,7 +110,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1block_1size(JNIEnv *en
     jint *width = (*env)->GetIntArrayElements(env, _width, NULL);
     jint *height = (*env)->GetIntArrayElements(env, _height, NULL);
 
-    jint retval = get_block_size(token, dataset, attempts, copies, band_number, width, height);
+    jint retval = get_block_size(token, dataset, attempts, copies, band_number, (int *)width, (int *)height);
     (*env)->ReleaseIntArrayElements(env, _width, width, 0);
     (*env)->ReleaseIntArrayElements(env, _height, height, 0);
 
@@ -128,7 +128,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jc
     jdouble *offset = (*env)->GetDoubleArrayElements(env, _offset, NULL);
     jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
 
-    jint retval = get_offset(token, dataset, attempts, copies, band_number, offset, success);
+    jint retval = get_offset(token, dataset, attempts, copies, band_number, offset, (int *)success);
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _offset, offset, 0);
 
@@ -146,7 +146,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jcl
     jdouble *scale = (*env)->GetDoubleArrayElements(env, _scale, NULL);
     jint *success = (*env)->GetIntArrayElements(env, _success, NULL);
 
-    jint retval = get_scale(token, dataset, attempts, copies, band_number, scale, success);
+    jint retval = get_scale(token, dataset, attempts, copies, band_number, scale, (int *)success);
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _scale, scale, 0);
 

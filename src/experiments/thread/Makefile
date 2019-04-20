@@ -1,7 +1,7 @@
 CFLAGS ?= -Wall -Werror -Og -ggdb3
 CXXFLAGS ?= -std=c++1z
 GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
-LDFLAGS ?= $(shell pkg-config gdal --libs) -L$(shell pwd) -lgdalwarp_bindings -lstdc++ -lboost_timer -lpthread
+LDFLAGS ?= $(shell pkg-config gdal --libs) -L$(shell pwd) -lgdalwarp_bindings -lstdc++ -lpthread
 BOOST_ROOT ?= /usr/include
 SO ?= so
 
@@ -14,10 +14,10 @@ libgdalwarp_bindings.$(SO): ../../libgdalwarp_bindings.$(SO)
 	ln -s $< $@
 
 rawthread: rawthread.o libgdalwarp_bindings.$(SO)
-	$(CC) $< $(LDFLAGS) -o $@
+	$(CC) $< $(LDFLAGS) -lboost_timer -o $@
 
 wrapthread: wrapthread.o libgdalwarp_bindings.$(SO)
-	$(CC) $< $(LDFLAGS) -o $@
+	$(CC) $< $(LDFLAGS) -lboost_timer -o $@
 
 pattern: pattern.o libgdalwarp_bindings.$(SO)
 	$(CC) $< $(LDFLAGS) -o $@
