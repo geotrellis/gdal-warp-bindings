@@ -161,6 +161,27 @@ void deinit()
 }
 
 /**
+ * Get the block size of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param dataset The index of the dataset (source == 0, warped == 1)
+ * @param band_number The band in question
+ * @param width The return-location of the block width
+ * @param height The return-location of the block height
+ * @return True iff the operation succeeded
+ */
+int get_block_size(uint64_t token, int dataset, int attempts, int copies,
+               int band_number, int * width, int * height)
+{
+    DOIT(get_block_size(dataset, band_number, width, height));
+}
+
+/**
  * Get the offset of the given band.
  *
  * @param token A token associated with some uri ⨯ options pair

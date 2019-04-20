@@ -99,6 +99,24 @@ JNIEXPORT jlong JNICALL Java_com_azavea_gdal_GDALWarp_get_1token(JNIEnv *env, jo
     return token;
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1block_1size(JNIEnv *env, jclass obj,
+                                                                      jlong token,
+                                                                      jint dataset,
+                                                                      jint attempts,
+                                                                      jint band_number,
+                                                                      jintArray _width,
+                                                                      jintArray _height)
+{
+    jint *width = (*env)->GetIntArrayElements(env, _width, NULL);
+    jint *height = (*env)->GetIntArrayElements(env, _height, NULL);
+
+    jint retval = get_block_size(token, dataset, attempts, copies, band_number, width, height);
+    (*env)->ReleaseIntArrayElements(env, _width, width, 0);
+    (*env)->ReleaseIntArrayElements(env, _height, height, 0);
+
+    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jclass obj,
                                                                  jlong token,
                                                                  jint dataset,

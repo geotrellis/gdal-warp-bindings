@@ -26,7 +26,9 @@
 #include "locked_dataset.hpp"
 
 auto uri1 = uri_t("../experiments/data/c41078a1.tif");
-auto options1 = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
+auto options1 = options_t{"-r", "bilinear",
+                          "-t_srs", "epsg:3857",
+                          "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512"};
 auto options2 = options_t{"-r", "bilinear",
                           "-t_srs", "epsg:3857",
                           "-dstnodata", "107"};
@@ -36,6 +38,21 @@ auto uri_options2 = std::make_pair(uri1, options2);
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
+}
+
+BOOST_AUTO_TEST_CASE(get_block_size)
+{
+    auto ld = locked_dataset(uri_options1);
+    int width, height;
+
+    ld.get_block_size(locked_dataset::SOURCE, 1, &width, &height);
+    BOOST_TEST(width == 7202);
+    BOOST_TEST(height == 1);
+    width = height = 0;
+
+    ld.get_block_size(locked_dataset::WARPED, 1, &width, &height);
+    BOOST_TEST(width == 512);
+    BOOST_TEST(height == 128);
 }
 
 BOOST_AUTO_TEST_CASE(get_offset)

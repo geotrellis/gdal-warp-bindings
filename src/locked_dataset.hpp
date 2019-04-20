@@ -116,13 +116,30 @@ public:
     }
 
     /**
+     * Get the block size of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param width The return-location of the block width
+     * @param height The return-location of the block height
+     * @return True iff the operation succeeded
+     */
+    bool get_block_size(int dataset, int band_number, int *width, int *height)
+    {
+        TRYLOCK
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+        GDALGetBlockSize(band, width, height);
+        UNLOCK
+        return true;
+    }
+
+    /**
      * Get the offset of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band in question
      * @param offset The return-location of the offset
      * @param success The return-location of the success flag
-     *
      * @return True iff the operation succeeded
      */
     bool get_offset(int dataset, int band_number, double *offset, int *success)
@@ -141,7 +158,6 @@ public:
      * @param band_number The band in question
      * @param scale The return-location of the scale
      * @param success The return-location of the success flag
-     *
      * @return True iff the operation succeeded
      */
     bool get_scale(int dataset, int band_number, double *scale, int *success)

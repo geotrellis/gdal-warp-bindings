@@ -42,13 +42,15 @@ class GDALWarpThreadTest extends Thread {
             "-dstnodata", "107", /* */
             "-tap", "-tr", "33", "42", /* */
             "-r", "bilinear", /* */
-            "-t_srs", "epsg:3857" /* */
+            "-t_srs", "epsg:3857", /* */
+            "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512" /* */
     };
 
     private static String options_large[] = { /* */
             "-tap", "-tr", "5", "7", /* */
             "-r", "bilinear", /* */
-            "-t_srs", "epsg:3857" /* */
+            "-t_srs", "epsg:3857", /* */
+            "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512" /* */
     };
 
     private int x;
@@ -201,6 +203,16 @@ class GDALWarpThreadTest extends Thread {
             System.out.println(ANSI_BLUE + "Warped PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
+        // Block Size
+        {
+            int[] width = new int[1];
+            int[] height = new int[1];
+            GDALWarp.get_block_size(token, GDALWarp.SOURCE, 0, 1, width, height);
+            System.out.println(ANSI_BLUE + "Source block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+            GDALWarp.get_block_size(token, GDALWarp.WARPED, 0, 1, width, height);
+            System.out.println(ANSI_BLUE + "Warped block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+        }
+
         // Offset
         {
             double[] offset = new double[1];
@@ -208,7 +220,7 @@ class GDALWarpThreadTest extends Thread {
             GDALWarp.get_offset(token, GDALWarp.SOURCE, 0, 1, offset, success);
             System.out.println(ANSI_BLUE + "Source offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
             GDALWarp.get_offset(token, GDALWarp.WARPED, 0, 1, offset, success);
-            System.out.println(ANSI_BLUE + "Source offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
         }
 
         // Scale
@@ -218,7 +230,7 @@ class GDALWarpThreadTest extends Thread {
             GDALWarp.get_scale(token, GDALWarp.SOURCE, 0, 1, scale, success);
             System.out.println(ANSI_BLUE + "Source scale: " + ANSI_GREEN + scale[0] + ANSI_RESET);
             GDALWarp.get_scale(token, GDALWarp.WARPED, 0, 1, scale, success);
-            System.out.println(ANSI_BLUE + "Source warped: " + ANSI_GREEN + scale[0] + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped scale: " + ANSI_GREEN + scale[0] + ANSI_RESET);
         }
 
         // Domain List Metadata

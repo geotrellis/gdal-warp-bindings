@@ -29,6 +29,9 @@ extern "C"
 
     uint64_t get_token(const char *uri, const char **options);
 
+    int get_block_size(uint64_t token, int dataset, int attempts, int copies,
+                       int band_number, int *width, int *height);
+
     int get_offset(uint64_t token, int dataset, int attempts, int copies,
                    int band_number, double *offset, int *success);
 

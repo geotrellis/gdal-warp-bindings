@@ -100,6 +100,9 @@ public class GDALWarp {
 
         public static native long get_token(String uri, String[] options);
 
+        public static native int get_block_size(long token, int dataset, int attempts, /* */
+                        int band_number, int[] width, int[] height);
+
         public static native int get_offset(long token, int dataset, int attempts, /* */
                         int band_number, double[] offset, int[] success);
 
