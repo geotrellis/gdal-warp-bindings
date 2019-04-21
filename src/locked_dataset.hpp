@@ -38,9 +38,17 @@ typedef _locale_t locale_t;
 
 typedef std::atomic<int> atomic_int_t;
 
+#define TRYLOCK                                      \
+    if (pthread_mutex_trylock(&m_dataset_lock) != 0) \
+    {                                                \
+        return false;                                \
+    }
+
+#define UNLOCK pthread_mutex_unlock(&m_dataset_lock);
+
 class locked_dataset
 {
-  public:
+public:
     locked_dataset()
         : m_datasets{nullptr, nullptr},
           m_uri_options(),
@@ -89,7 +97,7 @@ class locked_dataset
 
         // m_dataset_lock known to be locked prior to this call if
         // this is a valid dataset
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
         m_uri_options = std::move(rhs.m_uri_options);
@@ -108,22 +116,92 @@ class locked_dataset
     }
 
     /**
+     * Get the block size of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param width The return-location of the block width
+     * @param height The return-location of the block height
+     * @return True iff the operation succeeded
+     */
+    bool get_block_size(int dataset, int band_number, int *width, int *height)
+    {
+        TRYLOCK
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+        GDALGetBlockSize(band, width, height);
+        UNLOCK
+        return true;
+    }
+
+    /**
+     * Get the offset of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param offset The return-location of the offset
+     * @param success The return-location of the success flag
+     * @return True iff the operation succeeded
+     */
+    bool get_offset(int dataset, int band_number, double *offset, int *success)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        *offset = GDALGetRasterOffset(bandh, success);
+        UNLOCK
+        return true;
+    }
+
+    /**
+     * Get the scale of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param scale The return-location of the scale
+     * @param success The return-location of the success flag
+     * @return True iff the operation succeeded
+     */
+    bool get_scale(int dataset, int band_number, double *scale, int *success)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        *scale = GDALGetRasterScale(bandh, success);
+        UNLOCK
+        return true;
+    }
+
+    /**
+     * Get the color interpretation of the given band.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param color_interp The return-slot for the integer-coded color
+     *                     interpretation
+     * @return True iff the operation succeeded
+     */
+    bool get_color_interpretation(int dataset, int band_number, int *color_interp)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        *color_interp = GDALGetRasterColorInterpretation(bandh);
+        UNLOCK
+        return true;
+    }
+
+    /**
      * Get the widths and heights of all overviews associated with the
      * first band of the underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
      * @param widths The array in which to return the widths
      * @param heights The array in which to return the heights
      * @param max_length The maximum of number of widths and heights to return
      * @return True iff the operation succeeded
      */
-    bool get_overview_widths_heights(int dataset, int *widths, int *heights, int max_length)
+    bool get_overview_widths_heights(int dataset, int band_number, int *widths, int *heights, int max_length)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], 1);
+        TRYLOCK
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
         int overview_count = GDALGetOverviewCount(band);
         for (int i = 0; i < overview_count && i < max_length; ++i)
         {
@@ -135,7 +213,7 @@ class locked_dataset
         {
             widths[i] = heights[i] = -1;
         }
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -149,16 +227,13 @@ class locked_dataset
      */
     bool get_crs_proj4(int dataset, char *crs, int max_size)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
+        TRYLOCK
         char *result;
         OGRSpatialReferenceH ref = OSRNewSpatialReference(GDALGetProjectionRef(m_datasets[dataset]));
         OSRExportToProj4(ref, &result);
         strncpy(crs, result, max_size);
         CPLFree(result);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -172,12 +247,9 @@ class locked_dataset
      */
     bool get_crs_wkt(int dataset, char *crs, int max_size)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
+        TRYLOCK
         strncpy(crs, GDALGetProjectionRef(m_datasets[dataset]), max_size);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -186,20 +258,17 @@ class locked_dataset
      * underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param band The band in question
+     * @param band_number The band in question
      * @param nodata The return-location for the nodata value
      * @param success The return slot for the "is there nodata" value
      * @return True iff the operation succeeded
      */
-    bool get_band_nodata(int dataset, int band, double *nodata, int *success)
+    bool get_band_nodata(int dataset, int band_number, double *nodata, int *success)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *nodata = GDALGetRasterNoDataValue(bandh, success);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -208,19 +277,16 @@ class locked_dataset
      * dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param band The band in question
+     * @param band_number The band in question
      * @param data_type The type of the band in question
      * @return True iff the operation succeeded
      */
-    bool get_band_data_type(int dataset, int band, GDALDataType *data_type)
+    bool get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band);
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *data_type = GDALGetRasterDataType(bandh);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -234,12 +300,9 @@ class locked_dataset
      */
     bool get_band_count(int dataset, int *band_count) const
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
+        TRYLOCK
         *band_count = GDALGetRasterCount(m_datasets[dataset]);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -252,12 +315,9 @@ class locked_dataset
      */
     bool get_transform(int dataset, double transform[6]) const
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
+        TRYLOCK
         GDALGetGeoTransform(m_datasets[dataset], transform);
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
         return true;
     }
 
@@ -271,16 +331,11 @@ class locked_dataset
      */
     bool get_width_height(int dataset, int *width, int *height)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-
+        TRYLOCK
         auto ds = m_datasets[dataset];
         *width = GDALGetRasterXSize(ds);
         *height = GDALGetRasterYSize(ds);
-        pthread_mutex_unlock(&m_dataset_lock);
-
+        UNLOCK
         return true;
     }
 
@@ -297,11 +352,7 @@ class locked_dataset
      */
     bool get_band_max_min(int dataset, int band_number, int approx_okay, double *minmax, int *success)
     {
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-
+        TRYLOCK
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
         if (approx_okay)
         {
@@ -316,9 +367,107 @@ class locked_dataset
                 minmax[1] = GDALGetRasterMaximum(band, success);
             }
         }
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
 
         return true;
+    }
+
+    /**
+     * Get the list of metadata domain lists.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param domain_list The return-location for the list of strings
+     * @return True iff the operation succeeded
+     */
+    bool get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
+    {
+        TRYLOCK
+        if (band_number == 0)
+        {
+            // Must be freed with CSLDestroy
+            *domain_list = GDALGetMetadataDomainList(m_datasets[dataset]);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+            // Must be freed with CSLDestroy
+            *domain_list = GDALGetMetadataDomainList(band);
+        }
+        UNLOCK
+        if (*domain_list != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Get the metadata found in a particular metadata domain.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param domain The metadata domain to query
+     * @param list The return-location for the list of strings
+     * @return True iff the operation succeeded
+     */
+    bool get_metadata(int dataset, int band_number, const char *domain, char ***list)
+    {
+        TRYLOCK
+        if (band_number == 0)
+        {
+            *list = GDALGetMetadata(m_datasets[dataset], domain);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+            *list = GDALGetMetadata(band, domain);
+        }
+        UNLOCK
+        if (*list != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Get a particular metadata value associated with a key.
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band to query (zero for the file itself)
+     * @param key The key of the key ⨯ value metadata pair
+     * @param doamin The metadata domain to query
+     * @param value The return-location for the value of the key ⨯ value pair
+     * @return True iff the operation succeeded
+     */
+    bool get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
+    {
+        TRYLOCK
+        if (band_number == 0)
+        {
+            *value = GDALGetMetadataItem(m_datasets[dataset], key, domain);
+        }
+        else
+        {
+            GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
+            *value = GDALGetMetadataItem(band, key, domain);
+        }
+        UNLOCK
+        if (*value != nullptr)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -347,11 +496,7 @@ class locked_dataset
     {
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
 
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
-
+        TRYLOCK
         auto retval = GDALRasterIO(
             band,                         // source band
             GF_Read,                      // mode
@@ -362,7 +507,7 @@ class locked_dataset
             type,                         // destination type
             0, 0                          // stride
         );
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
 
         if (retval != CE_None)
         {
@@ -411,15 +556,12 @@ class locked_dataset
     bool lock_for_deletion()
     {
         // If the lock could not be obtained, return false
-        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
-        {
-            return false;
-        }
+        TRYLOCK
         // If the lock could be obtained but the reference count is
         // not zero, return false
         else if (m_use_count != 0)
         {
-            pthread_mutex_unlock(&m_dataset_lock);
+            UNLOCK
             return false;
         }
         // Otherwise return true
@@ -431,10 +573,10 @@ class locked_dataset
      */
     void unlock_for_nondeletion()
     {
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
     }
 
-  private:
+private:
     /**
      * A function to open a GDAL dataset answering the given warp
      * options.  Should only be called from constructors.
@@ -488,7 +630,7 @@ class locked_dataset
 
             GDALWarpAppOptionsFree(app_options);
         }
-        pthread_mutex_unlock(&m_dataset_lock);
+        UNLOCK
     }
 
     /**
@@ -512,11 +654,11 @@ class locked_dataset
         }
     }
 
-  public:
+public:
     static const int SOURCE = 0;
     static const int WARPED = 1;
 
-  private:
+private:
     GDALDatasetH m_datasets[2];
     uri_options_t m_uri_options;
     mutable pthread_mutex_t m_dataset_lock;

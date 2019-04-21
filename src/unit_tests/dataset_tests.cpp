@@ -21,20 +21,148 @@
 #include <vector>
 
 #include <gdal.h>
+#include <gdal_priv.h>
 
 #include "locked_dataset.hpp"
 
-auto uri = uri_t("../experiments/data/c41078a1.tif");
-auto options1 = options_t{"-r", "bilinear", "-t_srs", "epsg:3857"};
+auto uri1 = uri_t("../experiments/data/c41078a1.tif");
+auto options1 = options_t{"-r", "bilinear",
+                          "-t_srs", "epsg:3857",
+                          "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512"};
 auto options2 = options_t{"-r", "bilinear",
                           "-t_srs", "epsg:3857",
                           "-dstnodata", "107"};
-auto uri_options1 = std::make_pair(uri, options1);
-auto uri_options2 = std::make_pair(uri, options2);
+auto uri_options1 = std::make_pair(uri1, options1);
+auto uri_options2 = std::make_pair(uri1, options2);
 
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
+}
+
+BOOST_AUTO_TEST_CASE(get_block_size)
+{
+    auto ld = locked_dataset(uri_options1);
+    int width, height;
+
+    ld.get_block_size(locked_dataset::SOURCE, 1, &width, &height);
+    BOOST_TEST(width == 7202);
+    BOOST_TEST(height == 1);
+    width = height = 0;
+
+    ld.get_block_size(locked_dataset::WARPED, 1, &width, &height);
+    BOOST_TEST(width == 512);
+    BOOST_TEST(height == 128);
+}
+
+BOOST_AUTO_TEST_CASE(get_offset)
+{
+    auto ld = locked_dataset(uri_options1);
+    double offset = 42;
+    int success = false;
+
+    ld.get_offset(locked_dataset::SOURCE, 1, &offset, &success);
+    BOOST_TEST(offset == 0);
+    BOOST_TEST(success != false);
+    success = false;
+
+    ld.get_offset(locked_dataset::WARPED, 1, &offset, &success);
+    BOOST_TEST(offset == 0);
+    BOOST_TEST(success != false);
+}
+
+BOOST_AUTO_TEST_CASE(get_scale)
+{
+    auto ld = locked_dataset(uri_options1);
+    double scale = 42;
+    int success = false;
+
+    ld.get_scale(locked_dataset::SOURCE, 1, &scale, &success);
+    BOOST_TEST(scale == 1);
+    BOOST_TEST(success != false);
+    success = false;
+
+    ld.get_scale(locked_dataset::WARPED, 1, &scale, &success);
+    BOOST_TEST(scale == 1);
+    BOOST_TEST(success != false);
+}
+
+BOOST_AUTO_TEST_CASE(get_color_interpretation)
+{
+    auto ld = locked_dataset(uri_options1);
+    int color_interp;
+
+    ld.get_color_interpretation(locked_dataset::SOURCE, 1, &color_interp);
+
+    BOOST_TEST(color_interp == GCI_PaletteIndex);
+}
+
+BOOST_AUTO_TEST_CASE(get_file_metadata_domain_list)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **domain_list = nullptr;
+
+    ld.get_metadata_domain_list(locked_dataset::SOURCE, 0, &domain_list);
+
+    BOOST_TEST(CSLCount(domain_list) == 3);
+    BOOST_TEST(std::string(domain_list[0]) == "");
+    BOOST_TEST(std::string(domain_list[1]) == "IMAGE_STRUCTURE");
+    BOOST_TEST(std::string(domain_list[2]) == "DERIVED_SUBDATASETS");
+    CSLDestroy(domain_list);
+}
+
+BOOST_AUTO_TEST_CASE(get_file_metadata)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **list = nullptr;
+
+    ld.get_metadata(locked_dataset::SOURCE, 0, "", &list);
+
+    BOOST_TEST(CSLCount(list) == 4);
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "AREA_OR_POINT")) == "Area");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_RESOLUTIONUNIT")) == "2 (pixels/inch)");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_XRESOLUTION")) == "72");
+    BOOST_TEST(std::string(CSLFetchNameValue(list, "TIFFTAG_YRESOLUTION")) == "72");
+}
+
+BOOST_AUTO_TEST_CASE(get_file_metadata_item)
+{
+    auto ld = locked_dataset(uri_options1);
+    const char *value = nullptr;
+
+    ld.get_metadata_item(locked_dataset::SOURCE, 0, "AREA_OR_POINT", "", &value);
+
+    BOOST_TEST(std::string(value) == "Area");
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata_domain_list)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **domain_list = nullptr;
+
+    ld.get_metadata_domain_list(locked_dataset::SOURCE, 1, &domain_list);
+
+    BOOST_TEST(CSLCount(domain_list) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata)
+{
+    auto ld = locked_dataset(uri_options1);
+    char **list = nullptr;
+
+    ld.get_metadata(locked_dataset::SOURCE, 1, "", &list);
+
+    BOOST_TEST(CSLCount(list) == 0);
+}
+
+BOOST_AUTO_TEST_CASE(get_band_metadata_item)
+{
+    auto ld = locked_dataset(uri_options1);
+    const char *value = nullptr;
+
+    ld.get_metadata_item(locked_dataset::SOURCE, 1, "AREA_OR_POINT", "", &value);
+
+    BOOST_TEST(value == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(overview_test)
@@ -46,7 +174,7 @@ BOOST_AUTO_TEST_CASE(overview_test)
     auto actual = std::vector<int>();
     auto expected = std::vector<int>{-1, -1, -1, -1, -1, -1};
 
-    ld.get_overview_widths_heights(locked_dataset::WARPED, actual_widths, actual_heights, N);
+    ld.get_overview_widths_heights(locked_dataset::WARPED, 1, actual_widths, actual_heights, N);
     actual.insert(actual.begin(), actual_widths, actual_widths + 3);
     actual.insert(actual.begin(), actual_heights, actual_heights + 3);
 

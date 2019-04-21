@@ -34,6 +34,8 @@ const char *good_uri = "../experiments/data/c41078a1.tif";
 const char *bad_uri = "HOPEFULLY_THERE_IS_NO_FILE_WITH_THIS_NAME.tif";
 #pragma GCC diagnostic pop
 
+constexpr int copies = -4;
+
 BOOST_AUTO_TEST_CASE(initialization)
 {
     init(1 << 8);
@@ -48,10 +50,10 @@ BOOST_AUTO_TEST_CASE(good_uri_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, 1, &nodata, &success) > 0);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) > 0);
     BOOST_TEST(success == 0);
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, 1, &nodata, &success) > 0);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) > 0);
     BOOST_TEST(success != 0);
     BOOST_TEST(nodata == 107.0);
 
@@ -66,10 +68,10 @@ BOOST_AUTO_TEST_CASE(good_uri_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, 1, &nodata, &success) > 0);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) > 0);
     BOOST_TEST(success == 0);
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, 1, &nodata, &success) > 0);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) > 0);
     BOOST_TEST(success != 0);
     BOOST_TEST(nodata == 107.0);
 
@@ -84,8 +86,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, copies, 1, &nodata, &success) == -EAGAIN);
 
     deinit();
 }
@@ -98,8 +100,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -EAGAIN);
 
     deinit();
 }
@@ -112,8 +114,8 @@ BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) == -ENOENT);
 
     deinit();
 }
@@ -126,8 +128,8 @@ BOOST_AUTO_TEST_CASE(bad_token_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -ENOENT);
 
     deinit();
 }

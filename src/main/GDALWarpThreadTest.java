@@ -42,13 +42,15 @@ class GDALWarpThreadTest extends Thread {
             "-dstnodata", "107", /* */
             "-tap", "-tr", "33", "42", /* */
             "-r", "bilinear", /* */
-            "-t_srs", "epsg:3857" /* */
+            "-t_srs", "epsg:3857", /* */
+            "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512" /* */
     };
 
     private static String options_large[] = { /* */
             "-tap", "-tr", "5", "7", /* */
             "-r", "bilinear", /* */
-            "-t_srs", "epsg:3857" /* */
+            "-t_srs", "epsg:3857", /* */
+            "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512" /* */
     };
 
     private int x;
@@ -137,11 +139,23 @@ class GDALWarpThreadTest extends Thread {
                     + success[0] + ")" + ANSI_RESET);
         }
 
+        // Color Interpretation
+        {
+            int[] color_interp = new int[1];
+
+            GDALWarp.get_color_interpretation(token, GDALWarp.SOURCE, 0, 1, color_interp);
+            System.out.println(ANSI_BLUE + "Source color interpretation: " + ANSI_GREEN + color_interp[0] + ANSI_RESET);
+            GDALWarp.get_color_interpretation(token, GDALWarp.WARPED, 0, 1, color_interp);
+            System.out.println(ANSI_BLUE + "Warped color interpretation: " + ANSI_GREEN + color_interp[0] + ANSI_RESET);
+        }
+
         // Band Type
         {
             int[] data_type = new int[1];
+            GDALWarp.get_band_data_type(token, GDALWarp.SOURCE, 0, 1, data_type);
+            System.out.println(ANSI_BLUE + "Source data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
             GDALWarp.get_band_data_type(token, GDALWarp.WARPED, 0, 1, data_type);
-            System.out.println(ANSI_BLUE + "Data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
         }
 
         // NoData
@@ -189,11 +203,100 @@ class GDALWarpThreadTest extends Thread {
             System.out.println(ANSI_BLUE + "Warped PROJ.4 CRS: " + ANSI_GREEN + new String(crs, "UTF-8") + ANSI_RESET);
         }
 
+        // Block Size
+        {
+            int[] width = new int[1];
+            int[] height = new int[1];
+            GDALWarp.get_block_size(token, GDALWarp.SOURCE, 0, 1, width, height);
+            System.out.println(ANSI_BLUE + "Source block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+            GDALWarp.get_block_size(token, GDALWarp.WARPED, 0, 1, width, height);
+            System.out.println(ANSI_BLUE + "Warped block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+        }
+
+        // Offset
+        {
+            double[] offset = new double[1];
+            int[] success = new int[1];
+            GDALWarp.get_offset(token, GDALWarp.SOURCE, 0, 1, offset, success);
+            System.out.println(ANSI_BLUE + "Source offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
+            GDALWarp.get_offset(token, GDALWarp.WARPED, 0, 1, offset, success);
+            System.out.println(ANSI_BLUE + "Warped offset: " + ANSI_GREEN + offset[0] + ANSI_RESET);
+        }
+
+        // Scale
+        {
+            double[] scale = new double[1];
+            int[] success = new int[1];
+            GDALWarp.get_scale(token, GDALWarp.SOURCE, 0, 1, scale, success);
+            System.out.println(ANSI_BLUE + "Source scale: " + ANSI_GREEN + scale[0] + ANSI_RESET);
+            GDALWarp.get_scale(token, GDALWarp.WARPED, 0, 1, scale, success);
+            System.out.println(ANSI_BLUE + "Warped scale: " + ANSI_GREEN + scale[0] + ANSI_RESET);
+        }
+
+        // Domain List Metadata
+        {
+            byte[][] domain_list1 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Source domain list:" + ANSI_RESET);
+            GDALWarp.get_metadata_domain_list(token, GDALWarp.SOURCE, 0, 0, domain_list1);
+            for (int i = 0; i < domain_list1.length; ++i) {
+                String str = new String(domain_list1[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+
+            byte[][] domain_list2 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Warped domain list:" + ANSI_RESET);
+            GDALWarp.get_metadata_domain_list(token, GDALWarp.WARPED, 0, 0, domain_list2);
+            for (int i = 0; i < domain_list2.length; ++i) {
+                String str = new String(domain_list2[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+        }
+
+        // Metadata
+        {
+            byte[][] list1 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Source metadata:" + ANSI_RESET);
+            GDALWarp.get_metadata(token, GDALWarp.SOURCE, 0, 0, "", list1);
+            for (int i = 0; i < list1.length; ++i) {
+                String str = new String(list1[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+
+            byte[][] list2 = new byte[1 << 10][1 << 10];
+            System.out.println(ANSI_BLUE + "Warped metadata:" + ANSI_RESET);
+            GDALWarp.get_metadata(token, GDALWarp.WARPED, 0, 0, "", list2);
+            for (int i = 0; i < list2.length; ++i) {
+                String str = new String(list2[i], "UTF-8").trim();
+                if (str.length() > 0) {
+                    System.out.println(ANSI_GREEN + str + ANSI_RESET);
+                }
+            }
+        }
+
+        // Metadata item
+        {
+            byte[] bytes1 = new byte[1 << 10];
+            System.out.print(ANSI_BLUE + "Source AREA_OR_POINT:" + ANSI_RESET);
+            GDALWarp.get_metadata_item(token, GDALWarp.SOURCE, 0, 0, "AREA_OR_POINT", "", bytes1);
+            System.out.println(ANSI_GREEN + new String(bytes1, "UTF-8").trim() + ANSI_RESET);
+
+            byte[] bytes2 = new byte[1 << 10];
+            System.out.print(ANSI_BLUE + "Warped AREA_OR_POINT:" + ANSI_RESET);
+            GDALWarp.get_metadata_item(token, GDALWarp.WARPED, 0, 0, "AREA_OR_POINT", "", bytes2);
+            System.out.println(ANSI_GREEN + new String(bytes1, "UTF-8").trim() + ANSI_RESET);
+        }
+
         // Overviews
         {
             int[] widths = new int[1 << 8];
             int[] heights = new int[1 << 9];
-            GDALWarp.get_overview_widths_heights(token, GDALWarp.WARPED, 0, widths, heights);
+            GDALWarp.get_overview_widths_heights(token, GDALWarp.WARPED, 0, 1, widths, heights);
             int i = 0;
             for (i = 0; i < Math.min(widths.length, heights.length); ++i) {
                 if (widths[i] == -1 || heights[i] == -1) {

@@ -46,6 +46,7 @@ constexpr int N = (1024);
 constexpr int DIM = 1 << 8;
 constexpr int BUFFERSIZE = DIM * DIM;
 constexpr int ATTEMPTS = 1 << 20;
+constexpr int COPIES = -4;
 
 // Threads
 int lg_steps = 12;
@@ -88,11 +89,11 @@ void *reader(void *argv1)
             token = get_token(static_cast<const char *>(argv1), options);
         }
 
-        get_crs_wkt(token, token % 2, ATTEMPTS, buf, BUFFERSIZE);
-        get_crs_proj4(token, token % 2, ATTEMPTS, buf, BUFFERSIZE);
-        get_band_nodata(token, token % 2, ATTEMPTS, 1, transform, &scratch1);
-        get_width_height(token, token % 2, ATTEMPTS, &scratch1, &scratch2);
-        get_data(token, token % 2, ATTEMPTS, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
+        get_crs_wkt(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
+        get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
+        get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1);
+        get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2);
+        get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
     }
 
     return nullptr;

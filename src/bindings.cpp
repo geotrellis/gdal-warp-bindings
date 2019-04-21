@@ -53,9 +53,13 @@ cache_t *cache = nullptr;
 #define TRY(fn)                     \
     for (auto ld : locked_datasets) \
     {                               \
-        if (!done && (ld->fn != 0)) \
+        if (!done)                  \
         {                           \
-            done = true;            \
+            ++touched;              \
+            if (ld->fn != false)    \
+            {                       \
+                done = true;        \
+            }                       \
         }                           \
         ld->dec();                  \
     }
@@ -69,52 +73,54 @@ cache_t *cache = nullptr;
  *
  * @param fn The operation to perform
  */
-#define DOIT(fn)                                                   \
-    bool done = false;                                             \
-    auto query_result = query_token(token);                        \
-    if (query_result)                                              \
-    {                                                              \
-        auto uri_options = query_result.get();                     \
-        bool has_lock = false;                                     \
-        int i;                                                     \
-        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i) \
-        {                                                          \
-            if (i >= TOO_MANY_ITERATIONS && !has_lock)             \
-            {                                                      \
-                pthread_mutex_lock(&livelock_mutex);               \
-                has_lock = true;                                   \
-            }                                                      \
-            auto locked_datasets = cache->get(uri_options, -4);    \
-            if (locked_datasets.size() == 0)                       \
-            {                                                      \
-                if (has_lock)                                      \
-                {                                                  \
-                    pthread_mutex_unlock(&livelock_mutex);         \
-                }                                                  \
-                return -EAGAIN;                                    \
-            }                                                      \
-            TRY(fn)                                                \
-            if (!done && !has_lock)                                \
-            {                                                      \
-                sleep(0);                                          \
-            }                                                      \
-        }                                                          \
-        if (has_lock)                                              \
-        {                                                          \
-            pthread_mutex_unlock(&livelock_mutex);                 \
-        }                                                          \
-        if (i < attempts || (i > 0 && attempts == 0))              \
-        {                                                          \
-            return i;                                              \
-        }                                                          \
-        else                                                       \
-        {                                                          \
-            return -EAGAIN;                                        \
-        }                                                          \
-    }                                                              \
-    else                                                           \
-    {                                                              \
-        return -ENOENT;                                            \
+#define DOIT(fn)                                                    \
+    bool done = false;                                              \
+    auto query_result = query_token(token);                         \
+    if (query_result)                                               \
+    {                                                               \
+        auto uri_options = query_result.get();                      \
+        bool has_lock = false;                                      \
+        int touched = 0;                                            \
+        int i;                                                      \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
+        {                                                           \
+            if (i >= TOO_MANY_ITERATIONS && !has_lock)              \
+            {                                                       \
+                pthread_mutex_lock(&livelock_mutex);                \
+                has_lock = true;                                    \
+            }                                                       \
+            auto locked_datasets = cache->get(uri_options, copies); \
+            const auto num_datasets = locked_datasets.size();       \
+            if (num_datasets == 0)                                  \
+            {                                                       \
+                if (has_lock)                                       \
+                {                                                   \
+                    pthread_mutex_unlock(&livelock_mutex);          \
+                }                                                   \
+                return -EAGAIN;                                     \
+            }                                                       \
+            TRY(fn)                                                 \
+            if (!done && !has_lock)                                 \
+            {                                                       \
+                sleep(0);                                           \
+            }                                                       \
+        }                                                           \
+        if (has_lock)                                               \
+        {                                                           \
+            pthread_mutex_unlock(&livelock_mutex);                  \
+        }                                                           \
+        if (i < attempts || (i > 0 && attempts == 0))               \
+        {                                                           \
+            return touched;                                         \
+        }                                                           \
+        else                                                        \
+        {                                                           \
+            return -EAGAIN;                                         \
+        }                                                           \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        return -ENOENT;                                             \
     }
 
 /**
@@ -155,6 +161,152 @@ void deinit()
 }
 
 /**
+ * Get the block size of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param dataset The index of the dataset (source == 0, warped == 1)
+ * @param band_number The band in question
+ * @param width The return-location of the block width
+ * @param height The return-location of the block height
+ * @return True iff the operation succeeded
+ */
+int get_block_size(uint64_t token, int dataset, int attempts, int copies,
+               int band_number, int * width, int * height)
+{
+    DOIT(get_block_size(dataset, band_number, width, height));
+}
+
+/**
+ * Get the offset of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param dataset The index of the dataset (source == 0, warped == 1)
+ * @param band_number The band in question
+ * @param offset The return-location of the offset
+ * @param success The return-location of the success flag
+ * @return True iff the operation succeeded
+ */
+int get_offset(uint64_t token, int dataset, int attempts, int copies,
+               int band_number, double *offset, int *success)
+{
+    DOIT(get_offset(dataset, band_number, offset, success));
+}
+
+/**
+ * Get the scale of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param dataset The index of the dataset (source == 0, warped == 1)
+ * @param band_number The band in question
+ * @param scale The return-location of the scale
+ * @param success The return-location of the success flag
+ * @return True iff the operation succeeded
+ */
+int get_scale(uint64_t token, int dataset, int attempts, int copies,
+              int band_number, double *scale, int *success)
+{
+    DOIT(get_scale(dataset, band_number, scale, success));
+}
+
+/**
+ * Get the color interpretation of the given band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band in question
+ * @param color_interp The return-slot for the integer-coded color
+ *                     interpretation
+ * @return True iff the operation succeeded
+ */
+int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
+                             int band_number, int *color_interp)
+{
+    DOIT(get_color_interpretation(dataset, band_number, color_interp));
+}
+
+/**
+ * Get the list of metadata domain lists.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param domain_list The return-location for the list of strings
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
+ */
+int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
+                             int band_number, char ***domain_list)
+{
+    DOIT(get_metadata_domain_list(dataset, band_number, domain_list));
+}
+
+/**
+ * Get the metadata found in a particular metadata domain.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param domain The metadata domain to query
+ * @param list The return-location for the list of strings
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
+ */
+int get_metadata(uint64_t token, int dataset, int attempts, int copies,
+                 int band_number, const char *domain, char ***list)
+{
+    DOIT(get_metadata(dataset, band_number, domain, list));
+}
+
+/**
+ * Get a particular metadata value associated with a key.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band to query (zero for the file itself)
+ * @param key The key of the key ⨯ value metadata pair
+ * @param doamin The metadata domain to query
+ * @param value The return-location for the value of the key ⨯ value pair
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
+ */
+int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
+                      int band_number, const char *key, const char *domain, const char **value)
+{
+    DOIT(get_metadata_item(dataset, band_number, key, domain, value));
+}
+
+/**
  * Get the widths and heights of all overviews.
  *
  * @param token A token associated with some uri ⨯ options pair
@@ -162,6 +314,8 @@ void deinit()
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band of interest
  * @param widths An array of integers to receive the widths of the
  *               various overviews
  * @param heights An array of integers to receive the heights of the
@@ -172,9 +326,10 @@ void deinit()
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int *widths, int *heights, int max_length)
+int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
+                                int band_number, int *widths, int *heights, int max_length)
 {
-    DOIT(get_overview_widths_heights(dataset, widths, heights, max_length))
+    DOIT(get_overview_widths_heights(dataset, band_number, widths, heights, max_length))
 }
 
 /**
@@ -185,12 +340,14 @@ int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int *
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
  * @param crs The character array in-which to return the PROJ.4 string
  * @param max_size The size of the pre-allocated return buffer
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_crs_proj4(uint64_t token, int dataset, int attempts, char *crs, int max_size)
+int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
+                  char *crs, int max_size)
 {
     DOIT(get_crs_proj4(dataset, crs, max_size));
 }
@@ -202,13 +359,15 @@ int get_crs_proj4(uint64_t token, int dataset, int attempts, char *crs, int max_
  * @param dataset 0 (or locked_dataset::SOURCE) for the source
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
+ * @param copies The desired number of datasets
  * @param attempts The number of attempts to make before giving up
  * @param crs The character array in-which to return the PROJ.4 string
  * @param max_size The size of the pre-allocated return buffer
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_size)
+int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
+                char *crs, int max_size)
 {
     DOIT(get_crs_wkt(dataset, crs, max_size))
 }
@@ -221,21 +380,43 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, char *crs, int max_si
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
- * @param band The band of interest
+ * @param copies The desired number of datasets
+ * @param band_number The band of interest
  * @param nodata The return-location of the NODATA value
  * @param success The return-location of the success flag (answer
  *                whether or not there is a NODATA value)
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_band_nodata(uint64_t token, int dataset, int attempts, int band, double *nodata, int *success)
+int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
+                    int band_number, double *nodata, int *success)
 {
-    DOIT(get_band_nodata(dataset, band, nodata, success))
+    DOIT(get_band_nodata(dataset, band_number, nodata, success))
 }
 
-int get_band_min_max(uint64_t token, int dataset, int attempts, int band, int approx_okay, double *minmax, int *success)
+/**
+ * Get the minimum and maximum values found in the band.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band_number of interest
+ * @param approx_okay Is it okay to approximate the value if it is not
+ *                    stored in the metadata, or must it be calculated
+ *                    exactly?  An integer treated as a boolean
+ * @param minmax The return-location of the minimum and maximum
+ * @param success The return-location of the success flag (answer
+ *                whether or not there is a NODATA value)
+ * @return The number of attempts made (upon success) or a negative
+ *         errno (upon failure)
+ */
+int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
+                     int band_number, int approx_okay, double *minmax, int *success)
 {
-    DOIT(get_band_max_min(dataset, band, approx_okay, minmax, success));
+    DOIT(get_band_max_min(dataset, band_number, approx_okay, minmax, success));
 }
 
 /**
@@ -246,16 +427,18 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int band, int ap
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
- * @param band The band of interest
- * @param data_type The return-location of the band type (of integral
+ * @param copies The desired number of datasets
+ * @param band_number The band of interest
+ * @param data_type The return-location of the band_number type (of integral
  *                  type GDALDataType)
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int *data_type)
+int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
+                       int band_number, int *data_type)
 {
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);
-    DOIT(get_band_data_type(dataset, band, ptr));
+    DOIT(get_band_data_type(dataset, band_number, ptr));
 }
 
 /**
@@ -266,11 +449,13 @@ int get_band_data_type(uint64_t token, int dataset, int attempts, int band, int 
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
  * @param band_count The return-location of the band count
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_band_count(uint64_t token, int dataset, int attempts, int *band_count)
+int get_band_count(uint64_t token, int dataset, int attempts, int copies,
+                   int *band_count)
 {
     DOIT(get_band_count(dataset, band_count))
 }
@@ -283,12 +468,14 @@ int get_band_count(uint64_t token, int dataset, int attempts, int *band_count)
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
  * @param width The return-location of the width
  * @param height The return-location of the height
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_width_height(uint64_t token, int dataset, int attempts, int *width, int *height)
+int get_width_height(uint64_t token, int dataset, int attempts, int copies,
+                     int *width, int *height)
 {
     DOIT(get_width_height(dataset, width, height))
 }
@@ -301,18 +488,17 @@ int get_width_height(uint64_t token, int dataset, int attempts, int *width, int 
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
  * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
  * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
- * @param band_number The band number of interest
+ * @param band_number The band_number number of interest
  * @param _type The desired type of returned pixels (the argument is
  *              of integral type GDALDataType)
  * @param data The return-location of the read read data
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_data(uint64_t token,
-             int dataset,
-             int attempts,
+int get_data(uint64_t token, int dataset, int attempts, int copies,
              int src_window[4],
              int dst_window[2],
              int band_number,
@@ -331,12 +517,14 @@ int get_data(uint64_t token,
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
  * @param transform The return location for the six double-precision
  *                  floating point number that will be returned
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_transform(uint64_t token, int dataset, int attempts, double transform[6])
+int get_transform(uint64_t token, int dataset, int attempts, int copies,
+                  double transform[6])
 {
     DOIT(get_transform(dataset, transform))
 }

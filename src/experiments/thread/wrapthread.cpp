@@ -57,6 +57,7 @@ constexpr int WINDOW_SIZE = (1 << 8);
 constexpr int TILE_SIZE = (1 << 8);
 constexpr int N = (1 << 10);
 constexpr int PATH_LEN = (1 << 6);
+constexpr int COPIES = -4;
 
 // Threads
 int lg_steps = 12;
@@ -109,7 +110,7 @@ void *reader(void *)
         int src_window[4] = {i * WINDOW_SIZE, j * WINDOW_SIZE, WINDOW_SIZE, WINDOW_SIZE};
         int dst_window[2] = {TILE_SIZE, TILE_SIZE};
 
-        if (get_data(token, 1, 0, src_window, dst_window, 1, GDT_Byte, buffer) > 0)
+        if (get_data(token, 1, 0, COPIES, src_window, dst_window, 1, GDT_Byte, buffer) > 0)
         {
             auto s = std::string(reinterpret_cast<char *>(buffer));
             auto h = hash(s);
