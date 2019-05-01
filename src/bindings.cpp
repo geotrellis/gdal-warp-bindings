@@ -157,7 +157,15 @@ void deinit()
         delete cache;
         cache = nullptr;
     }
+
     token_deinit();
+}
+
+void __attribute__((destructor)) fini(void)
+{
+    deinit();
+    GDALDestroy();
+    usleep(680000); // nearly an eternity
 }
 
 /**
@@ -176,7 +184,7 @@ void deinit()
  * @return True iff the operation succeeded
  */
 int get_block_size(uint64_t token, int dataset, int attempts, int copies,
-               int band_number, int * width, int * height)
+                   int band_number, int *width, int *height)
 {
     DOIT(get_block_size(dataset, band_number, width, height));
 }
