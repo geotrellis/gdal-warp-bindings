@@ -22,7 +22,6 @@ docker run -it --rm \
       -e CROSS_TRIPLE="x86_64-apple-darwin" \
       -e OS=darwin -e SO=dylib \
       -e CC=cc -e CXX=c++ \
-      -e CFLAGS="-Wall -Werror -O" \
       -e JAVA_HOME="/macintosh/jdk8u202-b08/Contents/Home" \
       -e GDALCFLAGS="-I/macintosh/gdal/2.4.0_1/include" \
       -e CXXFLAGS="-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"  \
