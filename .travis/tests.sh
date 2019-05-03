@@ -5,6 +5,7 @@ ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif # sic
 docker run -it --rm \
       -v $(pwd):/workdir \
       -e CC=gcc -e CXX=g++ \
+      -e CFLAGS="-Wall -Werror -O -DSO_FINI" \
       -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
       jamesmcclain/gdal-build-environment:3 make -j4 -C src tests || exit -1
 
@@ -32,7 +33,7 @@ docker run -it --rm \
       -v $(pwd):/workdir \
       -e CROSS_TRIPLE=x86_64-w64-mingw32 \
       -e OS=win32 \
-      -e CFLAGS="-Wall" \
+      -e CFLAGS="-Wall -O" \
       -e JAVA_HOME="/windows/jdk8u202-b08" \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
       -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" \

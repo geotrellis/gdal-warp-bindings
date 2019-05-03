@@ -161,12 +161,13 @@ void deinit()
     token_deinit();
 }
 
+#ifdef SO_FINI
 void __attribute__((destructor)) fini(void)
 {
     deinit();
     GDALDestroy();
-    usleep(680000); // nearly an eternity
 }
+#endif
 
 /**
  * Get the block size of the given band.
