@@ -41,6 +41,7 @@ uint64_t htobe64(uint64_t x)
 #include <endian.h>
 #endif
 
+#include <gdal.h>
 #include <cpl_conv.h>
 #include <cpl_string.h>
 
@@ -61,6 +62,18 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1init(JNIEnv *env, jobject
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject obj)
 {
     deinit();
+}
+
+JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1get_1version_1info(JNIEnv *env, jclass obj,
+                                                                          jstring _key, jbyteArray _value)
+{
+    const char *key = (*env)->GetStringUTFChars(env, _key, NULL);
+    jbyte * value = (*env)->GetByteArrayElements(env, _value, NULL);
+    jsize array_size = (*env)->GetArrayLength(env, _value);
+    const char * info = GDALVersionInfo(key);
+    strncpy((char *)value, info, array_size);
+    (*env)->ReleaseStringUTFChars(env, _key, key);
+    (*env)->ReleaseByteArrayElements(env, _value, value, 0);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_set_1config_1option(JNIEnv *env, jclass obj,

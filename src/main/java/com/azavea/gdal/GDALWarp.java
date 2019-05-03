@@ -94,7 +94,23 @@ public class GDALWarp {
                 }
         }
 
+        /**
+         * Get GDAL version information.
+         *
+         * @param key The key of the desired information (please see
+         *            https://www.gdal.org/gdal_8h.html#acc50a4a63bc430d31abe1bca3f822da5)
+         * @return The requested information
+         *
+         */
+        public static String get_version_info(String key) throws Exception {
+                byte[] value = new byte[1 << 10];
+                _get_version_info(key, value);
+                return new String(value, "UTF-8");
+        }
+
         public static native void deinit();
+
+        public static native void _get_version_info(String key, byte[] value);
 
         public static native void set_config_option(String key, String value);
 

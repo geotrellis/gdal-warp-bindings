@@ -120,6 +120,10 @@ class GDALWarpThreadTest extends Thread {
 
         GDALWarp.set_config_option("COMPRESS_OVERVIEW", "DEFLATE"); // Just for fun
 
+        // Version Information
+        System.out.println(
+                ANSI_BLUE + "Version info: " + ANSI_GREEN + GDALWarp.get_version_info("--version") + ANSI_RESET);
+
         // Band Count
         {
             int[] band_count = new int[1];
@@ -208,9 +212,11 @@ class GDALWarpThreadTest extends Thread {
             int[] width = new int[1];
             int[] height = new int[1];
             GDALWarp.get_block_size(token, GDALWarp.SOURCE, 0, 1, width, height);
-            System.out.println(ANSI_BLUE + "Source block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+            System.out
+                    .println(ANSI_BLUE + "Source block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
             GDALWarp.get_block_size(token, GDALWarp.WARPED, 0, 1, width, height);
-            System.out.println(ANSI_BLUE + "Warped block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+            System.out
+                    .println(ANSI_BLUE + "Warped block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
         }
 
         // Offset
