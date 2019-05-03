@@ -57,6 +57,13 @@
         "unordered_set": "cpp",
         "condition_variable": "cpp",
         "mutex": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "com_azavea_gdal_gdalwarp.h": "c"
+    },
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
     }
 }

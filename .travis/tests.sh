@@ -44,4 +44,5 @@ cp src/gdalwarp_bindings.dll src/main/java/resources/ || exit -1
 (cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*) || exit -1
 
 rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
+rm -f src/com_azavea_gdal_GDALWarp.h
 rm -f src/experiments/thread/oversubscribe src/experiments/thread/pattern
