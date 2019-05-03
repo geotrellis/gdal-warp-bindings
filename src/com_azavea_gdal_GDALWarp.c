@@ -64,16 +64,18 @@ JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_deinit(JNIEnv *env, jobject
     deinit();
 }
 
-JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp__1get_1version_1info(JNIEnv *env, jclass obj,
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp__1get_1version_1info(JNIEnv *env, jclass obj,
                                                                           jstring _key, jbyteArray _value)
 {
     const char *key = (*env)->GetStringUTFChars(env, _key, NULL);
-    jbyte * value = (*env)->GetByteArrayElements(env, _value, NULL);
+    jbyte *value = (*env)->GetByteArrayElements(env, _value, NULL);
     jsize array_size = (*env)->GetArrayLength(env, _value);
-    const char * info = GDALVersionInfo(key);
+    const char *info = GDALVersionInfo(key);
     strncpy((char *)value, info, array_size);
     (*env)->ReleaseStringUTFChars(env, _key, key);
     (*env)->ReleaseByteArrayElements(env, _value, value, 0);
+
+    return (jint)strlen(info);
 }
 
 JNIEXPORT void JNICALL Java_com_azavea_gdal_GDALWarp_set_1config_1option(JNIEnv *env, jclass obj,

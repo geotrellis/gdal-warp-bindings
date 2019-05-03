@@ -124,6 +124,10 @@ class GDALWarpThreadTest extends Thread {
         System.out.println(
                 ANSI_BLUE + "Version info: " + ANSI_GREEN + GDALWarp.get_version_info("--version") + ANSI_RESET);
 
+        // License
+        System.out
+                .println(ANSI_BLUE + "GDAL license:\n" + ANSI_CYAN + GDALWarp.get_version_info("LICENSE") + ANSI_RESET);
+
         // Band Count
         {
             int[] band_count = new int[1];

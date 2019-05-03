@@ -100,17 +100,24 @@ public class GDALWarp {
          * @param key The key of the desired information (please see
          *            https://www.gdal.org/gdal_8h.html#acc50a4a63bc430d31abe1bca3f822da5)
          * @return The requested information
-         *
          */
         public static String get_version_info(String key) throws Exception {
-                byte[] value = new byte[1 << 10];
-                _get_version_info(key, value);
-                return new String(value, "UTF-8");
+                final int first_size = 1 << 8;
+                byte[] value = new byte[first_size];
+                int len = _get_version_info(key, value);
+
+                if (len < first_size) {
+                        return new String(value, "UTF-8");
+                } else {
+                        byte[] value2 = new byte[len + 1];
+                        _get_version_info(key, value2);
+                        return new String(value2, "UTF-8");
+                }
         }
 
         public static native void deinit();
 
-        public static native void _get_version_info(String key, byte[] value);
+        public static native int _get_version_info(String key, byte[] value);
 
         public static native void set_config_option(String key, String value);
 
