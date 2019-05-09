@@ -200,7 +200,7 @@ void deinit()
     token_deinit();
 }
 
-#ifdef SO_FINI
+#if defined(SO_FINI) && defined(__linux__)
 void __attribute__((destructor)) fini(void)
 {
     deinit();
