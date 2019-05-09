@@ -17,6 +17,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#if defined(__linux__) || defined(__APPLE__)
+#include <csignal>
+#endif
 #include <ctime>
 #include <exception>
 #include <string>
@@ -41,6 +44,21 @@ constexpr int TOO_MANY_ITERATIONS = (1 << 16);
 pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 cache_t *cache = nullptr;
+
+#if defined(__linux__) || defined(__APPLE__)
+struct sigaction sa_old, sa_new;
+bool handler_installed = false;
+
+// SIGTERM handler
+static void sigterm_handler(int signal)
+{
+    if (signal == SIGTERM)
+    {
+        raise(SIGTRAP);
+        return;
+    }
+}
+#endif
 
 /**
  * A macro for making one attempt to perform the given operation on
@@ -142,6 +160,20 @@ void init(size_t size)
         throw std::bad_alloc();
     }
 
+#if defined(__linux__) || defined(__APPLE__)
+    if (getenv("GDALWARP_SIGTERM_DUMP") != NULL)
+    {
+        sa_new.sa_handler = sigterm_handler;
+        handler_installed = true;
+
+        if (sigaction(SIGTERM, &sa_new, &sa_old) == -1)
+        {
+            fprintf(stderr, "Unable to install SIGTERM handler\n");
+            exit(-1);
+        }
+    }
+#endif
+
     token_init(640 * (1 << 10)); // This should be enough for anyone
 
     return;
@@ -157,6 +189,13 @@ void deinit()
         delete cache;
         cache = nullptr;
     }
+
+#if defined(__linux__) || defined(__APPLE__)
+    if (handler_installed)
+    {
+        sigaction(SIGTERM, &sa_old, nullptr);
+    }
+#endif
 
     token_deinit();
 }
