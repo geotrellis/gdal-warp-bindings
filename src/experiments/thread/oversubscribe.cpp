@@ -84,11 +84,11 @@ void *reader(void *argv1)
 
         token = get_token(uri, options);
 
-        get_crs_wkt(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
-        get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
-        get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1);
-        get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2);
-        get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
+        assert(get_crs_wkt(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE) != -ENOENT);
+        assert(get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE) != -ENOENT);
+        assert(get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1) != -ENOENT);
+        assert(get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2) != -ENOENT);
+        assert(get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf) != -ENOENT);
     }
 
     return nullptr;
