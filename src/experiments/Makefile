@@ -22,33 +22,33 @@ data/c41078a1-local-local.vrt: data/c41078a1-local.vrt
 	gdalbuildvrt $@ $^
 
 data/c41078a1-local-remote.vrt: data/c41078a1-local.vrt
-	make -C . httpd-start
+	$(MAKE) -C . httpd-start
 	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
+	$(MAKE) -C . httpd-stop
 
 data/c41078a1-remote.vrt: data/c41078a1.tif
-	make -C . httpd-start
+	$(MAKE) -C . httpd-start
 	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
+	$(MAKE) -C . httpd-stop
 
 data/c41078a1-remote-local.vrt: data/c41078a1-remote.vrt
 	gdalbuildvrt $@ $^
 
 data/c41078a1-remote-remote.vrt: data/c41078a1-remote.vrt
-	make -C . httpd-start
+	$(MAKE) -C . httpd-start
 	gdalbuildvrt $@ "/vsicurl/http://localhost:$(PORT)/$(<)"
-	make -C . httpd-stop
+	$(MAKE) -C . httpd-stop
 
 data: data/c41078a1.tif data/c41078a1-local.vrt data/c41078a1-local-local.vrt data/c41078a1-local-remote.vrt data/c41078a1-remote.vrt data/c41078a1-remote-local.vrt data/c41078a1-remote-remote.vrt
 
 thread/rawthread:
-	make -C thread rawthread
+	$(MAKE) -C thread rawthread
 
 thread/wrapthread:
-	make -C thread wrapthread
+	$(MAKE) -C thread wrapthread
 
 tests: data thread/rawthread thread/wrapthread
-	make -C . httpd-start
+	$(MAKE) -C . httpd-start
 	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-local.vrt
 	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local-remote.vrt
 	# LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/rawthread data/c41078a1-local.vrt
@@ -63,15 +63,15 @@ tests: data thread/rawthread thread/wrapthread
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote-remote.vrt 12 1024
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1-remote.vrt 12 1024
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(shell pwd)/.. thread/wrapthread data/c41078a1.tif 12 1024
-	make -C . httpd-stop
+	$(MAKE) -C . httpd-stop
 
 clean:
-	make -C thread clean
+	$(MAKE) -C thread clean
 
 cleaner: clean
 	rm -f data/*.vrt thread/rawthread
-	make -C thread cleaner
+	$(MAKE) -C thread cleaner
 
 cleanest: cleaner
 	rm -f data/*.tif
-	make -C thread cleanest
+	$(MAKE) -C thread cleanest

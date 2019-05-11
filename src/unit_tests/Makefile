@@ -16,10 +16,10 @@ tests: ../libgdalwarp_bindings.$(SO) ../experiments/data/c41078a1.tif token_test
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.. ./bindings_tests
 
 ../experiments/data/c41078a1.tif:
-	make -C ../experiments data/c41078a1.tif
+	$(MAKE) -C ../experiments data/c41078a1.tif
 
 ../libgdalwarp_bindings.$(SO):
-	make -C .. libgdalwarp_bindings.$(SO)
+	$(MAKE) -C .. libgdalwarp_bindings.$(SO)
 
 token_tests: token_tests.cpp ../libgdalwarp_bindings.$(SO)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< $(LDFLAGS) -lm -o $@

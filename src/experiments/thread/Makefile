@@ -8,7 +8,7 @@ SO ?= so
 all: rawthread wrapthread pattern oversubscribe
 
 ../../libgdalwarp_bindings.$(SO):
-	make -C ../.. libgdalwarp_bindings.$(SO)
+	$(MAKE) -C ../.. libgdalwarp_bindings.$(SO)
 
 libgdalwarp_bindings.$(SO): ../../libgdalwarp_bindings.$(SO)
 	ln -s $< $@

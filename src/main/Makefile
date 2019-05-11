@@ -8,7 +8,7 @@ gdalwarp.jar: java/resources/libgdalwarp_bindings.$(SO) java/com/azavea/gdal/GDA
 	(cd java ; jar -cvf ../$@ com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*)
 
 ../libgdalwarp_bindings.$(SO):
-	make -C .. libgdalwarp_bindings.$(SO)
+	$(MAKE) -C .. libgdalwarp_bindings.$(SO)
 
 java/resources/libgdalwarp_bindings.$(SO): ../libgdalwarp_bindings.$(SO)
 	cp -f $< $@
@@ -24,7 +24,7 @@ java/cz/adamh/utils/NativeUtils.java:
 	wget -k "https://raw.githubusercontent.com/adamheinrich/native-utils/e6a39489662846a77504634b6fafa4995ede3b1d/src/main/$@" -O $@
 
 ../experiments/data/c41078a1.tif:
-	make -C ../experiments data/c41078a1.tif
+	$(MAKE) -C ../experiments data/c41078a1.tif
 
 tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif
 	$(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
