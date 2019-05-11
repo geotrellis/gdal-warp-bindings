@@ -40,7 +40,6 @@
 
 typedef flat_lru_cache cache_t;
 
-constexpr int TOO_MANY_ITERATIONS = (1 << 16);
 pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 cache_t *cache = nullptr;
@@ -81,6 +80,8 @@ static void sigterm_handler(int signal)
         }                           \
         ld->dec();                  \
     }
+
+#define TOO_MANY_ITERATIONS (attempts > (1 << 5) ? attempts - 33 : 1 << 16)
 
 /**
  * A macro for making some number of attempts to perform an operation
