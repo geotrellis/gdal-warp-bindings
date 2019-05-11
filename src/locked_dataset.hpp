@@ -95,12 +95,13 @@ public:
         // dataset that is not in use anywhere else.
         close();
 
-        // m_dataset_lock known to be locked prior to this call if
-        // this is a valid dataset
-        UNLOCK
         m_datasets[SOURCE] = std::exchange(rhs.m_datasets[SOURCE], nullptr);
         m_datasets[WARPED] = std::exchange(rhs.m_datasets[WARPED], nullptr);
         m_uri_options = std::move(rhs.m_uri_options);
+
+        // m_dataset_lock known to be locked prior to this call if
+        // this is a valid dataset
+        UNLOCK
 
         return *this;
     }
