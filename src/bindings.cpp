@@ -218,7 +218,6 @@ void __attribute__((destructor)) fini(void)
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param width The return-location of the block width
  * @param height The return-location of the block height
@@ -239,7 +238,6 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param offset The return-location of the offset
  * @param success The return-location of the success flag
@@ -260,7 +258,6 @@ int get_offset(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param scale The return-location of the scale
  * @param success The return-location of the success flag
@@ -344,7 +341,7 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
  * @param copies The desired number of datasets
  * @param band_number The band to query (zero for the file itself)
  * @param key The key of the key ⨯ value metadata pair
- * @param doamin The metadata domain to query
+ * @param domain The metadata domain to query
  * @param value The return-location for the value of the key ⨯ value pair
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
