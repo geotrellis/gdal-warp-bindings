@@ -11,11 +11,11 @@ HEADERS = bindings.h types.hpp flat_lru_cache.hpp locked_dataset.hpp tokens.hpp
 all: tests libgdalwarp_bindings.$(SO)
 
 com_azavea_gdal_GDALWarp.o: com_azavea_gdal_GDALWarp.c
-	make -C main java/com/azavea/gdal/GDALWarp.class
+	$(MAKE) -C main java/com/azavea/gdal/GDALWarp.class
 	$(CC) $(CFLAGS) $(GDALCFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
 com_azavea_gdal_GDALWarp.obj: com_azavea_gdal_GDALWarp.c
-	make -C main java/com/azavea/gdal/GDALWarp.class
+	$(MAKE) -C main java/com/azavea/gdal/GDALWarp.class
 	$(CC) $(CFLAGS) $(GDALCFLAGS) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(OS) -fPIC $< -c -o $@
 
 %.o: %.cpp $(HEADERS)
@@ -31,25 +31,25 @@ gdalwarp_bindings.dll: com_azavea_gdal_GDALWarp.obj bindings.obj tokens.obj
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 experiments/data:
-	make -C experiments data/c41078a1.tif
+	$(MAKE) -C experiments data/c41078a1.tif
 
 tests: libgdalwarp_bindings.$(SO)
-	make -C unit_tests tests
-	make -C main tests
+	$(MAKE) -C unit_tests tests
+	$(MAKE) -C main tests
 
 clean:
 	rm -f *.o
-	make -C experiments clean
-	make -C unit_tests clean
-	make -C main clean
+	$(MAKE) -C experiments clean
+	$(MAKE) -C unit_tests clean
+	$(MAKE) -C main clean
 
 cleaner: clean
 	rm -f libgdalwarp_bindings.$(SO) com_azavea_gdal_GDALWarp.h
-	make -C experiments cleaner
-	make -C unit_tests cleaner
-	make -C main cleaner
+	$(MAKE) -C experiments cleaner
+	$(MAKE) -C unit_tests cleaner
+	$(MAKE) -C main cleaner
 
 cleanest: cleaner
-	make -C experiments cleanest
-	make -C unit_tests cleanest
-	make -C main cleanest
+	$(MAKE) -C experiments cleanest
+	$(MAKE) -C unit_tests cleanest
+	$(MAKE) -C main cleanest

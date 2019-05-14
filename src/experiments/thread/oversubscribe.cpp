@@ -18,6 +18,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+
+#include <atomic>
 #include <random>
 
 #include <sys/types.h>
@@ -46,15 +48,19 @@ char const *options[] = {
 #pragma GCC diagnostic pop
 
 // Constants
-constexpr int N = (1024);
+constexpr int N = (128);
 constexpr int DIM = 1 << 8;
 constexpr int BUFFERSIZE = DIM * DIM;
-constexpr int ATTEMPTS = 1 << 20;
+constexpr int ATTEMPTS = 1 << 16;
 constexpr int COPIES = -4;
 
 // Threads
-int lg_steps = 12;
+int lg_steps = 8;
 pthread_t threads[N];
+
+// Statistics
+std::atomic<int> good = 0;
+std::atomic<int> bad = 0;
 
 // ANSI
 // Reference: https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
@@ -66,6 +72,19 @@ pthread_t threads[N];
 #define ANSI_COLOR_MAGENTA "\x1b[35;1m"
 #define ANSI_COLOR_CYAN "\x1b[36;1m"
 #define ANSI_COLOR_RESET "\x1b[0m"
+
+#define NOTE(fn)       \
+    {                  \
+        int temp = fn; \
+        if (temp > 0)  \
+        {              \
+            good++;    \
+        }              \
+        else           \
+        {              \
+            bad++;     \
+        }              \
+    }
 
 void *reader(void *argv1)
 {
@@ -84,11 +103,11 @@ void *reader(void *argv1)
 
         token = get_token(uri, options);
 
-        get_crs_wkt(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
-        get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
-        get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1);
-        get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2);
-        get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
+        NOTE(get_crs_wkt(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE));
+        NOTE(get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE));
+        NOTE(get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1));
+        NOTE(get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2));
+        NOTE(get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf));
     }
 
     return nullptr;
@@ -134,6 +153,8 @@ int main(int argc, char **argv)
         fprintf(stdout, ANSI_COLOR_MAGENTA "." ANSI_COLOR_RESET);
     }
     fprintf(stdout, "\n");
+
+    fprintf(stdout, "%lf\n", ((double)good.load() * 100) / (good.load() + bad.load()));
 
     deinit();
 

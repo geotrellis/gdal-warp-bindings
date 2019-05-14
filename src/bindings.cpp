@@ -17,6 +17,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#if defined(__linux__) || defined(__APPLE__)
+#include <csignal>
+#endif
 #include <ctime>
 #include <exception>
 #include <string>
@@ -37,10 +40,24 @@
 
 typedef flat_lru_cache cache_t;
 
-constexpr int TOO_MANY_ITERATIONS = (1 << 16);
 pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 cache_t *cache = nullptr;
+
+#if defined(__linux__) || defined(__APPLE__)
+struct sigaction sa_old, sa_new;
+bool handler_installed = false;
+
+// SIGTERM handler
+static void sigterm_handler(int signal)
+{
+    if (signal == SIGTERM)
+    {
+        raise(SIGTRAP);
+        return;
+    }
+}
+#endif
 
 /**
  * A macro for making one attempt to perform the given operation on
@@ -63,6 +80,8 @@ cache_t *cache = nullptr;
         }                           \
         ld->dec();                  \
     }
+
+#define TOO_MANY_ITERATIONS (attempts > (1 << 5) ? attempts - 33 : 1 << 16)
 
 /**
  * A macro for making some number of attempts to perform an operation
@@ -142,6 +161,20 @@ void init(size_t size)
         throw std::bad_alloc();
     }
 
+#if defined(__linux__) || defined(__APPLE__)
+    if (getenv("GDALWARP_SIGTERM_DUMP") != NULL)
+    {
+        sa_new.sa_handler = sigterm_handler;
+        handler_installed = true;
+
+        if (sigaction(SIGTERM, &sa_new, &sa_old) == -1)
+        {
+            fprintf(stderr, "Unable to install SIGTERM handler\n");
+            exit(-1);
+        }
+    }
+#endif
+
     token_init(640 * (1 << 10)); // This should be enough for anyone
 
     return;
@@ -158,10 +191,17 @@ void deinit()
         cache = nullptr;
     }
 
+#if defined(__linux__) || defined(__APPLE__)
+    if (handler_installed)
+    {
+        sigaction(SIGTERM, &sa_old, nullptr);
+    }
+#endif
+
     token_deinit();
 }
 
-#ifdef SO_FINI
+#if defined(SO_FINI) && defined(__linux__)
 void __attribute__((destructor)) fini(void)
 {
     deinit();
@@ -178,7 +218,6 @@ void __attribute__((destructor)) fini(void)
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param width The return-location of the block width
  * @param height The return-location of the block height
@@ -199,7 +238,6 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param offset The return-location of the offset
  * @param success The return-location of the success flag
@@ -220,7 +258,6 @@ int get_offset(uint64_t token, int dataset, int attempts, int copies,
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
- * @param dataset The index of the dataset (source == 0, warped == 1)
  * @param band_number The band in question
  * @param scale The return-location of the scale
  * @param success The return-location of the success flag
@@ -304,7 +341,7 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
  * @param copies The desired number of datasets
  * @param band_number The band to query (zero for the file itself)
  * @param key The key of the key ⨯ value metadata pair
- * @param doamin The metadata domain to query
+ * @param domain The metadata domain to query
  * @param value The return-location for the value of the key ⨯ value pair
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
