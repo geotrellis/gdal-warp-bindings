@@ -53,7 +53,7 @@ static void sigterm_handler(int signal)
 {
     if (signal == SIGTERM)
     {
-        raise(SIGTRAP);
+        raise(SIGSEGV);
         return;
     }
 }
