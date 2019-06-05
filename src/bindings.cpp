@@ -534,6 +534,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param nanos The approximate time budget for this call (in nanoseconds)
  * @param copies The desired number of datasets
  * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
  * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
@@ -544,7 +545,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_data(uint64_t token, int dataset, int attempts, int copies,
+int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copies,
              int src_window[4],
              int dst_window[2],
              int band_number,

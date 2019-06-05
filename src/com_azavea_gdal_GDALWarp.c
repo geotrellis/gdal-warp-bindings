@@ -393,7 +393,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobj
     {
         data = (*env)->GetByteArrayElements(env, _data, NULL);
     }
-    jint retval = get_data(token, dataset, attempts, copies, (int *)src_window, (int *)dst_window, band_number, type, data);
+    jint retval = get_data(token, dataset, attempts, 0, copies, (int *)src_window, (int *)dst_window, band_number, type, data);
     switch (type)
     {
     case com_azavea_gdal_GDALWarp_GDT_Int16:
