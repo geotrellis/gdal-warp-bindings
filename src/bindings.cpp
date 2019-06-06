@@ -42,6 +42,8 @@ typedef flat_lru_cache cache_t;
 
 pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+uint64_t default_nanos = 0;
+
 cache_t *cache = nullptr;
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -92,54 +94,64 @@ static void sigterm_handler(int signal)
  *
  * @param fn The operation to perform
  */
-#define DOIT(fn)                                                    \
-    bool done = false;                                              \
-    auto query_result = query_token(token);                         \
-    if (query_result)                                               \
-    {                                                               \
-        auto uri_options = query_result.get();                      \
-        bool has_lock = false;                                      \
-        int touched = 0;                                            \
-        int i;                                                      \
-        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
-        {                                                           \
-            if (i >= TOO_MANY_ITERATIONS && !has_lock)              \
-            {                                                       \
-                pthread_mutex_lock(&livelock_mutex);                \
-                has_lock = true;                                    \
-            }                                                       \
-            auto locked_datasets = cache->get(uri_options, copies); \
-            const auto num_datasets = locked_datasets.size();       \
-            if (num_datasets == 0)                                  \
-            {                                                       \
-                if (has_lock)                                       \
-                {                                                   \
-                    pthread_mutex_unlock(&livelock_mutex);          \
-                }                                                   \
-                return -EAGAIN;                                     \
-            }                                                       \
-            TRY(fn)                                                 \
-            if (!done && !has_lock)                                 \
-            {                                                       \
-                sleep(0);                                           \
-            }                                                       \
-        }                                                           \
-        if (has_lock)                                               \
-        {                                                           \
-            pthread_mutex_unlock(&livelock_mutex);                  \
-        }                                                           \
-        if (i < attempts || (i > 0 && attempts == 0))               \
-        {                                                           \
-            return touched;                                         \
-        }                                                           \
-        else                                                        \
-        {                                                           \
-            return -EAGAIN;                                         \
-        }                                                           \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        return -ENOENT;                                             \
+#define DOIT(fn)                                                     \
+    bool done = false;                                               \
+    auto query_result = query_token(token);                          \
+    uint64_t then, now;                                              \
+    timespec ts;                                                     \
+    clock_gettime(CLOCK_MONOTONIC, &ts);                             \
+    then = (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec;        \
+    if (query_result)                                                \
+    {                                                                \
+        auto uri_options = query_result.get();                       \
+        bool has_lock = false;                                       \
+        int touched = 0;                                             \
+        int i;                                                       \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)   \
+        {                                                            \
+            clock_gettime(CLOCK_MONOTONIC, &ts);                     \
+            now = (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec; \
+            if ((nanos > 0) && (now - then > nanos))                 \
+            {                                                        \
+                i += attempts;                                       \
+            }                                                        \
+            if (i >= TOO_MANY_ITERATIONS && !has_lock)               \
+            {                                                        \
+                pthread_mutex_lock(&livelock_mutex);                 \
+                has_lock = true;                                     \
+            }                                                        \
+            auto locked_datasets = cache->get(uri_options, copies);  \
+            const auto num_datasets = locked_datasets.size();        \
+            if (num_datasets == 0)                                   \
+            {                                                        \
+                if (has_lock)                                        \
+                {                                                    \
+                    pthread_mutex_unlock(&livelock_mutex);           \
+                }                                                    \
+                return -EAGAIN;                                      \
+            }                                                        \
+            TRY(fn)                                                  \
+            if (!done && !has_lock)                                  \
+            {                                                        \
+                sleep(0);                                            \
+            }                                                        \
+        }                                                            \
+        if (has_lock)                                                \
+        {                                                            \
+            pthread_mutex_unlock(&livelock_mutex);                   \
+        }                                                            \
+        if (i < attempts || (i > 0 && attempts == 0))                \
+        {                                                            \
+            return touched;                                          \
+        }                                                            \
+        else                                                         \
+        {                                                            \
+            return -EAGAIN;                                          \
+        }                                                            \
+    }                                                                \
+    else                                                             \
+    {                                                                \
+        return -ENOENT;                                              \
     }
 
 /**
@@ -226,6 +238,7 @@ void __attribute__((destructor)) fini(void)
 int get_block_size(uint64_t token, int dataset, int attempts, int copies,
                    int band_number, int *width, int *height)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_block_size(dataset, band_number, width, height));
 }
 
@@ -246,6 +259,7 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
 int get_offset(uint64_t token, int dataset, int attempts, int copies,
                int band_number, double *offset, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_offset(dataset, band_number, offset, success));
 }
 
@@ -266,6 +280,7 @@ int get_offset(uint64_t token, int dataset, int attempts, int copies,
 int get_scale(uint64_t token, int dataset, int attempts, int copies,
               int band_number, double *scale, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_scale(dataset, band_number, scale, success));
 }
 
@@ -286,6 +301,7 @@ int get_scale(uint64_t token, int dataset, int attempts, int copies,
 int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, int *color_interp)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_color_interpretation(dataset, band_number, color_interp));
 }
 
@@ -306,6 +322,7 @@ int get_color_interpretation(uint64_t token, int dataset, int attempts, int copi
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, char ***domain_list)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata_domain_list(dataset, band_number, domain_list));
 }
 
@@ -327,6 +344,7 @@ int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copi
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
                  int band_number, const char *domain, char ***list)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata(dataset, band_number, domain, list));
 }
 
@@ -349,6 +367,7 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
                       int band_number, const char *key, const char *domain, const char **value)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata_item(dataset, band_number, key, domain, value));
 }
 
@@ -375,6 +394,7 @@ int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
 int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
                                 int band_number, int *widths, int *heights, int max_length)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_overview_widths_heights(dataset, band_number, widths, heights, max_length))
 }
 
@@ -395,6 +415,7 @@ int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int c
 int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
                   char *crs, int max_size)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_crs_proj4(dataset, crs, max_size));
 }
 
@@ -415,6 +436,7 @@ int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
 int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
                 char *crs, int max_size)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_crs_wkt(dataset, crs, max_size))
 }
 
@@ -437,6 +459,7 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
 int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
                     int band_number, double *nodata, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_nodata(dataset, band_number, nodata, success))
 }
 
@@ -462,6 +485,7 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
 int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
                      int band_number, int approx_okay, double *minmax, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_max_min(dataset, band_number, approx_okay, minmax, success));
 }
 
@@ -483,6 +507,7 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
 int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
                        int band_number, int *data_type)
 {
+    uint64_t nanos = default_nanos;
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);
     DOIT(get_band_data_type(dataset, band_number, ptr));
 }
@@ -503,6 +528,7 @@ int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
 int get_band_count(uint64_t token, int dataset, int attempts, int copies,
                    int *band_count)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_count(dataset, band_count))
 }
 
@@ -523,6 +549,7 @@ int get_band_count(uint64_t token, int dataset, int attempts, int copies,
 int get_width_height(uint64_t token, int dataset, int attempts, int copies,
                      int *width, int *height)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_width_height(dataset, width, height))
 }
 
@@ -573,5 +600,6 @@ int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copi
 int get_transform(uint64_t token, int dataset, int attempts, int copies,
                   double transform[6])
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_transform(dataset, transform))
 }
