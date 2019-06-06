@@ -40,8 +40,6 @@
 
 typedef flat_lru_cache cache_t;
 
-pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 uint64_t default_nanos = 0;
 
 cache_t *cache = nullptr;
@@ -60,6 +58,17 @@ static void sigterm_handler(int signal)
     }
 }
 #endif
+
+static uint64_t get_nanos()
+{
+#if defined(__linux__)
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec;
+#else
+    return 0;
+#endif
+}
 
 /**
  * A macro for making one attempt to perform the given operation on
@@ -83,8 +92,6 @@ static void sigterm_handler(int signal)
         ld->dec();                  \
     }
 
-#define TOO_MANY_ITERATIONS (attempts > (1 << 5) ? attempts - 33 : 1 << 16)
-
 /**
  * A macro for making some number of attempts to perform an operation
  * on (one of) a list of locked datasets.  If an attempt succeeds,
@@ -94,64 +101,47 @@ static void sigterm_handler(int signal)
  *
  * @param fn The operation to perform
  */
-#define DOIT(fn)                                                     \
-    bool done = false;                                               \
-    auto query_result = query_token(token);                          \
-    uint64_t then, now;                                              \
-    timespec ts;                                                     \
-    clock_gettime(CLOCK_MONOTONIC, &ts);                             \
-    then = (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec;        \
-    if (query_result)                                                \
-    {                                                                \
-        auto uri_options = query_result.get();                       \
-        bool has_lock = false;                                       \
-        int touched = 0;                                             \
-        int i;                                                       \
-        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)   \
-        {                                                            \
-            clock_gettime(CLOCK_MONOTONIC, &ts);                     \
-            now = (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec; \
-            if ((nanos > 0) && (now - then > nanos))                 \
-            {                                                        \
-                i += attempts;                                       \
-            }                                                        \
-            if (i >= TOO_MANY_ITERATIONS && !has_lock)               \
-            {                                                        \
-                pthread_mutex_lock(&livelock_mutex);                 \
-                has_lock = true;                                     \
-            }                                                        \
-            auto locked_datasets = cache->get(uri_options, copies);  \
-            const auto num_datasets = locked_datasets.size();        \
-            if (num_datasets == 0)                                   \
-            {                                                        \
-                if (has_lock)                                        \
-                {                                                    \
-                    pthread_mutex_unlock(&livelock_mutex);           \
-                }                                                    \
-                return -EAGAIN;                                      \
-            }                                                        \
-            TRY(fn)                                                  \
-            if (!done && !has_lock)                                  \
-            {                                                        \
-                sleep(0);                                            \
-            }                                                        \
-        }                                                            \
-        if (has_lock)                                                \
-        {                                                            \
-            pthread_mutex_unlock(&livelock_mutex);                   \
-        }                                                            \
-        if (i < attempts || (i > 0 && attempts == 0))                \
-        {                                                            \
-            return touched;                                          \
-        }                                                            \
-        else                                                         \
-        {                                                            \
-            return -EAGAIN;                                          \
-        }                                                            \
-    }                                                                \
-    else                                                             \
-    {                                                                \
-        return -ENOENT;                                              \
+#define DOIT(fn)                                                    \
+    bool done = false;                                              \
+    auto query_result = query_token(token);                         \
+    uint64_t then, now;                                             \
+    then = get_nanos();                                             \
+    if (query_result)                                               \
+    {                                                               \
+        auto uri_options = query_result.get();                      \
+        int touched = 0;                                            \
+        int i;                                                      \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
+        {                                                           \
+            now = get_nanos();                                      \
+            if ((nanos > 0) && (now - then > nanos))                \
+            {                                                       \
+                return -EAGAIN;                                     \
+            }                                                       \
+            auto locked_datasets = cache->get(uri_options, copies); \
+            const auto num_datasets = locked_datasets.size();       \
+            if (num_datasets == 0)                                  \
+            {                                                       \
+                return -EAGAIN;                                     \
+            }                                                       \
+            TRY(fn)                                                 \
+            if (!done)                                              \
+            {                                                       \
+                sleep(0);                                           \
+            }                                                       \
+        }                                                           \
+        if ((i < attempts) || (i > 0 && attempts == 0))             \
+        {                                                           \
+            return touched;                                         \
+        }                                                           \
+        else                                                        \
+        {                                                           \
+            return -EAGAIN;                                         \
+        }                                                           \
+    }                                                               \
+    else                                                            \
+    {                                                               \
+        return -ENOENT;                                             \
     }
 
 /**
@@ -163,17 +153,21 @@ static void sigterm_handler(int signal)
  */
 void init(size_t size)
 {
-    const char * env_ptr = nullptr;
+    const char *env_ptr = nullptr;
 
     deinit();
 
     GDALAllRegister();
 
+#if defined(__linux__)
     env_ptr = getenv("GDALWARP_DEFAULT_NANOS");
     if (env_ptr != nullptr)
     {
         sscanf(env_ptr, "%lud", &default_nanos);
     }
+#else
+    default_nanos = 0;
+#endif
 
     env_ptr = getenv("GDALWARP_NUM_DATASETS");
     if (env_ptr != nullptr)
@@ -599,6 +593,9 @@ int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copi
              void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
+#if !defined(__linux__)
+    nanos = 0;
+#endif
     DOIT(get_pixels(dataset, src_window, dst_window, band_number, type, data))
 }
 
