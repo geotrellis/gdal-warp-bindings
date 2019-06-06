@@ -93,7 +93,7 @@ void *reader(void *argv1)
         get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE);
         get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1);
         get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2);
-        get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
+        get_data(token, token % 2, ATTEMPTS, 0, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf);
     }
 
     return nullptr;
