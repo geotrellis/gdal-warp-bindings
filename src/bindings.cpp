@@ -163,21 +163,34 @@ static void sigterm_handler(int signal)
  */
 void init(size_t size)
 {
+    const char * env_ptr = nullptr;
+
     deinit();
 
     GDALAllRegister();
 
-    cache = new cache_t(size);
-    if (cache == nullptr)
+    env_ptr = getenv("GDALWARP_DEFAULT_NANOS");
+    if (env_ptr != nullptr)
     {
-        throw std::bad_alloc();
+        sscanf(env_ptr, "%lud", &default_nanos);
+    }
+
+    env_ptr = getenv("GDALWARP_NUM_DATASETS");
+    if (env_ptr != nullptr)
+    {
+        sscanf(env_ptr, "%ld", &size);
     }
 
 #if defined(__linux__) || defined(__APPLE__)
-    if (getenv("GDALWARP_SIGTERM_DUMP") != NULL)
+    if (getenv("GDALWARP_SIGTERM_DUMP") != nullptr)
     {
         sa_new.sa_handler = sigterm_handler;
         handler_installed = true;
+
+        if (default_nanos == 0)
+        {
+            default_nanos = 200000000;
+        }
 
         if (sigaction(SIGTERM, &sa_new, &sa_old) == -1)
         {
@@ -186,6 +199,12 @@ void init(size_t size)
         }
     }
 #endif
+
+    cache = new cache_t(size);
+    if (cache == nullptr)
+    {
+        throw std::bad_alloc();
+    }
 
     token_init(640 * (1 << 10)); // This should be enough for anyone
 
