@@ -32,6 +32,6 @@ clean:
 	rm -f *.o  libgdalwarp_bindings.$(SO)
 
 cleaner: clean
-	rm -f rawthread wrapthread pattern
+	rm -f rawthread wrapthread pattern oversubscribe
 
 cleanest: cleaner
