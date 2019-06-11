@@ -52,7 +52,11 @@ public:
     locked_dataset()
         : m_datasets{nullptr, nullptr},
           m_uri_options(),
+#if defined(_GNU_SOURCE)
+          m_dataset_lock(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP),
+#else
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
+#endif
           m_use_count(0)
     {
     }
@@ -60,7 +64,11 @@ public:
     locked_dataset(const uri_options_t &uri_options)
         : m_datasets{nullptr, nullptr},
           m_uri_options(uri_options),
+#if defined(_GNU_SOURCE)
+          m_dataset_lock(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP),
+#else
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
+#endif
           m_use_count(0)
     {
         open();
@@ -70,7 +78,11 @@ public:
 
     locked_dataset(locked_dataset &&rhs) noexcept
         : m_uri_options(std::move(rhs.m_uri_options)),
+#if defined(_GNU_SOURCE)
+          m_dataset_lock(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP),
+#else
           m_dataset_lock(PTHREAD_MUTEX_INITIALIZER),
+#endif
           m_use_count(0) // rhs known to be zero
     {
         assert(rhs.m_use_count == 0);
@@ -369,7 +381,6 @@ public:
             }
         }
         UNLOCK
-
         return true;
     }
 
@@ -514,8 +525,10 @@ public:
         {
             return false;
         }
-
-        return true;
+        else
+        {
+            return true;
+        }
     }
 
     const uri_options_t &uri_options() const
@@ -584,7 +597,12 @@ private:
      */
     void open()
     {
-        pthread_mutex_lock(&m_dataset_lock);
+        if (pthread_mutex_lock(&m_dataset_lock) != 0)
+        {
+            fprintf(stderr, "%s%d\n", __FILE__, __LINE__);
+            m_datasets[SOURCE] = m_datasets[WARPED] = nullptr;
+            return;
+        }
         auto src = m_datasets[SOURCE];
         auto warped = m_datasets[WARPED];
         if (src == nullptr || warped == nullptr)

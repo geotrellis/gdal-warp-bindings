@@ -63,12 +63,24 @@ static uint64_t get_nanos()
 {
 #if defined(__linux__)
     timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
     return (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec;
 #else
     return 0;
 #endif
 }
+
+#if defined(__APPLE__)
+inline void pthread_yield()
+{
+    pthread_yield_np();
+}
+#elif defined(__MINGW32__)
+inline void pthread_yield()
+{
+    sleep(0);
+}
+#endif
 
 /**
  * A macro for making one attempt to perform the given operation on
@@ -105,10 +117,10 @@ static uint64_t get_nanos()
     bool done = false;                                              \
     auto query_result = query_token(token);                         \
     uint64_t then, now;                                             \
-    then = get_nanos();                                             \
     if (query_result)                                               \
     {                                                               \
         auto uri_options = query_result.get();                      \
+        then = get_nanos();                                         \
         int touched = 0;                                            \
         int i;                                                      \
         for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
@@ -127,7 +139,7 @@ static uint64_t get_nanos()
             TRY(fn)                                                 \
             if (!done)                                              \
             {                                                       \
-                sleep(0);                                           \
+                pthread_yield();                                    \
             }                                                       \
         }                                                           \
         if ((i < attempts) || (i > 0 && attempts == 0))             \
@@ -172,7 +184,11 @@ void init(size_t size)
     env_ptr = getenv("GDALWARP_NUM_DATASETS");
     if (env_ptr != nullptr)
     {
+#if defined(__MINGW32__)
+        sscanf(env_ptr, "%lld", &size);
+#else
         sscanf(env_ptr, "%ld", &size);
+#endif
     }
 
 #if defined(__linux__) || defined(__APPLE__)
