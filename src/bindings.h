@@ -74,7 +74,7 @@ extern "C"
     int get_width_height(uint64_t token, int dataset, int attempts, int copies,
                          int *width, int *height);
 
-    int get_data(uint64_t token, int datasets, int attempts, int copies,
+    int get_data(uint64_t token, int datasets, int attempts, uint64_t nanos, int copies,
                  int src_window[4],
                  int dst_window[2],
                  int band_number,

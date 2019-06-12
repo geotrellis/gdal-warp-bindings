@@ -65,3 +65,4 @@ sbt-jni/*.dylib
 sbt-jni/*.so
 sbt-jni/*dll
 
+massif.out.*

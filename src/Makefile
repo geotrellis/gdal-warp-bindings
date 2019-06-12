@@ -1,4 +1,4 @@
-CFLAGS ?= -Wall -Werror -O0 -ggdb3
+CFLAGS ?= -Wall -Werror -O0 -ggdb3 -D_GNU_SOURCE
 CXXFLAGS ?= -std=c++14
 LDFLAGS ?= $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64

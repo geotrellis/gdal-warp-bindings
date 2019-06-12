@@ -20,6 +20,8 @@
 #include <boost/optional.hpp>
 #include "types.hpp"
 
+#define BAD_TOKEN (0)
+
 void token_init(size_t size);
 void token_deinit();
 boost::optional<uri_options_t> query_token(uint64_t token);

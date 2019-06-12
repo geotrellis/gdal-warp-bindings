@@ -40,7 +40,7 @@
 
 typedef flat_lru_cache cache_t;
 
-pthread_mutex_t livelock_mutex = PTHREAD_MUTEX_INITIALIZER;
+uint64_t default_nanos = 0;
 
 cache_t *cache = nullptr;
 
@@ -56,6 +56,29 @@ static void sigterm_handler(int signal)
         raise(SIGSEGV);
         return;
     }
+}
+#endif
+
+static uint64_t get_nanos()
+{
+#if defined(__linux__)
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return (((uint64_t)ts.tv_sec) * 1000000000) + ts.tv_nsec;
+#else
+    return 0;
+#endif
+}
+
+#if defined(__APPLE__)
+inline void pthread_yield()
+{
+    pthread_yield_np();
+}
+#elif defined(__MINGW32__)
+inline void pthread_yield()
+{
+    sleep(0);
 }
 #endif
 
@@ -81,8 +104,6 @@ static void sigterm_handler(int signal)
         ld->dec();                  \
     }
 
-#define TOO_MANY_ITERATIONS (attempts > (1 << 5) ? attempts - 33 : 1 << 16)
-
 /**
  * A macro for making some number of attempts to perform an operation
  * on (one of) a list of locked datasets.  If an attempt succeeds,
@@ -95,40 +116,33 @@ static void sigterm_handler(int signal)
 #define DOIT(fn)                                                    \
     bool done = false;                                              \
     auto query_result = query_token(token);                         \
+    uint64_t then, now;                                             \
     if (query_result)                                               \
     {                                                               \
         auto uri_options = query_result.get();                      \
-        bool has_lock = false;                                      \
+        then = get_nanos();                                         \
         int touched = 0;                                            \
         int i;                                                      \
         for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
         {                                                           \
-            if (i >= TOO_MANY_ITERATIONS && !has_lock)              \
+            now = get_nanos();                                      \
+            if ((nanos > 0) && (now - then > nanos))                \
             {                                                       \
-                pthread_mutex_lock(&livelock_mutex);                \
-                has_lock = true;                                    \
+                return -EAGAIN;                                     \
             }                                                       \
             auto locked_datasets = cache->get(uri_options, copies); \
             const auto num_datasets = locked_datasets.size();       \
             if (num_datasets == 0)                                  \
             {                                                       \
-                if (has_lock)                                       \
-                {                                                   \
-                    pthread_mutex_unlock(&livelock_mutex);          \
-                }                                                   \
                 return -EAGAIN;                                     \
             }                                                       \
             TRY(fn)                                                 \
-            if (!done && !has_lock)                                 \
+            if (!done)                                              \
             {                                                       \
-                sleep(0);                                           \
+                pthread_yield();                                    \
             }                                                       \
         }                                                           \
-        if (has_lock)                                               \
-        {                                                           \
-            pthread_mutex_unlock(&livelock_mutex);                  \
-        }                                                           \
-        if (i < attempts || (i > 0 && attempts == 0))               \
+        if ((i < attempts) || (i > 0 && attempts == 0))             \
         {                                                           \
             return touched;                                         \
         }                                                           \
@@ -151,21 +165,42 @@ static void sigterm_handler(int signal)
  */
 void init(size_t size)
 {
+    const char *env_ptr = nullptr;
+
     deinit();
 
     GDALAllRegister();
 
-    cache = new cache_t(size);
-    if (cache == nullptr)
+#if defined(__linux__)
+    env_ptr = getenv("GDALWARP_DEFAULT_NANOS");
+    if (env_ptr != nullptr)
     {
-        throw std::bad_alloc();
+        sscanf(env_ptr, "%lud", &default_nanos);
+    }
+#else
+    default_nanos = 0;
+#endif
+
+    env_ptr = getenv("GDALWARP_NUM_DATASETS");
+    if (env_ptr != nullptr)
+    {
+#if defined(__MINGW32__)
+        sscanf(env_ptr, "%lld", &size);
+#else
+        sscanf(env_ptr, "%ld", &size);
+#endif
     }
 
 #if defined(__linux__) || defined(__APPLE__)
-    if (getenv("GDALWARP_SIGTERM_DUMP") != NULL)
+    if (getenv("GDALWARP_SIGTERM_DUMP") != nullptr)
     {
         sa_new.sa_handler = sigterm_handler;
         handler_installed = true;
+
+        if (default_nanos == 0)
+        {
+            default_nanos = 250000000;
+        }
 
         if (sigaction(SIGTERM, &sa_new, &sa_old) == -1)
         {
@@ -175,7 +210,13 @@ void init(size_t size)
     }
 #endif
 
-    token_init(640 * (1 << 10)); // This should be enough for anyone
+    cache = new cache_t(size);
+    if (cache == nullptr)
+    {
+        throw std::bad_alloc();
+    }
+
+    token_init(1 << 15);
 
     return;
 }
@@ -226,6 +267,7 @@ void __attribute__((destructor)) fini(void)
 int get_block_size(uint64_t token, int dataset, int attempts, int copies,
                    int band_number, int *width, int *height)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_block_size(dataset, band_number, width, height));
 }
 
@@ -246,6 +288,7 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
 int get_offset(uint64_t token, int dataset, int attempts, int copies,
                int band_number, double *offset, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_offset(dataset, band_number, offset, success));
 }
 
@@ -266,6 +309,7 @@ int get_offset(uint64_t token, int dataset, int attempts, int copies,
 int get_scale(uint64_t token, int dataset, int attempts, int copies,
               int band_number, double *scale, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_scale(dataset, band_number, scale, success));
 }
 
@@ -286,6 +330,7 @@ int get_scale(uint64_t token, int dataset, int attempts, int copies,
 int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, int *color_interp)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_color_interpretation(dataset, band_number, color_interp));
 }
 
@@ -306,6 +351,7 @@ int get_color_interpretation(uint64_t token, int dataset, int attempts, int copi
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, char ***domain_list)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata_domain_list(dataset, band_number, domain_list));
 }
 
@@ -327,6 +373,7 @@ int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copi
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
                  int band_number, const char *domain, char ***list)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata(dataset, band_number, domain, list));
 }
 
@@ -349,6 +396,7 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
                       int band_number, const char *key, const char *domain, const char **value)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_metadata_item(dataset, band_number, key, domain, value));
 }
 
@@ -375,6 +423,7 @@ int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
 int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
                                 int band_number, int *widths, int *heights, int max_length)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_overview_widths_heights(dataset, band_number, widths, heights, max_length))
 }
 
@@ -395,6 +444,7 @@ int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int c
 int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
                   char *crs, int max_size)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_crs_proj4(dataset, crs, max_size));
 }
 
@@ -415,6 +465,7 @@ int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
 int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
                 char *crs, int max_size)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_crs_wkt(dataset, crs, max_size))
 }
 
@@ -437,6 +488,7 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
 int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
                     int band_number, double *nodata, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_nodata(dataset, band_number, nodata, success))
 }
 
@@ -462,6 +514,7 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
 int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
                      int band_number, int approx_okay, double *minmax, int *success)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_max_min(dataset, band_number, approx_okay, minmax, success));
 }
 
@@ -483,6 +536,7 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
 int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
                        int band_number, int *data_type)
 {
+    uint64_t nanos = default_nanos;
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);
     DOIT(get_band_data_type(dataset, band_number, ptr));
 }
@@ -503,6 +557,7 @@ int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
 int get_band_count(uint64_t token, int dataset, int attempts, int copies,
                    int *band_count)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_band_count(dataset, band_count))
 }
 
@@ -523,6 +578,7 @@ int get_band_count(uint64_t token, int dataset, int attempts, int copies,
 int get_width_height(uint64_t token, int dataset, int attempts, int copies,
                      int *width, int *height)
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_width_height(dataset, width, height))
 }
 
@@ -534,6 +590,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  *                dataset, 1 (or locked_dataset::WARPED) for the
  *                warped dataset
  * @param attempts The number of attempts to make before giving up
+ * @param nanos The approximate time budget for this call (in nanoseconds)
  * @param copies The desired number of datasets
  * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
  * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
@@ -544,7 +601,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @return The number of attempts made (upon success) or a negative
  *         errno (upon failure)
  */
-int get_data(uint64_t token, int dataset, int attempts, int copies,
+int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copies,
              int src_window[4],
              int dst_window[2],
              int band_number,
@@ -552,6 +609,9 @@ int get_data(uint64_t token, int dataset, int attempts, int copies,
              void *data)
 {
     auto type = static_cast<GDALDataType>(_type);
+#if !defined(__linux__)
+    nanos = 0;
+#endif
     DOIT(get_pixels(dataset, src_window, dst_window, band_number, type, data))
 }
 
@@ -572,5 +632,6 @@ int get_data(uint64_t token, int dataset, int attempts, int copies,
 int get_transform(uint64_t token, int dataset, int attempts, int copies,
                   double transform[6])
 {
+    uint64_t nanos = default_nanos;
     DOIT(get_transform(dataset, transform))
 }

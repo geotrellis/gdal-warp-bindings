@@ -39,7 +39,11 @@ static std::uniform_int_distribution<token_t> dist;
 void token_init(size_t size)
 {
     g = std::mt19937_64(std::random_device{}());
+#if defined(_GNU_SOURCE)
+    token_lock = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+#else
     token_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
     cache = new lru_cache(size);
 }
 
@@ -86,8 +90,12 @@ uint64_t get_token(const char *_uri, const char **_options)
         _options++;
     }
 
-    pthread_mutex_lock(&token_lock);
-    while (cache->contains(token))
+    if (pthread_mutex_lock(&token_lock) != 0)
+    {
+        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
+        return BAD_TOKEN;
+    }
+    while (cache->contains(token) || token == BAD_TOKEN)
     {
         token = generate_token();
     }
@@ -105,10 +113,21 @@ uint64_t get_token(const char *_uri, const char **_options)
  */
 boost::optional<uri_options_t> query_token(uint64_t _token)
 {
-    pthread_mutex_lock(&token_lock);
-    auto token = static_cast<token_t>(_token);
-    auto maybe_uri_options = cache->get(token);
-    pthread_mutex_unlock(&token_lock);
+    if (_token == BAD_TOKEN)
+    {
+        return boost::optional<uri_options_t>();
+    }
+    else if (pthread_mutex_lock(&token_lock) != 0)
+    {
+        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
+        return boost::optional<uri_options_t>();
+    }
+    else
+    {
+        auto token = static_cast<token_t>(_token);
+        auto maybe_uri_options = cache->get(token);
+        pthread_mutex_unlock(&token_lock);
 
-    return maybe_uri_options;
+        return maybe_uri_options;
+    }
 }

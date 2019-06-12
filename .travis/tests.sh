@@ -5,7 +5,7 @@ ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif # sic
 docker run -it --rm \
       -v $(pwd):/workdir \
       -e CC=gcc -e CXX=g++ \
-      -e CFLAGS="-Wall -Werror -O -DSO_FINI" \
+      -e CFLAGS="-Wall -Werror -O0 -ggdb3 -DSO_FINI -D_GNU_SOURCE" \
       -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
       jamesmcclain/gdal-build-environment:3 make -j4 -C src tests || exit -1
 
@@ -18,10 +18,11 @@ docker run -it --rm \
 rm -f $(find | grep '\.o$')
 docker run -it --rm \
       -v $(pwd):/workdir \
-      -e OSXCROSS_NO_INCLUDE_PATH_WARNINGS \
+      -e OSXCROSS_NO_INCLUDE_PATH_WARNINGS=1 \
       -e CROSS_TRIPLE="x86_64-apple-darwin" \
       -e OS=darwin -e SO=dylib \
       -e CC=cc -e CXX=c++ \
+      -e CFLAGS="-Wall -Werror -O0 -ggdb3" \
       -e JAVA_HOME="/macintosh/jdk8u202-b08/Contents/Home" \
       -e GDALCFLAGS="-I/macintosh/gdal/2.4.0_1/include" \
       -e CXXFLAGS="-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"  \
@@ -33,7 +34,7 @@ docker run -it --rm \
       -v $(pwd):/workdir \
       -e CROSS_TRIPLE=x86_64-w64-mingw32 \
       -e OS=win32 \
-      -e CFLAGS="-Wall -O" \
+      -e CFLAGS="-Wall -Werror -Os -g" \
       -e JAVA_HOME="/windows/jdk8u202-b08" \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
       -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" \

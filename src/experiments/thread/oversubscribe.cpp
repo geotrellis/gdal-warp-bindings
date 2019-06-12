@@ -51,8 +51,8 @@ char const *options[] = {
 constexpr int N = (128);
 constexpr int DIM = 1 << 8;
 constexpr int BUFFERSIZE = DIM * DIM;
-constexpr int ATTEMPTS = 1 << 16;
-constexpr int COPIES = -4;
+constexpr int ATTEMPTS = (0);
+constexpr int COPIES = -8;
 
 // Threads
 int lg_steps = 8;
@@ -61,6 +61,7 @@ pthread_t threads[N];
 // Statistics
 std::atomic<int> good = 0;
 std::atomic<int> bad = 0;
+std::atomic<int> touched = 0;
 
 // ANSI
 // Reference: https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
@@ -73,17 +74,18 @@ std::atomic<int> bad = 0;
 #define ANSI_COLOR_CYAN "\x1b[36;1m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-#define NOTE(fn)       \
-    {                  \
-        int temp = fn; \
-        if (temp > 0)  \
-        {              \
-            good++;    \
-        }              \
-        else           \
-        {              \
-            bad++;     \
-        }              \
+#define NOTE(fn)             \
+    {                        \
+        int temp = fn;       \
+        if (temp > 0)        \
+        {                    \
+            touched += temp; \
+            good++;          \
+        }                    \
+        else                 \
+        {                    \
+            bad++;           \
+        }                    \
     }
 
 void *reader(void *argv1)
@@ -107,8 +109,10 @@ void *reader(void *argv1)
         NOTE(get_crs_proj4(token, token % 2, ATTEMPTS, COPIES, buf, BUFFERSIZE));
         NOTE(get_band_nodata(token, token % 2, ATTEMPTS, COPIES, 1, transform, &scratch1));
         NOTE(get_width_height(token, token % 2, ATTEMPTS, COPIES, &scratch1, &scratch2));
-        NOTE(get_data(token, token % 2, ATTEMPTS, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf));
+        NOTE(get_data(token, token % 2, ATTEMPTS, 0, COPIES, src_window, dst_window, 1, 1 /* GDT_Byte */, buf));
     }
+
+    free(buf);
 
     return nullptr;
 }
@@ -118,6 +122,7 @@ bool keep_going = true;
 int main(int argc, char **argv)
 {
     int n = N;
+    size_t datasets = (1 << 2);
 
     if (argc < 2)
     {
@@ -137,10 +142,18 @@ int main(int argc, char **argv)
         }
         fprintf(stderr, ANSI_COLOR_BLUE "n = %d\n" ANSI_COLOR_RESET, n);
     }
+    if (argc >= 5)
+    {
+        sscanf(argv[4], "%lu", &datasets);
+        if (datasets < 0)
+        {
+            datasets = (1 << 2);
+        }
+        fprintf(stderr, ANSI_COLOR_BLUE "datasets = %lu\n" ANSI_COLOR_RESET, datasets);
+    }
 
     // Setup
-
-    init(1 << 2);
+    init(datasets);
     dup2(open("/dev/null", O_WRONLY), 2);
 
     for (int i = 0; i < n; ++i)
@@ -154,7 +167,8 @@ int main(int argc, char **argv)
     }
     fprintf(stdout, "\n");
 
-    fprintf(stdout, "%lf\n", ((double)good.load() * 100) / (good.load() + bad.load()));
+    fprintf(stdout, "%% successful: %lf\n", (good.load() * 100.0) / (good.load() + bad.load()));
+    fprintf(stdout, "touched/good: %lf\n", (touched.load() * 100.0) / (good.load()));
 
     deinit();
 
