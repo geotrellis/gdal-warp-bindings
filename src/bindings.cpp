@@ -199,7 +199,7 @@ void init(size_t size)
 
         if (default_nanos == 0)
         {
-            default_nanos = 200000000;
+            default_nanos = 250000000;
         }
 
         if (sigaction(SIGTERM, &sa_new, &sa_old) == -1)
@@ -216,7 +216,7 @@ void init(size_t size)
         throw std::bad_alloc();
     }
 
-    token_init(640 * (1 << 10)); // This should be enough for anyone
+    token_init(1 << 15);
 
     return;
 }
