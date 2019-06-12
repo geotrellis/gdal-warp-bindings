@@ -246,6 +246,7 @@ public:
         OSRExportToProj4(ref, &result);
         strncpy(crs, result, max_size);
         CPLFree(result);
+        OSRDestroySpatialReference(ref);
         UNLOCK
         return true;
     }
