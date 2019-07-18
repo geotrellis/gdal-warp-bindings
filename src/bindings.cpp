@@ -164,19 +164,14 @@ inline void pthread_yield()
     }
 
 /**
- * The initialization function for the library.
+ * Initialize various globals from values in the environment and
+ * (possibly) install the SIGTERM signal handler.
  *
- * @param size The maximum number of locked_dataset objects (each
- *             containing two GDAL Dataset objects) that can be live
- *             at one time.
+ * @param size A pointer to the desired maximum number of datasets
  */
-void init(size_t size)
+void env_init(size_t * size)
 {
     const char *env_ptr = nullptr;
-
-    deinit();
-
-    GDALAllRegister();
 
 #if defined(__linux__)
     env_ptr = getenv("GDALWARP_DEFAULT_NANOS");
@@ -192,9 +187,9 @@ void init(size_t size)
     if (env_ptr != nullptr)
     {
 #if defined(__MINGW32__)
-        sscanf(env_ptr, "%lld", &size);
+        sscanf(env_ptr, "%lld", size);
 #else
-        sscanf(env_ptr, "%ld", &size);
+        sscanf(env_ptr, "%ld", size);
 #endif
     }
 
@@ -216,15 +211,61 @@ void init(size_t size)
         }
     }
 #endif
+}
 
-    errno_init();
+/**
+ * Deinitialize environmentally-controlled structures and behaviors.
+ */
+void env_deinit()
+{
+#if defined(__linux__) || defined(__APPLE__)
+    if (handler_installed)
+    {
+        sigaction(SIGTERM, &sa_old, nullptr);
+    }
+#endif
+}
 
+/**
+ * Initialize the dataset cache.
+ *
+ * @param size The maximum number of entries in the cache
+ */
+void cache_init(size_t size)
+{
     cache = new cache_t{size};
     if (cache == nullptr)
     {
         throw std::bad_alloc();
     }
+}
 
+/**
+ * Deinitialize the dataset cache.
+ */
+void cache_deinit()
+{
+    if (cache != nullptr)
+    {
+        delete cache;
+        cache = nullptr;
+    }
+}
+
+/**
+ * The initialization function for the library.
+ *
+ * @param size The maximum number of locked_dataset objects (each
+ *             containing two GDAL Dataset objects) that can be live
+ *             at one time.
+ */
+void init(size_t size)
+{
+    deinit();
+    GDALAllRegister();
+    errno_init();
+    env_init(&size);
+    cache_init(size);
     token_init(1 << 15);
 
     return;
@@ -236,20 +277,8 @@ void init(size_t size)
 void deinit()
 {
     errno_deinit();
-
-    if (cache != nullptr)
-    {
-        delete cache;
-        cache = nullptr;
-    }
-
-#if defined(__linux__) || defined(__APPLE__)
-    if (handler_installed)
-    {
-        sigaction(SIGTERM, &sa_old, nullptr);
-    }
-#endif
-
+    env_deinit();
+    cache_deinit();
     token_deinit();
 }
 
