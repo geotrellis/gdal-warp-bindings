@@ -23,11 +23,11 @@
 #include <ctime>
 #include <exception>
 #include <string>
-#include <map>
 #include <vector>
 
 #include <errno.h>
 #include <unistd.h>
+
 #include <pthread.h>
 
 #include <gdal.h>
@@ -37,16 +37,16 @@
 #include "flat_lru_cache.hpp"
 #include "locked_dataset.hpp"
 #include "tokens.hpp"
+#include "errorcodes.hpp"
+
+static uint64_t default_nanos = 0;
 
 typedef flat_lru_cache cache_t;
-
-uint64_t default_nanos = 0;
-
-cache_t *cache = nullptr;
+static cache_t *cache = nullptr;
 
 #if defined(__linux__) || defined(__APPLE__)
-struct sigaction sa_old, sa_new;
-bool handler_installed = false;
+static struct sigaction sa_old, sa_new;
+static bool handler_installed = false;
 
 // SIGTERM handler
 static void sigterm_handler(int signal)
@@ -217,7 +217,9 @@ void init(size_t size)
     }
 #endif
 
-    cache = new cache_t(size);
+    errno_init();
+
+    cache = new cache_t{size};
     if (cache == nullptr)
     {
         throw std::bad_alloc();
@@ -233,6 +235,8 @@ void init(size_t size)
  */
 void deinit()
 {
+    errno_deinit();
+
     if (cache != nullptr)
     {
         delete cache;

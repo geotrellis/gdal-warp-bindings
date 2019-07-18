@@ -6,7 +6,7 @@ GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 OS ?= linux
 SO ?= so
-HEADERS = bindings.h types.hpp flat_lru_cache.hpp locked_dataset.hpp tokens.hpp
+HEADERS = bindings.h types.hpp flat_lru_cache.hpp locked_dataset.hpp tokens.hpp errorcodes.hpp
 
 all: tests libgdalwarp_bindings.$(SO)
 
@@ -24,10 +24,10 @@ com_azavea_gdal_GDALWarp.obj: com_azavea_gdal_GDALWarp.c
 %.obj: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) -fPIC $< -c -o $@
 
-libgdalwarp_bindings.$(SO): com_azavea_gdal_GDALWarp.o bindings.o tokens.o
+libgdalwarp_bindings.$(SO): com_azavea_gdal_GDALWarp.o bindings.o tokens.o errorcodes.o
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
-gdalwarp_bindings.dll: com_azavea_gdal_GDALWarp.obj bindings.obj tokens.obj
+gdalwarp_bindings.dll: com_azavea_gdal_GDALWarp.obj bindings.obj tokens.obj errorcodes.obj
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 experiments/data:

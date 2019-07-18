@@ -38,6 +38,8 @@ typedef _locale_t locale_t;
 
 #include "types.hpp"
 
+extern int get_last_errno();
+
 typedef std::atomic<int> atomic_int_t;
 
 constexpr int ATTEMPT_SUCCESSFUL = std::numeric_limits<int>::max();
@@ -531,7 +533,7 @@ public:
 
         if (retval != CE_None)
         {
-            return -CPLGetLastErrorNo();
+            return -get_last_errno();
         }
         else
         {
