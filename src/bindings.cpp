@@ -90,18 +90,19 @@ inline void pthread_yield()
  *
  * @param fn The operation to perform
  */
-#define TRY(fn)                               \
-    for (auto ld : locked_datasets)           \
-    {                                         \
-        if (!done)                            \
-        {                                     \
-            ++touched;                        \
-            if (ld->fn == ATTEMPT_SUCCESSFUL) \
-            {                                 \
-                done = true;                  \
-            }                                 \
-        }                                     \
-        ld->dec();                            \
+#define TRY(fn)                                                       \
+    for (auto ld : locked_datasets)                                   \
+    {                                                                 \
+        if (!done)                                                    \
+        {                                                             \
+            ++touched;     \
+            code = ld->fn;                                           \
+            if (code == ATTEMPT_SUCCESSFUL && code != DATASET_LOCKED) \
+            {                                                         \
+                done = true;                                          \
+            }                                                         \
+        }                                                             \
+        ld->dec();                                                    \
     }
 
 /**
@@ -109,51 +110,57 @@ inline void pthread_yield()
  * on (one of) a list of locked datasets.  If an attempt succeeds,
  * return the number of attempts made (so that intelligent tuning is
  * possible in the application that uses this library), otherwise
- * return the negative of some errno.
+ * return the negative of some CPLErrorNum (see
+ * https://gdal.org/doxygen/cpl__error_8h.html).
  *
  * @param fn The operation to perform
  */
-#define DOIT(fn)                                                    \
-    bool done = false;                                              \
-    auto query_result = query_token(token);                         \
-    uint64_t then, now;                                             \
-    if (query_result)                                               \
-    {                                                               \
-        auto uri_options = query_result.get();                      \
-        then = get_nanos();                                         \
-        int touched = 0;                                            \
-        int i;                                                      \
-        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
-        {                                                           \
-            now = get_nanos();                                      \
-            if ((nanos > 0) && (now - then > nanos))                \
-            {                                                       \
-                return -EAGAIN;                                     \
-            }                                                       \
-            auto locked_datasets = cache->get(uri_options, copies); \
-            const auto num_datasets = locked_datasets.size();       \
-            if (num_datasets == 0)                                  \
-            {                                                       \
-                return -EAGAIN;                                     \
-            }                                                       \
-            TRY(fn)                                                 \
-            if (!done)                                              \
-            {                                                       \
-                pthread_yield();                                    \
-            }                                                       \
-        }                                                           \
-        if ((i < attempts) || (i > 0 && attempts == 0))             \
-        {                                                           \
-            return touched;                                         \
-        }                                                           \
-        else                                                        \
-        {                                                           \
-            return -EAGAIN;                                         \
-        }                                                           \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        return -ENOENT;                                             \
+#define DOIT(fn)                                                                          \
+    bool done = false;                                                                    \
+    auto query_result = query_token(token);                                               \
+    int code = -CPLE_AppDefined;                                                          \
+    uint64_t then, now;                                                                   \
+    if (query_result)                                                                     \
+    {                                                                                     \
+        auto uri_options = query_result.get();                                            \
+        then = get_nanos();                                                               \
+        int touched = 0;                                                                  \
+        int i;                                                                            \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)                        \
+        {                                                                                 \
+            now = get_nanos();                                                            \
+            if ((nanos > 0) && (now - then > nanos))                                      \
+            {                                                                             \
+                return -CPLE_AppDefined;                                                  \
+            }                                                                             \
+            auto locked_datasets = cache->get(uri_options, copies);                       \
+            const auto num_datasets = locked_datasets.size();                             \
+            if (num_datasets == 0)                                                        \
+            {                                                                             \
+                return -CPLE_AppDefined;                                                  \
+            }                                                                             \
+            TRY(fn)                                                                       \
+            if (!done)                                                                    \
+            {                                                                             \
+                pthread_yield();                                                          \
+            }                                                                             \
+        }                                                                                 \
+        if ((code == ATTEMPT_SUCCESSFUL) && ((i < attempts) || (i > 0 && attempts == 0))) \
+        {                                                                                 \
+            return touched;                                                               \
+        }                                                                                 \
+        else if (code == ATTEMPT_SUCCESSFUL || code == DATASET_LOCKED)                    \
+        {                                                                                 \
+            return -CPLE_AppDefined;                                                      \
+        }                                                                                 \
+        else                                                                              \
+        {                                                                                 \
+            return code;                                                                  \
+        }                                                                                 \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+        return -CPLE_OpenFailed;                                                          \
     }
 
 /**

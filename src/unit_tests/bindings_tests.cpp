@@ -17,7 +17,7 @@
 #define BOOST_TEST_MODULE Bindings Unit Tests
 #include <boost/test/included/unit_test.hpp>
 
-#include <errno.h>
+#include <cpl_error.h>
 
 #include "bindings.h"
 #include "locked_dataset.hpp"
@@ -86,8 +86,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, copies, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, copies, 1, &nodata, &success) == -CPLE_AppDefined);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, copies, 1, &nodata, &success) == -CPLE_AppDefined);
 
     deinit();
 }
@@ -100,8 +100,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -CPLE_AppDefined);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -CPLE_AppDefined);
 
     deinit();
 }
@@ -114,8 +114,8 @@ BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
 
     deinit();
 }
@@ -128,8 +128,8 @@ BOOST_AUTO_TEST_CASE(bad_token_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
 
     deinit();
 }

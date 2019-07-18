@@ -41,12 +41,12 @@ typedef _locale_t locale_t;
 typedef std::atomic<int> atomic_int_t;
 
 constexpr int ATTEMPT_SUCCESSFUL = std::numeric_limits<int>::max();
-constexpr int ALREADY_LOCKED = std::numeric_limits<int>::lowest();
+constexpr int DATASET_LOCKED = std::numeric_limits<int>::lowest();
 
 #define TRYLOCK                                      \
     if (pthread_mutex_trylock(&m_dataset_lock) != 0) \
     {                                                \
-        return ALREADY_LOCKED;                       \
+        return DATASET_LOCKED;                       \
     }
 
 #define SUCCESS return ATTEMPT_SUCCESSFUL;
@@ -142,7 +142,7 @@ public:
      * @param band_number The band in question
      * @param width The return-location of the block width
      * @param height The return-location of the block height
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_block_size(int dataset, int band_number, int *width, int *height)
     {
@@ -160,7 +160,7 @@ public:
      * @param band_number The band in question
      * @param offset The return-location of the offset
      * @param success The return-location of the success flag
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_offset(int dataset, int band_number, double *offset, int *success)
     {
@@ -178,7 +178,7 @@ public:
      * @param band_number The band in question
      * @param scale The return-location of the scale
      * @param success The return-location of the success flag
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_scale(int dataset, int band_number, double *scale, int *success)
     {
@@ -196,7 +196,7 @@ public:
      * @param band_number The band in question
      * @param color_interp The return-slot for the integer-coded color
      *                     interpretation
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_color_interpretation(int dataset, int band_number, int *color_interp)
     {
@@ -216,7 +216,7 @@ public:
      * @param widths The array in which to return the widths
      * @param heights The array in which to return the heights
      * @param max_length The maximum of number of widths and heights to return
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_overview_widths_heights(int dataset, int band_number, int *widths, int *heights, int max_length)
     {
@@ -243,7 +243,7 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param crs The location at-which to return the PROJ.4 string
      * @param max_size The maximum PROJ.4 string size
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_crs_proj4(int dataset, char *crs, int max_size)
     {
@@ -264,7 +264,7 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param crs The location at-which to return the WKT string
      * @param max_size The maximum WKT string size
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_crs_wkt(int dataset, char *crs, int max_size)
     {
@@ -282,7 +282,7 @@ public:
      * @param band_number The band in question
      * @param nodata The return-location for the nodata value
      * @param success The return slot for the "is there nodata" value
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_band_nodata(int dataset, int band_number, double *nodata, int *success)
     {
@@ -300,7 +300,7 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band in question
      * @param data_type The type of the band in question
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
     {
@@ -317,7 +317,7 @@ public:
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_count The return-location for the integer band count
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_band_count(int dataset, int *band_count) const
     {
@@ -332,7 +332,7 @@ public:
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param transform The return-location of the transform
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_transform(int dataset, double transform[6]) const
     {
@@ -348,7 +348,7 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param width The return-location for the width
      * @param height The return-location for the height
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_width_height(int dataset, int *width, int *height)
     {
@@ -369,7 +369,7 @@ public:
      *                    and max values are okay
      * @param minmax The return-array for the minimum and maximum
      * @param success The return slot for the "success" flag
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_band_max_min(int dataset, int band_number, int approx_okay, double *minmax, int *success)
     {
@@ -398,7 +398,7 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band to query (zero for the file itself)
      * @param domain_list The return-location for the list of strings
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
     {
@@ -432,7 +432,7 @@ public:
      * @param band_number The band to query (zero for the file itself)
      * @param domain The metadata domain to query
      * @param list The return-location for the list of strings
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_metadata(int dataset, int band_number, const char *domain, char ***list)
     {
@@ -465,7 +465,7 @@ public:
      * @param key The key of the key ⨯ value metadata pair
      * @param doamin The metadata domain to query
      * @param value The return-location for the value of the key ⨯ value pair
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
     {
@@ -505,7 +505,7 @@ public:
      * @param band_number The band from which to read
      * @param type The datatype of the destination buffer
      * @param data A pointer to the destination buffer
-     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_pixels(int dataset,
                     const int src_window[4],

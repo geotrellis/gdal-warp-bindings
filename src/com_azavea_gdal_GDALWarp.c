@@ -129,7 +129,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1block_1size(JNIEnv *en
     (*env)->ReleaseIntArrayElements(env, _width, width, 0);
     (*env)->ReleaseIntArrayElements(env, _height, height, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jclass obj,
@@ -147,7 +147,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jc
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _offset, offset, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jclass obj,
@@ -165,7 +165,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jcl
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _scale, scale, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1color_1interpretation(JNIEnv *env, jclass obj,
@@ -180,7 +180,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1color_1interpretation(
     jint retval = get_color_interpretation(token, dataset, attempts, copies, band_number, (int *)color_interp);
     (*env)->ReleaseIntArrayElements(env, _color_interp, color_interp, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata_1domain_1list(JNIEnv *env, jclass obj,
@@ -263,7 +263,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heig
     (*env)->ReleaseIntArrayElements(env, _heights, heights, 0);
     (*env)->ReleaseIntArrayElements(env, _widths, widths, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env, jclass obj,
@@ -277,7 +277,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1proj4(JNIEnv *env
     jint retval = get_crs_proj4(token, dataset, attempts, copies, (char *)crs, max_size);
     (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, jclass obj,
@@ -291,7 +291,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1crs_1wkt(JNIEnv *env, 
     jint retval = get_crs_wkt(token, dataset, attempts, copies, (char *)crs, max_size);
     (*env)->ReleaseByteArrayElements(env, _crs, crs, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *env, jclass obj,
@@ -308,7 +308,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1nodata(JNIEnv *e
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _nodata, nodata, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1min_1max(JNIEnv *env, jclass obj,
@@ -326,7 +326,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1min_1max(JNIEnv 
     (*env)->ReleaseIntArrayElements(env, _success, success, 0);
     (*env)->ReleaseDoubleArrayElements(env, _minmax, minmax, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEnv *env, jclass obj,
@@ -340,7 +340,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEn
     jint retval = get_band_data_type(token, dataset, attempts, copies, band, (int *)data_type);
     (*env)->ReleaseIntArrayElements(env, _data_type, data_type, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv *env, jclass obj,
@@ -353,7 +353,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1count(JNIEnv *en
     jint retval = get_band_count(token, dataset, attempts, copies, (int *)band_count);
     (*env)->ReleaseIntArrayElements(env, _band_count, band_count, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclass obj,
@@ -367,7 +367,7 @@ jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1width_1height(JNIEnv *env, jclas
     jint retval = get_width_height(token, dataset, attempts, copies, (int *)width_height, (int *)(width_height + 1));
     (*env)->ReleaseIntArrayElements(env, _width_height, width_height, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobject obj,
@@ -435,7 +435,7 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1data(JNIEnv *env, jobj
     (*env)->ReleaseIntArrayElements(env, _dst_window, dst_window, JNI_ABORT);
     (*env)->ReleaseIntArrayElements(env, _src_window, src_window, JNI_ABORT);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env, jclass obj,
@@ -448,5 +448,5 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1transform(JNIEnv *env,
     jint retval = get_transform(token, dataset, attempts, copies, transform);
     (*env)->ReleaseDoubleArrayElements(env, _transform, transform, 0);
 
-    return (retval == -ENOENT ? -2 : (retval == -EAGAIN ? -1 : retval));
+    return retval;
 }
