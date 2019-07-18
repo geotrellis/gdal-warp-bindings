@@ -107,11 +107,11 @@ public class GDALWarp {
                 int len = _get_version_info(key, value);
 
                 if (len < first_size) {
-                        return new String(value, "UTF-8");
+                        return new String(value, "UTF-8").trim();
                 } else {
                         byte[] value2 = new byte[len + 1];
                         _get_version_info(key, value2);
-                        return new String(value2, "UTF-8");
+                        return new String(value2, "UTF-8").trim();
                 }
         }
 

@@ -121,12 +121,20 @@ class GDALWarpThreadTest extends Thread {
         GDALWarp.set_config_option("COMPRESS_OVERVIEW", "DEFLATE"); // Just for fun
 
         // Version Information
-        System.out.println(
-                ANSI_BLUE + "Version info: " + ANSI_GREEN + GDALWarp.get_version_info("--version") + ANSI_RESET);
+        {
+            String version = GDALWarp.get_version_info("--version");
+            System.out.println(ANSI_BLUE + "Version info: " + ANSI_GREEN + version + ANSI_RESET);
+            System.out
+                    .println(ANSI_BLUE + "Version string length: " + ANSI_GREEN + version.length() + ANSI_RESET);
+        }
 
         // License
-        System.out
-                .println(ANSI_BLUE + "GDAL license:\n" + ANSI_CYAN + GDALWarp.get_version_info("LICENSE") + ANSI_RESET);
+        {
+            String license = GDALWarp.get_version_info("LICENSE");
+            System.out.println(ANSI_BLUE + "GDAL license:\n" + ANSI_CYAN + license + "\n" + ANSI_RESET);
+            System.out.println(
+                    ANSI_BLUE + "GDAL license string length: " + ANSI_CYAN + license.length() + "\n" + ANSI_RESET);
+        }
 
         // Band Count
         {
