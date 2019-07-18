@@ -95,8 +95,8 @@ inline void pthread_yield()
     {                                                                 \
         if (!done)                                                    \
         {                                                             \
-            ++touched;     \
-            code = ld->fn;                                           \
+            ++touched;                                                \
+            code = ld->fn;                                            \
             if (code == ATTEMPT_SUCCESSFUL && code != DATASET_LOCKED) \
             {                                                         \
                 done = true;                                          \
@@ -599,8 +599,8 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @param attempts The number of attempts to make before giving up
  * @param nanos The approximate time budget for this call (in nanoseconds)
  * @param copies The desired number of datasets
- * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
- * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
+ * @param src_window Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+ * @param dst_window Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
  * @param band_number The band_number number of interest
  * @param _type The desired type of returned pixels (the argument is
  *              of integral type GDALDataType)

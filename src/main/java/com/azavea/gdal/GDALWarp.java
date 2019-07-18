@@ -98,7 +98,7 @@ public class GDALWarp {
          * Get GDAL version information.
          *
          * @param key The key of the desired information (please see
-         *            https://www.gdal.org/gdal_8h.html#acc50a4a63bc430d31abe1bca3f822da5)
+         *            https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv415GDALVersionInfoPKc)
          * @return The requested information
          */
         public static String get_version_info(String key) throws Exception {
@@ -392,8 +392,8 @@ public class GDALWarp {
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                    GDALWarp::WARPED) for the warped dataset
          * @param attempts    The number of attempts to make before giving up
-         * @param src_window  https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
-         * @param dst_window  https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
+         * @param src_window  Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+         * @param dst_window  Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
          * @param band_number The band_number number of interest
          * @param type        The desired type of returned pixels (the argument is of
          *                    integral type GDALDataType)

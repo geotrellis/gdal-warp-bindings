@@ -42,6 +42,30 @@ BOOST_AUTO_TEST_CASE(initialization)
     deinit();
 }
 
+BOOST_AUTO_TEST_CASE(good_uri_bad_request)
+{
+    int src_window[4] = {1000000, 1000000, 500000, 500000};
+    int dst_window[2] = {500, 500};
+    uint8_t * buffer = new uint8_t[500 * 500];
+    init(1 << 8);
+
+    fprintf(stderr, "Expecting error messages below:\n");
+    auto token = get_token(good_uri, options);
+    auto retval1 = get_data(token, locked_dataset::SOURCE, 1, 250000000, 1,
+                            src_window, dst_window, 42, GDT_Byte, buffer);
+    auto retval2 = get_data(token, locked_dataset::WARPED, 1, 250000000, 1,
+                            src_window, dst_window, 1, 1, buffer);
+    auto retval3 = get_data(token, locked_dataset::WARPED, 1, 250000000, 1,
+                            src_window, dst_window, 1, 1, nullptr);
+    delete buffer;
+
+    BOOST_TEST(retval1 == -CPLE_ObjectNull);
+    BOOST_TEST(retval2 == -CPLE_IllegalArg);
+    BOOST_TEST(retval3 == -CPLE_AppDefined);
+
+    deinit();
+}
+
 BOOST_AUTO_TEST_CASE(good_uri_finite_attempts_example)
 {
     init(1 << 8);

@@ -492,8 +492,8 @@ public:
 
     /**
      * Read pixels from the underlying dataset.  This is more-or-less
-     * a direct wrapper of the GDALRasterIO function, so see
-     * https://www.gdal.org/gdal_8h.html#afb94984e55f110ec5346fc7ab6a139ef
+     * a direct wrapper of the GDALRasterIO function see
+     * https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
      * for more information.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)

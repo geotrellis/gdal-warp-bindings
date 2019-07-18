@@ -313,6 +313,23 @@ BOOST_AUTO_TEST_CASE(get_pixels_test)
     BOOST_TEST(actual == expected);
 }
 
+BOOST_AUTO_TEST_CASE(good_pixels_bad_requests)
+{
+    auto ld = locked_dataset(uri_options1);
+    int src_window[4] = {1000000, 1000000, 500000, 500000};
+    int dst_window[2] = {500, 500};
+    uint8_t *buffer = new uint8_t[500 * 500];
+
+    auto retval1 = ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 42, GDT_Byte, buffer);
+    auto retval2 = ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 1, GDT_Byte, buffer);
+    auto retval3 = ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 1, GDT_Byte, nullptr);
+    delete buffer;
+
+    BOOST_TEST(retval1 == -CPLE_ObjectNull);
+    BOOST_TEST(retval2 == -CPLE_IllegalArg);
+    BOOST_TEST(retval3 == -CPLE_AppDefined);
+}
+
 BOOST_AUTO_TEST_CASE(move_constructor_test)
 {
     auto ld1 = locked_dataset(uri_options1);
