@@ -90,18 +90,18 @@ inline void pthread_yield()
  *
  * @param fn The operation to perform
  */
-#define TRY(fn)                     \
-    for (auto ld : locked_datasets) \
-    {                               \
-        if (!done)                  \
-        {                           \
-            ++touched;              \
-            if (ld->fn != false)    \
-            {                       \
-                done = true;        \
-            }                       \
-        }                           \
-        ld->dec();                  \
+#define TRY(fn)                               \
+    for (auto ld : locked_datasets)           \
+    {                                         \
+        if (!done)                            \
+        {                                     \
+            ++touched;                        \
+            if (ld->fn == ATTEMPT_SUCCESSFUL) \
+            {                                 \
+                done = true;                  \
+            }                                 \
+        }                                     \
+        ld->dec();                            \
     }
 
 /**

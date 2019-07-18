@@ -23,9 +23,11 @@
 typedef _locale_t locale_t;
 #endif
 
-#include <atomic>
 #include <cassert>
 #include <cstring>
+
+#include <atomic>
+#include <limits>
 
 #include <pthread.h>
 
@@ -38,12 +40,17 @@ typedef _locale_t locale_t;
 
 typedef std::atomic<int> atomic_int_t;
 
+constexpr int ATTEMPT_SUCCESSFUL = std::numeric_limits<int>::max();
+constexpr int ALREADY_LOCKED = std::numeric_limits<int>::lowest();
+
 #define TRYLOCK                                      \
     if (pthread_mutex_trylock(&m_dataset_lock) != 0) \
     {                                                \
-        return false;                                \
+        return ALREADY_LOCKED;                       \
     }
 
+#define SUCCESS return ATTEMPT_SUCCESSFUL;
+#define FAILURE_NULL return -CPLE_ObjectNull;
 #define UNLOCK pthread_mutex_unlock(&m_dataset_lock);
 
 class locked_dataset
@@ -135,15 +142,15 @@ public:
      * @param band_number The band in question
      * @param width The return-location of the block width
      * @param height The return-location of the block height
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_block_size(int dataset, int band_number, int *width, int *height)
+    int get_block_size(int dataset, int band_number, int *width, int *height)
     {
         TRYLOCK
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
         GDALGetBlockSize(band, width, height);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -153,15 +160,15 @@ public:
      * @param band_number The band in question
      * @param offset The return-location of the offset
      * @param success The return-location of the success flag
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_offset(int dataset, int band_number, double *offset, int *success)
+    int get_offset(int dataset, int band_number, double *offset, int *success)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *offset = GDALGetRasterOffset(bandh, success);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -171,15 +178,15 @@ public:
      * @param band_number The band in question
      * @param scale The return-location of the scale
      * @param success The return-location of the success flag
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_scale(int dataset, int band_number, double *scale, int *success)
+    int get_scale(int dataset, int band_number, double *scale, int *success)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *scale = GDALGetRasterScale(bandh, success);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -189,15 +196,15 @@ public:
      * @param band_number The band in question
      * @param color_interp The return-slot for the integer-coded color
      *                     interpretation
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_color_interpretation(int dataset, int band_number, int *color_interp)
+    int get_color_interpretation(int dataset, int band_number, int *color_interp)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *color_interp = GDALGetRasterColorInterpretation(bandh);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -209,9 +216,9 @@ public:
      * @param widths The array in which to return the widths
      * @param heights The array in which to return the heights
      * @param max_length The maximum of number of widths and heights to return
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_overview_widths_heights(int dataset, int band_number, int *widths, int *heights, int max_length)
+    int get_overview_widths_heights(int dataset, int band_number, int *widths, int *heights, int max_length)
     {
         TRYLOCK
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
@@ -227,7 +234,7 @@ public:
             widths[i] = heights[i] = -1;
         }
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -236,9 +243,9 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param crs The location at-which to return the PROJ.4 string
      * @param max_size The maximum PROJ.4 string size
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_crs_proj4(int dataset, char *crs, int max_size)
+    int get_crs_proj4(int dataset, char *crs, int max_size)
     {
         TRYLOCK
         char *result;
@@ -248,7 +255,7 @@ public:
         CPLFree(result);
         OSRDestroySpatialReference(ref);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -257,14 +264,14 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param crs The location at-which to return the WKT string
      * @param max_size The maximum WKT string size
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_crs_wkt(int dataset, char *crs, int max_size)
+    int get_crs_wkt(int dataset, char *crs, int max_size)
     {
         TRYLOCK
         strncpy(crs, GDALGetProjectionRef(m_datasets[dataset]), max_size);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -275,15 +282,15 @@ public:
      * @param band_number The band in question
      * @param nodata The return-location for the nodata value
      * @param success The return slot for the "is there nodata" value
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_band_nodata(int dataset, int band_number, double *nodata, int *success)
+    int get_band_nodata(int dataset, int band_number, double *nodata, int *success)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *nodata = GDALGetRasterNoDataValue(bandh, success);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -293,15 +300,15 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band in question
      * @param data_type The type of the band in question
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
+    int get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *data_type = GDALGetRasterDataType(bandh);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -310,14 +317,14 @@ public:
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_count The return-location for the integer band count
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_band_count(int dataset, int *band_count) const
+    int get_band_count(int dataset, int *band_count) const
     {
         TRYLOCK
         *band_count = GDALGetRasterCount(m_datasets[dataset]);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -325,14 +332,14 @@ public:
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param transform The return-location of the transform
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_transform(int dataset, double transform[6]) const
+    int get_transform(int dataset, double transform[6]) const
     {
         TRYLOCK
         GDALGetGeoTransform(m_datasets[dataset], transform);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -341,16 +348,16 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param width The return-location for the width
      * @param height The return-location for the height
-     * @return True iff the operation succeed
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_width_height(int dataset, int *width, int *height)
+    int get_width_height(int dataset, int *width, int *height)
     {
         TRYLOCK
         auto ds = m_datasets[dataset];
         *width = GDALGetRasterXSize(ds);
         *height = GDALGetRasterYSize(ds);
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -362,9 +369,9 @@ public:
      *                    and max values are okay
      * @param minmax The return-array for the minimum and maximum
      * @param success The return slot for the "success" flag
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_band_max_min(int dataset, int band_number, int approx_okay, double *minmax, int *success)
+    int get_band_max_min(int dataset, int band_number, int approx_okay, double *minmax, int *success)
     {
         TRYLOCK
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
@@ -382,7 +389,7 @@ public:
             }
         }
         UNLOCK
-        return true;
+        SUCCESS
     }
 
     /**
@@ -391,9 +398,9 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band to query (zero for the file itself)
      * @param domain_list The return-location for the list of strings
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
+    int get_metadata_domain_list(int dataset, int band_number, char ***domain_list)
     {
         TRYLOCK
         if (band_number == 0)
@@ -410,11 +417,11 @@ public:
         UNLOCK
         if (*domain_list != nullptr)
         {
-            return true;
+            SUCCESS
         }
         else
         {
-            return false;
+            FAILURE_NULL
         }
     }
 
@@ -425,9 +432,9 @@ public:
      * @param band_number The band to query (zero for the file itself)
      * @param domain The metadata domain to query
      * @param list The return-location for the list of strings
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_metadata(int dataset, int band_number, const char *domain, char ***list)
+    int get_metadata(int dataset, int band_number, const char *domain, char ***list)
     {
         TRYLOCK
         if (band_number == 0)
@@ -442,11 +449,11 @@ public:
         UNLOCK
         if (*list != nullptr)
         {
-            return true;
+            SUCCESS
         }
         else
         {
-            return false;
+            FAILURE_NULL
         }
     }
 
@@ -458,9 +465,9 @@ public:
      * @param key The key of the key ⨯ value metadata pair
      * @param doamin The metadata domain to query
      * @param value The return-location for the value of the key ⨯ value pair
-     * @return True iff the operation succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
+    int get_metadata_item(int dataset, int band_number, const char *key, const char *domain, const char **value)
     {
         TRYLOCK
         if (band_number == 0)
@@ -475,11 +482,11 @@ public:
         UNLOCK
         if (*value != nullptr)
         {
-            return true;
+            SUCCESS
         }
         else
         {
-            return false;
+            FAILURE_NULL
         }
     }
 
@@ -498,9 +505,9 @@ public:
      * @param band_number The band from which to read
      * @param type The datatype of the destination buffer
      * @param data A pointer to the destination buffer
-     * @return True iff the read succeeded
+     * @return GOOD, ALREADY_LOCKED, or a negative CPLErrorNum
      */
-    bool get_pixels(int dataset,
+    int get_pixels(int dataset,
                     const int src_window[4],
                     int dst_window[2],
                     int band_number,
@@ -524,11 +531,11 @@ public:
 
         if (retval != CE_None)
         {
-            return false;
+            return -CPLGetLastErrorNo();
         }
         else
         {
-            return true;
+            SUCCESS
         }
     }
 
@@ -697,5 +704,10 @@ struct hash<locked_dataset>
     }
 };
 } // namespace std
+
+#undef TRYLOCK
+#undef UNLOCK
+#undef SUCCESS
+#undef FAILURE_NULL
 
 #endif
