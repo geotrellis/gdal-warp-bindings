@@ -1,8 +1,8 @@
 CFLAGS ?= -Wall -Werror -O0 -ggdb3
 CFLAGS += -I..
-CXXFLAGS ?= -std=c++1z
+CXXFLAGS ?= -std=c++14
 LDFLAGS += $(shell pkg-config gdal --libs) -L.. -lgdalwarp_bindings -lpthread
-GDALCFLAGS = $(shell pkg-config gdal --cflags)
+GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
 SO ?= so
 
@@ -31,7 +31,7 @@ cache_tests: cache_tests.cpp ../libgdalwarp_bindings.$(SO)
 	$(CXX) $(CFLAGS) $(GDALCFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< $(LDFLAGS) -lm -o $@
 
 bindings_tests: bindings_tests.cpp ../libgdalwarp_bindings.$(SO)
-	$(CXX) $(CFLAGS) $(GDALCFLAGS) $(CXXFLAGS) $< $(LDFLAGS) -lm -o $@
+	$(CXX) $(CFLAGS) $(GDALCFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) $< $(LDFLAGS) -lm -o $@
 
 clean:
 	rm -f *_tests

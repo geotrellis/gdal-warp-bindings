@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(good_uri_bad_request)
     auto retval3 = get_data(token, locked_dataset::WARPED, 1, 250000000, 1,
                             src_window, dst_window, 1, 1, nullptr);
     fprintf(stderr, "────────────────────── END EXPECTED ERROR MESSAGES ───────────────\n");
-    delete buffer;
+    delete[] buffer;
 
     BOOST_TEST(retval1 == -CPLE_ObjectNull);
     BOOST_TEST(retval2 == -CPLE_IllegalArg);

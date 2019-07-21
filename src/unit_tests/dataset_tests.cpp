@@ -412,7 +412,7 @@ BOOST_AUTO_TEST_CASE(good_pixels_bad_requests)
     auto retval2 = ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 1, GDT_Byte, buffer);
     auto retval3 = ld.get_pixels(locked_dataset::WARPED, src_window, dst_window, 1, GDT_Byte, nullptr);
     fprintf(stderr, "────────────────────── END EXPECTED ERROR MESSAGES ───────────────\n");
-    delete buffer;
+    delete[] buffer;
 
     errno_deinit();
 
