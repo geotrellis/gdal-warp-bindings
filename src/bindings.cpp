@@ -151,7 +151,7 @@ inline void pthread_yield()
         }                                                                                 \
         else if (code == ATTEMPT_SUCCESSFUL || code == DATASET_LOCKED)                    \
         {                                                                                 \
-            return -CPLE_FileIO;                                                      \
+            return -CPLE_FileIO;                                                          \
         }                                                                                 \
         else                                                                              \
         {                                                                                 \
