@@ -131,13 +131,13 @@ inline void pthread_yield()
             now = get_nanos();                                                            \
             if ((nanos > 0) && (now - then > nanos))                                      \
             {                                                                             \
-                return -CPLE_AppDefined;                                                  \
+                return -CPLE_FileIO;                                                      \
             }                                                                             \
             auto locked_datasets = cache->get(uri_options, copies);                       \
             const auto num_datasets = locked_datasets.size();                             \
             if (num_datasets == 0)                                                        \
             {                                                                             \
-                return -CPLE_AppDefined;                                                  \
+                return -CPLE_OpenFailed;                                                  \
             }                                                                             \
             TRY(fn)                                                                       \
             if (!done)                                                                    \
@@ -151,7 +151,7 @@ inline void pthread_yield()
         }                                                                                 \
         else if (code == ATTEMPT_SUCCESSFUL || code == DATASET_LOCKED)                    \
         {                                                                                 \
-            return -CPLE_AppDefined;                                                      \
+            return -CPLE_FileIO;                                                      \
         }                                                                                 \
         else                                                                              \
         {                                                                                 \
