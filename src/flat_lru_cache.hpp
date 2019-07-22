@@ -35,7 +35,7 @@
  */
 class flat_lru_cache
 {
-  public:
+public:
     typedef uri_options_t key_t;
     typedef locked_dataset value_t;
     typedef uint64_t atime_t;
@@ -54,6 +54,18 @@ class flat_lru_cache
           m_time(0),
           m_capacity(capacity),
           m_size(0),
+          m_cache_lock(PTHREAD_RWLOCK_INITIALIZER)
+    {
+        clear();
+    }
+
+    flat_lru_cache(const flat_lru_cache &rhs)
+        : m_tags(std::vector<size_t>(rhs.m_capacity)),
+          m_atimes(std::vector<atomic_atime_t>(rhs.m_capacity)),
+          m_values(std::vector<value_t>(rhs.m_capacity)),
+          m_time(rhs.m_time.load()),
+          m_capacity(rhs.m_capacity),
+          m_size(rhs.m_size),
           m_cache_lock(PTHREAD_RWLOCK_INITIALIZER)
     {
         clear();
@@ -228,7 +240,7 @@ class flat_lru_cache
         return return_list;
     }
 
-  private:
+private:
     /*
      * Insert a new entry into the cache.
      *
@@ -282,7 +294,7 @@ class flat_lru_cache
         }
     }
 
-  private:
+private:
     std::vector<size_t> m_tags;
     std::vector<atomic_atime_t> m_atimes;
     std::vector<value_t> m_values;

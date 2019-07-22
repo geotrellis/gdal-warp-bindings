@@ -23,11 +23,11 @@
 #include <ctime>
 #include <exception>
 #include <string>
-#include <map>
 #include <vector>
 
 #include <errno.h>
 #include <unistd.h>
+
 #include <pthread.h>
 
 #include <gdal.h>
@@ -37,16 +37,16 @@
 #include "flat_lru_cache.hpp"
 #include "locked_dataset.hpp"
 #include "tokens.hpp"
+#include "errorcodes.hpp"
+
+static uint64_t default_nanos = 0;
 
 typedef flat_lru_cache cache_t;
-
-uint64_t default_nanos = 0;
-
-cache_t *cache = nullptr;
+static cache_t *cache = nullptr;
 
 #if defined(__linux__) || defined(__APPLE__)
-struct sigaction sa_old, sa_new;
-bool handler_installed = false;
+static struct sigaction sa_old, sa_new;
+static bool handler_installed = false;
 
 // SIGTERM handler
 static void sigterm_handler(int signal)
@@ -90,18 +90,19 @@ inline void pthread_yield()
  *
  * @param fn The operation to perform
  */
-#define TRY(fn)                     \
-    for (auto ld : locked_datasets) \
-    {                               \
-        if (!done)                  \
-        {                           \
-            ++touched;              \
-            if (ld->fn != false)    \
-            {                       \
-                done = true;        \
-            }                       \
-        }                           \
-        ld->dec();                  \
+#define TRY(fn)                                                       \
+    for (auto ld : locked_datasets)                                   \
+    {                                                                 \
+        if (!done)                                                    \
+        {                                                             \
+            ++touched;                                                \
+            code = ld->fn;                                            \
+            if (code == ATTEMPT_SUCCESSFUL && code != DATASET_LOCKED) \
+            {                                                         \
+                done = true;                                          \
+            }                                                         \
+        }                                                             \
+        ld->dec();                                                    \
     }
 
 /**
@@ -109,67 +110,68 @@ inline void pthread_yield()
  * on (one of) a list of locked datasets.  If an attempt succeeds,
  * return the number of attempts made (so that intelligent tuning is
  * possible in the application that uses this library), otherwise
- * return the negative of some errno.
+ * return the negative of some CPLErrorNum (see
+ * https://gdal.org/doxygen/cpl__error_8h.html).
  *
  * @param fn The operation to perform
  */
-#define DOIT(fn)                                                    \
-    bool done = false;                                              \
-    auto query_result = query_token(token);                         \
-    uint64_t then, now;                                             \
-    if (query_result)                                               \
-    {                                                               \
-        auto uri_options = query_result.get();                      \
-        then = get_nanos();                                         \
-        int touched = 0;                                            \
-        int i;                                                      \
-        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)  \
-        {                                                           \
-            now = get_nanos();                                      \
-            if ((nanos > 0) && (now - then > nanos))                \
-            {                                                       \
-                return -EAGAIN;                                     \
-            }                                                       \
-            auto locked_datasets = cache->get(uri_options, copies); \
-            const auto num_datasets = locked_datasets.size();       \
-            if (num_datasets == 0)                                  \
-            {                                                       \
-                return -EAGAIN;                                     \
-            }                                                       \
-            TRY(fn)                                                 \
-            if (!done)                                              \
-            {                                                       \
-                pthread_yield();                                    \
-            }                                                       \
-        }                                                           \
-        if ((i < attempts) || (i > 0 && attempts == 0))             \
-        {                                                           \
-            return touched;                                         \
-        }                                                           \
-        else                                                        \
-        {                                                           \
-            return -EAGAIN;                                         \
-        }                                                           \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        return -ENOENT;                                             \
+#define DOIT(fn)                                                                          \
+    bool done = false;                                                                    \
+    auto query_result = query_token(token);                                               \
+    int code = -CPLE_AppDefined;                                                          \
+    uint64_t then, now;                                                                   \
+    if (query_result)                                                                     \
+    {                                                                                     \
+        auto uri_options = query_result.get();                                            \
+        then = get_nanos();                                                               \
+        int touched = 0;                                                                  \
+        int i;                                                                            \
+        for (i = 0; (i < attempts || attempts <= 0) && !done; ++i)                        \
+        {                                                                                 \
+            now = get_nanos();                                                            \
+            if ((nanos > 0) && (now - then > nanos))                                      \
+            {                                                                             \
+                return -CPLE_AppDefined;                                                  \
+            }                                                                             \
+            auto locked_datasets = cache->get(uri_options, copies);                       \
+            const auto num_datasets = locked_datasets.size();                             \
+            if (num_datasets == 0)                                                        \
+            {                                                                             \
+                return -CPLE_AppDefined;                                                  \
+            }                                                                             \
+            TRY(fn)                                                                       \
+            if (!done)                                                                    \
+            {                                                                             \
+                pthread_yield();                                                          \
+            }                                                                             \
+        }                                                                                 \
+        if ((code == ATTEMPT_SUCCESSFUL) && ((i < attempts) || (i > 0 && attempts == 0))) \
+        {                                                                                 \
+            return touched;                                                               \
+        }                                                                                 \
+        else if (code == ATTEMPT_SUCCESSFUL || code == DATASET_LOCKED)                    \
+        {                                                                                 \
+            return -CPLE_AppDefined;                                                      \
+        }                                                                                 \
+        else                                                                              \
+        {                                                                                 \
+            return code;                                                                  \
+        }                                                                                 \
+    }                                                                                     \
+    else                                                                                  \
+    {                                                                                     \
+        return -CPLE_OpenFailed;                                                          \
     }
 
 /**
- * The initialization function for the library.
+ * Initialize various globals from values in the environment and
+ * (possibly) install the SIGTERM signal handler.
  *
- * @param size The maximum number of locked_dataset objects (each
- *             containing two GDAL Dataset objects) that can be live
- *             at one time.
+ * @param size A pointer to the desired maximum number of datasets
  */
-void init(size_t size)
+void env_init(size_t * size)
 {
     const char *env_ptr = nullptr;
-
-    deinit();
-
-    GDALAllRegister();
 
 #if defined(__linux__)
     env_ptr = getenv("GDALWARP_DEFAULT_NANOS");
@@ -185,9 +187,9 @@ void init(size_t size)
     if (env_ptr != nullptr)
     {
 #if defined(__MINGW32__)
-        sscanf(env_ptr, "%lld", &size);
+        sscanf(env_ptr, "%lld", size);
 #else
-        sscanf(env_ptr, "%ld", &size);
+        sscanf(env_ptr, "%ld", size);
 #endif
     }
 
@@ -209,13 +211,61 @@ void init(size_t size)
         }
     }
 #endif
+}
 
-    cache = new cache_t(size);
+/**
+ * Deinitialize environmentally-controlled structures and behaviors.
+ */
+void env_deinit()
+{
+#if defined(__linux__) || defined(__APPLE__)
+    if (handler_installed)
+    {
+        sigaction(SIGTERM, &sa_old, nullptr);
+    }
+#endif
+}
+
+/**
+ * Initialize the dataset cache.
+ *
+ * @param size The maximum number of entries in the cache
+ */
+void cache_init(size_t size)
+{
+    cache = new cache_t{size};
     if (cache == nullptr)
     {
         throw std::bad_alloc();
     }
+}
 
+/**
+ * Deinitialize the dataset cache.
+ */
+void cache_deinit()
+{
+    if (cache != nullptr)
+    {
+        delete cache;
+        cache = nullptr;
+    }
+}
+
+/**
+ * The initialization function for the library.
+ *
+ * @param size The maximum number of locked_dataset objects (each
+ *             containing two GDAL Dataset objects) that can be live
+ *             at one time.
+ */
+void init(size_t size)
+{
+    deinit();
+    GDALAllRegister();
+    errno_init();
+    env_init(&size);
+    cache_init(size);
     token_init(1 << 15);
 
     return;
@@ -226,19 +276,9 @@ void init(size_t size)
  */
 void deinit()
 {
-    if (cache != nullptr)
-    {
-        delete cache;
-        cache = nullptr;
-    }
-
-#if defined(__linux__) || defined(__APPLE__)
-    if (handler_installed)
-    {
-        sigaction(SIGTERM, &sa_old, nullptr);
-    }
-#endif
-
+    errno_deinit();
+    env_deinit();
+    cache_deinit();
     token_deinit();
 }
 
@@ -592,8 +632,8 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @param attempts The number of attempts to make before giving up
  * @param nanos The approximate time budget for this call (in nanoseconds)
  * @param copies The desired number of datasets
- * @param src_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
- * @param dst_window See https://www.gdal.org/gdal_8h.html#aaffc6d9720dcb3c89ad0b88560bdf407
+ * @param src_window Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+ * @param dst_window Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
  * @param band_number The band_number number of interest
  * @param _type The desired type of returned pixels (the argument is
  *              of integral type GDALDataType)

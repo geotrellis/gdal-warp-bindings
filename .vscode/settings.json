@@ -58,7 +58,8 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "random": "cpp",
-        "com_azavea_gdal_gdalwarp.h": "c"
+        "com_azavea_gdal_gdalwarp.h": "c",
+        "cassert": "cpp"
     },
     "files.exclude": {
         "**/.classpath": true,

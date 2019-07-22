@@ -17,7 +17,7 @@
 #define BOOST_TEST_MODULE Bindings Unit Tests
 #include <boost/test/included/unit_test.hpp>
 
-#include <errno.h>
+#include <cpl_error.h>
 
 #include "bindings.h"
 #include "locked_dataset.hpp"
@@ -39,6 +39,31 @@ constexpr int copies = -4;
 BOOST_AUTO_TEST_CASE(initialization)
 {
     init(1 << 8);
+    deinit();
+}
+
+BOOST_AUTO_TEST_CASE(good_uri_bad_request)
+{
+    int src_window[4] = {1000000, 1000000, 500000, 500000};
+    int dst_window[2] = {500, 500};
+    uint8_t * buffer = new uint8_t[500 * 500];
+    init(1 << 8);
+
+    fprintf(stderr, "────────────────────── BEGIN EXPECTED ERROR MESSAGES ─────────────\n");
+    auto token = get_token(good_uri, options);
+    auto retval1 = get_data(token, locked_dataset::SOURCE, 1, 250000000, 1,
+                            src_window, dst_window, 42, GDT_Byte, buffer);
+    auto retval2 = get_data(token, locked_dataset::WARPED, 1, 250000000, 1,
+                            src_window, dst_window, 1, 1, buffer);
+    auto retval3 = get_data(token, locked_dataset::WARPED, 1, 250000000, 1,
+                            src_window, dst_window, 1, 1, nullptr);
+    fprintf(stderr, "────────────────────── END EXPECTED ERROR MESSAGES ───────────────\n");
+    delete[] buffer;
+
+    BOOST_TEST(retval1 == -CPLE_ObjectNull);
+    BOOST_TEST(retval2 == -CPLE_IllegalArg);
+    BOOST_TEST(retval3 == -CPLE_AppDefined);
+
     deinit();
 }
 
@@ -86,8 +111,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, copies, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 3, copies, 1, &nodata, &success) == -CPLE_AppDefined);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 4, copies, 1, &nodata, &success) == -CPLE_AppDefined);
 
     deinit();
 }
@@ -100,8 +125,8 @@ BOOST_AUTO_TEST_CASE(bad_uri_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -EAGAIN);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -EAGAIN);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -CPLE_AppDefined);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -CPLE_AppDefined);
 
     deinit();
 }
@@ -114,8 +139,8 @@ BOOST_AUTO_TEST_CASE(bad_token_finite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 42, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 42, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
 
     deinit();
 }
@@ -128,8 +153,8 @@ BOOST_AUTO_TEST_CASE(bad_token_infinite_attempts_example)
     double nodata;
     int success;
 
-    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -ENOENT);
-    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -ENOENT);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::SOURCE, 0, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
+    BOOST_TEST(get_band_nodata(token, locked_dataset::WARPED, 0, copies, 1, &nodata, &success) == -CPLE_OpenFailed);
 
     deinit();
 }
