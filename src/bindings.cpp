@@ -169,7 +169,7 @@ inline void pthread_yield()
  *
  * @param size A pointer to the desired maximum number of datasets
  */
-void env_init(size_t * size)
+void env_init(size_t *size)
 {
     const char *env_ptr = nullptr;
 
@@ -266,7 +266,7 @@ void init(size_t size)
     errno_init();
     env_init(&size);
     cache_init(size);
-    token_init(1 << 15);
+    token_init(640 * (1 << 10));
 
     return;
 }
