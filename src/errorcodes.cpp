@@ -72,15 +72,16 @@ int get_last_errno()
     if (errno_cache->count(tid) > 0)
     {
         retval = errno_cache->at(tid);
+        errno_cache->erase(tid);
     }
     else
     {
-        retval = CPLE_AppDefined;
+        retval = CPLE_None;
     }
-    if (errno_cache->size() > 1 << 20)
+    if (errno_cache->size() > (1 << 20))
     {
-        // XXX only supports errors from 2**20 unique threads before
-        // possibly losing information.
+        // XXX Can contain errors from 2**20 unique threads before
+        // possibly losing information
         errno_cache->clear();
     }
     pthread_mutex_unlock(&errno_cache_lock);
