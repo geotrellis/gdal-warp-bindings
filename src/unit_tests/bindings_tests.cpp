@@ -42,11 +42,37 @@ BOOST_AUTO_TEST_CASE(initialization)
     deinit();
 }
 
+BOOST_AUTO_TEST_CASE(good_uri_noop)
+{
+    init(1 << 8);
+    auto token = get_token(good_uri, options);
+    auto retval = noop(token, locked_dataset::SOURCE, 0, 1);
+    BOOST_TEST(retval > 0);
+    deinit();
+}
+
+BOOST_AUTO_TEST_CASE(bad_uri_noop)
+{
+    init(1 << 8);
+    auto token = get_token(bad_uri, options);
+    auto retval = noop(token, locked_dataset::SOURCE, 0, 1);
+    BOOST_TEST(retval == -CPLE_OpenFailed);
+    deinit();
+}
+
+BOOST_AUTO_TEST_CASE(bad_token_noop)
+{
+    init(1 << 8);
+    auto retval = noop(93, locked_dataset::SOURCE, 0, 1);
+    BOOST_TEST(retval == -CPLE_OpenFailed);
+    deinit();
+}
+
 BOOST_AUTO_TEST_CASE(good_uri_bad_request)
 {
     int src_window[4] = {1000000, 1000000, 500000, 500000};
     int dst_window[2] = {500, 500};
-    uint8_t * buffer = new uint8_t[500 * 500];
+    uint8_t *buffer = new uint8_t[500 * 500];
     init(1 << 8);
 
     fprintf(stderr, "────────────────────── BEGIN EXPECTED ERROR MESSAGES ─────────────\n");

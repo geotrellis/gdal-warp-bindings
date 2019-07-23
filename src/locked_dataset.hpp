@@ -148,6 +148,18 @@ public:
     }
 
     /**
+     * Noop.
+     *
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
+     */
+    int noop()
+    {
+        TRYLOCK
+        UNLOCK
+        SUCCESS
+    }
+
+    /**
      * Get the block size of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
