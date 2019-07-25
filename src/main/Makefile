@@ -19,6 +19,9 @@ java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class: java/
 GDALWarpThreadTest.class: GDALWarpThreadTest.java gdalwarp.jar
 	$(JAVAC) -cp gdalwarp.jar $<
 
+GDALWarpMetadataTest.class: GDALWarpMetadataTest.java gdalwarp.jar
+	$(JAVAC) -cp gdalwarp.jar $<
+
 # MIT-Licensed code (that license is compatible with Apache 2.0)
 java/cz/adamh/utils/NativeUtils.java:
 	wget -k "https://raw.githubusercontent.com/adamheinrich/native-utils/e6a39489662846a77504634b6fafa4995ede3b1d/src/main/$@" -O $@
