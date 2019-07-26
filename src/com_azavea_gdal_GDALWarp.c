@@ -28,7 +28,7 @@
 #define htobe16(x) htons(x)
 #define htobe32(x) htonl(x)
 
-uint64_t htobe64(uint64_t x)
+uint64_t htobe64(uint64_t x) // Never tested
 {
     uint64_t retval;
     uint32_t *p1 = (uint32_t *)&retval;
@@ -215,19 +215,59 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata_1domain_1list
 {
     char **domain_list = NULL;
     jint retval = get_metadata_domain_list(token, dataset, attempts, copies, band_number, &domain_list);
-    jsize max_size = (*env)->GetArrayLength(env, _domain_list);
-
-    for (int i = 0; i < max_size && domain_list != NULL && domain_list[i] != NULL; ++i)
+    if (retval < 0)
     {
-        jbyteArray array = (*env)->GetObjectArrayElement(env, _domain_list, i);
-        jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
-        jsize array_size = (*env)->GetArrayLength(env, array);
-        strncpy((char *)bytes, domain_list[i], array_size);
-        (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+        return retval;
     }
-    CSLDestroy(domain_list);
+    else
+    {
+        int i = 0;
+        jsize max_size = (*env)->GetArrayLength(env, _domain_list);
 
-    return retval;
+        for (i = 0; (i < max_size) && (domain_list != NULL) && (domain_list[i] != NULL); ++i)
+        {
+            jbyteArray array = (*env)->GetObjectArrayElement(env, _domain_list, i);
+            jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
+            jsize array_size = (*env)->GetArrayLength(env, array);
+            int len = strlen(domain_list[i]);
+
+            if (len == 0)
+            {
+                bytes[0] = ' ';
+                bytes[1] = 0;
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+            }
+            else if (len < (array_size - 1))
+            {
+                strncpy((char *)bytes, domain_list[i], len);
+                bytes[len] = 0;
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+            }
+            else
+            {
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+                CSLDestroy(domain_list);
+                return -CPLE_AppDefined;
+            }
+        }
+        if (i < (max_size - 1))
+        {
+            jbyteArray array = (*env)->GetObjectArrayElement(env, _domain_list, i);
+            jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
+            bytes[0] = 0;
+            (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+        }
+
+        CSLDestroy(domain_list);
+        if (i == max_size)
+        {
+            return -CPLE_AppDefined;
+        }
+        else
+        {
+            return retval;
+        }
+    }
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata(JNIEnv *env, jclass obj,
@@ -236,19 +276,57 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata(JNIEnv *env, 
     const char *domain = (*env)->GetStringUTFChars(env, _domain, NULL);
     char **list = NULL;
     jint retval = get_metadata(token, dataset, attempts, copies, band_number, domain, &list);
-    jsize max_size = (*env)->GetArrayLength(env, _list);
-
-    for (int i = 0; i < max_size && list != NULL && list[i] != NULL; ++i)
+    if (retval < 0)
     {
-        jbyteArray array = (*env)->GetObjectArrayElement(env, _list, i);
-        jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
-        jsize array_size = (*env)->GetArrayLength(env, array);
-        strncpy((char *)bytes, list[i], array_size);
-        (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+        return retval;
     }
-    (*env)->ReleaseStringUTFChars(env, _domain, domain);
+    else
+    {
+        int i = 0;
+        jsize max_size = (*env)->GetArrayLength(env, _list);
 
-    return retval;
+        for (i = 0; (i < max_size) && (list != NULL) && (list[i] != NULL); ++i)
+        {
+            jbyteArray array = (*env)->GetObjectArrayElement(env, _list, i);
+            jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
+            jsize array_size = (*env)->GetArrayLength(env, array);
+            int len = strlen(list[i]);
+
+            if (len == 0)
+            {
+                bytes[0] = ' ';
+                bytes[1] = 0;
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+            }
+            else if (len < (array_size - 1))
+            {
+                strncpy((char *)bytes, list[i], len);
+                bytes[len] = 0;
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+            }
+            else
+            {
+                (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+                return -CPLE_AppDefined;
+            }
+        }
+        if (i < (max_size - 1))
+        {
+            jbyteArray array = (*env)->GetObjectArrayElement(env, _list, i);
+            jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL);
+            bytes[0] = 0;
+            (*env)->ReleaseByteArrayElements(env, array, bytes, 0);
+        }
+
+        if (i == max_size)
+        {
+            return -CPLE_AppDefined;
+        }
+        else
+        {
+            return retval;
+        }
+    }
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata_1item(JNIEnv *env, jclass obj,
@@ -258,15 +336,32 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1metadata_1item(JNIEnv 
     const char *domain = (*env)->GetStringUTFChars(env, _domain, NULL);
     jsize max_size = (*env)->GetArrayLength(env, _value);
     const char *value_src = NULL;
-    jbyte *value = (*env)->GetByteArrayElements(env, _value, NULL);
+    jbyte *bytes = (*env)->GetByteArrayElements(env, _value, NULL);
     jint retval = get_metadata_item(token, dataset, attempts, copies, band_number, key, domain, &value_src);
 
-    strncpy((char *)value, value_src, max_size);
-    (*env)->ReleaseStringUTFChars(env, _key, key);
-    (*env)->ReleaseStringUTFChars(env, _domain, domain);
-    (*env)->ReleaseByteArrayElements(env, _value, value, 0);
+    if (retval < 0)
+    {
+        return retval;
+    }
+    else
+    {
+        int len = strlen(value_src);
+        if (len < (max_size - 1))
+        {
+            strncpy((char *)bytes, value_src, len);
+            bytes[len] = 0;
+        }
+        else
+        {
+            retval = -CPLE_AppDefined;
+        }
 
-    return retval;
+        (*env)->ReleaseStringUTFChars(env, _key, key);
+        (*env)->ReleaseStringUTFChars(env, _domain, domain);
+        (*env)->ReleaseByteArrayElements(env, _value, bytes, 0);
+
+        return retval;
+    }
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1overview_1widths_1heights(JNIEnv *env, jclass obj,
