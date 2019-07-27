@@ -168,6 +168,14 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1scale(JNIEnv *env, jcl
     return retval;
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_noop(JNIEnv *env, jclass obj,
+                                                          jlong token,
+                                                          jint dataset,
+                                                          jint attempts)
+{
+    return noop(token, dataset, attempts, copies);
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1color_1interpretation(JNIEnv *env, jclass obj,
                                                                                 jlong token,
                                                                                 jint dataset,

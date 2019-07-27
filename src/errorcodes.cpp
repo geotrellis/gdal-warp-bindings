@@ -45,12 +45,19 @@ static pthread_mutex_t errno_cache_lock = PTHREAD_MUTEX_INITIALIZER;
  */
 void put_last_errno(CPLErr eErrClass, int err_no, const char *msg)
 {
-    errno_key_t tid = CALL;
 
-    pthread_mutex_lock(&errno_cache_lock);
     fprintf(stderr, "%s\n", msg);
-    errno_cache->operator[](tid) = err_no;
-    pthread_mutex_unlock(&errno_cache_lock);
+    if (eErrClass == CE_Fatal)
+    {
+        exit(-1);
+    }
+    else
+    {
+        errno_key_t tid = CALL;
+        pthread_mutex_lock(&errno_cache_lock);
+        errno_cache->operator[](tid) = err_no;
+        pthread_mutex_unlock(&errno_cache_lock);
+    }
 }
 
 /**
@@ -65,15 +72,16 @@ int get_last_errno()
     if (errno_cache->count(tid) > 0)
     {
         retval = errno_cache->at(tid);
+        errno_cache->erase(tid);
     }
     else
     {
-        retval = CPLE_AppDefined;
+        retval = CPLE_None;
     }
-    if (errno_cache->size() > 1<<20)
+    if (errno_cache->size() > (1 << 20))
     {
-         // XXX only supports errors from 2**20 unique threads before
-         // possibly losing information.
+        // XXX Can contain errors from 2**20 unique threads before
+        // possibly losing information
         errno_cache->clear();
     }
     pthread_mutex_unlock(&errno_cache_lock);

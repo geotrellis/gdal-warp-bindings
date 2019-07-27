@@ -196,6 +196,18 @@ public class GDALWarp {
          * @param dataset      0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                     GDALWarp::WARPED) for the warped dataset
          * @param attempts     The number of attempts to make before giving up
+	 * @return The number of attempts made (upon success) or a
+         *         negative error code (upon failure)
+         */
+        public static native int noop(long token, int dataset, int attempts);
+
+        /**
+         * Get the color interpretation of the given band.
+         *
+         * @param token        A token associated with some uri, options pair
+         * @param dataset      0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
+         *                     GDALWarp::WARPED) for the warped dataset
+         * @param attempts     The number of attempts to make before giving up
          * @param band_number  The band in question
          * @param color_interp The return-slot for the integer-coded color
          *                     interpretation

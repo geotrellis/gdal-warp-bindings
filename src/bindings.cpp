@@ -131,13 +131,13 @@ inline void pthread_yield()
             now = get_nanos();                                                            \
             if ((nanos > 0) && (now - then > nanos))                                      \
             {                                                                             \
-                return -CPLE_AppDefined;                                                  \
+                return -CPLE_FileIO;                                                      \
             }                                                                             \
             auto locked_datasets = cache->get(uri_options, copies);                       \
             const auto num_datasets = locked_datasets.size();                             \
             if (num_datasets == 0)                                                        \
             {                                                                             \
-                return -CPLE_AppDefined;                                                  \
+                return -CPLE_OpenFailed;                                                  \
             }                                                                             \
             TRY(fn)                                                                       \
             if (!done)                                                                    \
@@ -151,7 +151,7 @@ inline void pthread_yield()
         }                                                                                 \
         else if (code == ATTEMPT_SUCCESSFUL || code == DATASET_LOCKED)                    \
         {                                                                                 \
-            return -CPLE_AppDefined;                                                      \
+            return -CPLE_FileIO;                                                          \
         }                                                                                 \
         else                                                                              \
         {                                                                                 \
@@ -291,6 +291,22 @@ void __attribute__((destructor)) fini(void)
 #endif
 
 /**
+ * Noop.
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @return The number of attempts on success, negative CPLErrorNum on failure
+ */
+int noop(uint64_t token, int dataset, int attempts, int copies)
+{
+    uint64_t nanos = default_nanos;
+    DOIT(noop());
+}
+
+/**
  * Get the block size of the given band.
  *
  * @param token A token associated with some uri ⨯ options pair
@@ -302,7 +318,7 @@ void __attribute__((destructor)) fini(void)
  * @param band_number The band in question
  * @param width The return-location of the block width
  * @param height The return-location of the block height
- * @return True iff the operation succeeded
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_block_size(uint64_t token, int dataset, int attempts, int copies,
                    int band_number, int *width, int *height)
@@ -323,7 +339,7 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
  * @param band_number The band in question
  * @param offset The return-location of the offset
  * @param success The return-location of the success flag
- * @return True iff the operation succeeded
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_offset(uint64_t token, int dataset, int attempts, int copies,
                int band_number, double *offset, int *success)
@@ -344,7 +360,7 @@ int get_offset(uint64_t token, int dataset, int attempts, int copies,
  * @param band_number The band in question
  * @param scale The return-location of the scale
  * @param success The return-location of the success flag
- * @return True iff the operation succeeded
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_scale(uint64_t token, int dataset, int attempts, int copies,
               int band_number, double *scale, int *success)
@@ -365,7 +381,7 @@ int get_scale(uint64_t token, int dataset, int attempts, int copies,
  * @param band_number The band in question
  * @param color_interp The return-slot for the integer-coded color
  *                     interpretation
- * @return True iff the operation succeeded
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, int *color_interp)
@@ -385,8 +401,7 @@ int get_color_interpretation(uint64_t token, int dataset, int attempts, int copi
  * @param copies The desired number of datasets
  * @param band_number The band to query (zero for the file itself)
  * @param domain_list The return-location for the list of strings
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copies,
                              int band_number, char ***domain_list)
@@ -407,8 +422,7 @@ int get_metadata_domain_list(uint64_t token, int dataset, int attempts, int copi
  * @param band_number The band to query (zero for the file itself)
  * @param domain The metadata domain to query
  * @param list The return-location for the list of strings
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_metadata(uint64_t token, int dataset, int attempts, int copies,
                  int band_number, const char *domain, char ***list)
@@ -430,8 +444,7 @@ int get_metadata(uint64_t token, int dataset, int attempts, int copies,
  * @param key The key of the key ⨯ value metadata pair
  * @param domain The metadata domain to query
  * @param value The return-location for the value of the key ⨯ value pair
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
                       int band_number, const char *key, const char *domain, const char **value)
@@ -457,8 +470,7 @@ int get_metadata_item(uint64_t token, int dataset, int attempts, int copies,
  * @param max_length The maximum number of widths and heights to
  *                   return (nominally the smaller of the lengths of
  *                   the two arrays)
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int copies,
                                 int band_number, int *widths, int *heights, int max_length)
@@ -478,8 +490,7 @@ int get_overview_widths_heights(uint64_t token, int dataset, int attempts, int c
  * @param copies The desired number of datasets
  * @param crs The character array in-which to return the PROJ.4 string
  * @param max_size The size of the pre-allocated return buffer
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
                   char *crs, int max_size)
@@ -499,8 +510,7 @@ int get_crs_proj4(uint64_t token, int dataset, int attempts, int copies,
  * @param attempts The number of attempts to make before giving up
  * @param crs The character array in-which to return the PROJ.4 string
  * @param max_size The size of the pre-allocated return buffer
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
                 char *crs, int max_size)
@@ -522,8 +532,7 @@ int get_crs_wkt(uint64_t token, int dataset, int attempts, int copies,
  * @param nodata The return-location of the NODATA value
  * @param success The return-location of the success flag (answer
  *                whether or not there is a NODATA value)
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
                     int band_number, double *nodata, int *success)
@@ -548,8 +557,7 @@ int get_band_nodata(uint64_t token, int dataset, int attempts, int copies,
  * @param minmax The return-location of the minimum and maximum
  * @param success The return-location of the success flag (answer
  *                whether or not there is a NODATA value)
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
                      int band_number, int approx_okay, double *minmax, int *success)
@@ -570,8 +578,7 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
  * @param band_number The band of interest
  * @param data_type The return-location of the band_number type (of integral
  *                  type GDALDataType)
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
                        int band_number, int *data_type)
@@ -591,8 +598,7 @@ int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
  * @param band_count The return-location of the band count
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_band_count(uint64_t token, int dataset, int attempts, int copies,
                    int *band_count)
@@ -612,8 +618,7 @@ int get_band_count(uint64_t token, int dataset, int attempts, int copies,
  * @param copies The desired number of datasets
  * @param width The return-location of the width
  * @param height The return-location of the height
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_width_height(uint64_t token, int dataset, int attempts, int copies,
                      int *width, int *height)
@@ -638,8 +643,7 @@ int get_width_height(uint64_t token, int dataset, int attempts, int copies,
  * @param _type The desired type of returned pixels (the argument is
  *              of integral type GDALDataType)
  * @param data The return-location of the read read data
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copies,
              int src_window[4],
@@ -666,8 +670,7 @@ int get_data(uint64_t token, int dataset, int attempts, uint64_t nanos, int copi
  * @param copies The desired number of datasets
  * @param transform The return location for the six double-precision
  *                  floating point number that will be returned
- * @return The number of attempts made (upon success) or a negative
- *         errno (upon failure)
+ * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_transform(uint64_t token, int dataset, int attempts, int copies,
                   double transform[6])

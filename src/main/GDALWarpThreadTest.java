@@ -155,6 +155,11 @@ class GDALWarpThreadTest extends Thread {
                     + success[0] + ")" + ANSI_RESET);
         }
 
+        // noop
+        {
+            System.out.println(ANSI_BLUE + "noop: " + ANSI_GREEN + GDALWarp.noop(token, GDALWarp.SOURCE, 0) + ANSI_RESET);
+        }
+
         // Color Interpretation
         {
             int[] color_interp = new int[1];

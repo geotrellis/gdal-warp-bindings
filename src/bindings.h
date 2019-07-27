@@ -38,6 +38,8 @@ extern "C"
     int get_scale(uint64_t token, int dataset, int attempts, int copies,
                   int band_number, double *scale, int *success);
 
+    int noop(uint64_t token, int dataset, int attempts, int copies);
+
     int get_color_interpretation(uint64_t token, int dataset, int attempts, int copies,
                                  int band_number, int *color_interp);
 

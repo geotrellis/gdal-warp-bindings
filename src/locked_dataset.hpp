@@ -37,8 +37,7 @@ typedef _locale_t locale_t;
 #include <ogr_srs_api.h>
 
 #include "types.hpp"
-
-extern int get_last_errno();
+#include "errorcodes.hpp"
 
 typedef std::atomic<int> atomic_int_t;
 
@@ -52,7 +51,18 @@ constexpr int DATASET_LOCKED = std::numeric_limits<int>::lowest();
     }
 
 #define SUCCESS return ATTEMPT_SUCCESSFUL;
-#define FAILURE_NULL return -CPLE_ObjectNull;
+#define FAILURE                        \
+    {                                  \
+        int retval = get_last_errno(); \
+        if (retval == CE_None)         \
+        {                              \
+            return -CPLE_ObjectNull;   \
+        }                              \
+        else                           \
+        {                              \
+            return -retval;            \
+        }                              \
+    }
 #define UNLOCK pthread_mutex_unlock(&m_dataset_lock);
 
 class locked_dataset
@@ -135,6 +145,18 @@ public:
     ~locked_dataset()
     {
         close();
+    }
+
+    /**
+     * Noop.
+     *
+     * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
+     */
+    int noop()
+    {
+        TRYLOCK
+        UNLOCK
+        SUCCESS
     }
 
     /**
@@ -423,7 +445,7 @@ public:
         }
         else
         {
-            FAILURE_NULL
+            FAILURE
         }
     }
 
@@ -455,7 +477,7 @@ public:
         }
         else
         {
-            FAILURE_NULL
+            FAILURE
         }
     }
 
@@ -488,7 +510,7 @@ public:
         }
         else
         {
-            FAILURE_NULL
+            FAILURE
         }
     }
 
@@ -510,11 +532,11 @@ public:
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_pixels(int dataset,
-                    const int src_window[4],
-                    int dst_window[2],
-                    int band_number,
-                    GDALDataType type,
-                    void *data) const
+                   const int src_window[4],
+                   int dst_window[2],
+                   int band_number,
+                   GDALDataType type,
+                   void *data) const
     {
         GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
 
@@ -531,13 +553,13 @@ public:
         );
         UNLOCK
 
-        if (retval != CE_None)
+        if (retval == CE_None)
         {
-            return -get_last_errno();
+            SUCCESS
         }
         else
         {
-            SUCCESS
+            FAILURE
         }
     }
 
@@ -710,6 +732,6 @@ struct hash<locked_dataset>
 #undef TRYLOCK
 #undef UNLOCK
 #undef SUCCESS
-#undef FAILURE_NULL
+#undef FAILURE
 
 #endif
