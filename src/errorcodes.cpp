@@ -19,6 +19,7 @@
 #include <sys/syscall.h>
 #endif
 
+#include <atomic>
 #include <map>
 
 #include <gdal.h>
@@ -33,6 +34,7 @@ typedef pthread_t errno_key_t;
 typedef std::map<errno_key_t, int> errno_cache_t;
 static errno_cache_t *errno_cache = nullptr;
 static pthread_mutex_t errno_cache_lock = PTHREAD_MUTEX_INITIALIZER;
+static std::atomic<int> reported_errors{0};
 
 #if defined(__linux__)
 #define CALL syscall(SYS_gettid)
@@ -41,11 +43,13 @@ static pthread_mutex_t errno_cache_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 // Reference: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+#define ANSI_COLOR_BLACK "\x1b[30;1m"
 #define ANSI_COLOR_RED "\x1b[31;1m"
 #define ANSI_COLOR_GREEN "\x1b[32;1m"
 #define ANSI_COLOR_YELLOW "\x1b[33;1m"
 #define ANSI_COLOR_BLUE "\x1b[34;1m"
 #define ANSI_COLOR_CYAN "\x1b[36;1m"
+#define ANSI_COLOR_BGMAGENTA "\x1b[45;1m"
 #define ANSI_COLOR_BGYELLOW "\x1b[103;1m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
@@ -120,9 +124,22 @@ const char *error_string(int err_no)
  */
 void put_last_errno(CPLErr eErrClass, int err_no, const char *msg)
 {
+  int max_reported_errors = 1000; // Following GDAL
+  char const *cpl_max_error_reports = nullptr;
 
-  fprintf(stderr, "%s %s %s" ANSI_COLOR_RESET "\n",
-          severity_string(eErrClass), error_string(err_no), msg);
+  // Re-read environment variable upon every error
+  if ((cpl_max_error_reports = getenv("CPL_MAX_ERROR_REPORTS")))
+  {
+    sscanf(cpl_max_error_reports, "%d", &max_reported_errors);
+  }
+
+  if (reported_errors < max_reported_errors)
+  {
+    reported_errors++;
+    fprintf(stderr, ANSI_COLOR_BLACK ANSI_COLOR_BGMAGENTA "[%d of %d]" ANSI_COLOR_RESET " %s %s %s " ANSI_COLOR_RESET "\n",
+            reported_errors.load(), max_reported_errors, severity_string(eErrClass), error_string(err_no), msg);
+  }
+
   if (eErrClass == CE_Fatal)
   {
     exit(-1);
