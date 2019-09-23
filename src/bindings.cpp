@@ -327,7 +327,20 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
     DOIT(get_block_size(dataset, band_number, width, height));
 }
 
-/** Get the histogram of the given band
+/** Get the histogram of a given band
+ *
+ * @param token A token associated with some uri ⨯ options pair
+ * @param dataset 0 (or locked_dataset::SOURCE) for the source
+ *                dataset, 1 (or locked_dataset::WARPED) for the
+ *                warped dataset
+ * @param attempts The number of attempts to make before giving up
+ * @param copies The desired number of datasets
+ * @param band_number The band in question
+ * @param dfMin the lower bound of the histogram
+ * @param dfMax the upper bound of the histogram
+ * @param panHistogram array into which the histogram totals are placed
+ * @param bIncludeOutOfRange Whether to map out of range values into the first/last buckets
+ * @param bApproxOK Whether to accept an approximate histogram. With COGs, will cause the use of overviews
  */
 int get_histogram(uint64_t token, int dataset, int attempts, int copies,
                   int band_number,

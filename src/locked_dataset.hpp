@@ -178,6 +178,14 @@ public:
     }
 
     /** Get a histogram of a band
+     * 
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param dfMin the lower bound of the histogram
+     * @param dfMax the upper bound of the histogram
+     * @param panHistogram array into which the histogram totals are placed
+     * @param bIncludeOutOfRange Whether to map out of range values into the first/last buckets
+     * @param bApproxOK Whether to accept an approximate histogram. With COGs, will cause the use of overviews
      */
     int get_histogram(int dataset, int band_number,
                       double dfMin, double dfMax,
@@ -185,7 +193,10 @@ public:
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
-        auto retval = GDALGetRasterHistogramEx(bandh, dfMin, dfMax, sizeof(panHistogram),
+        printf("Histogram container size is: %ld", sizeof(panHistogram) / sizeof(panHistogram[0]));
+        // TODO should be length of panHistogram, but can't get that to evaluate to what I think it
+        // should be :thinking_face:
+        auto retval = GDALGetRasterHistogramEx(bandh, dfMin, dfMax, 256,
                                                panHistogram, bIncludeOutOfRange, bApproxOK, NULL, NULL);
         UNLOCK
         if (retval == CE_None)
@@ -202,7 +213,7 @@ public:
      * Get the offset of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param offset The return-location of the offset
      * @param success The return-location of the success flag
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
