@@ -151,16 +151,15 @@ public class GDALWarp {
          * @param band_number The band in question
          * @param width       The return-location of the block width
          * @param height      The return-location of the block height
-         * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_block_size(long token, int dataset, int attempts, /* */
                         int band_number, int[] width, int[] height);
 
-	public static native int get_histogram(long token, int dataset, int attempts, /* */
-					       int band_number, double dfMin, double dfMax,
-					       int nBuckets, long[] panHistogram,
-					       boolean bIncludeOutOfRange, boolean bApproxOK);
+        public static native int get_histogram(long token, int dataset, int attempts, /* */
+                        int band_number, double dfMin, double dfMax, long[] panHistogram, boolean bIncludeOutOfRange,
+                        boolean bApproxOK);
 
         /**
          * Get the offset of the given band.
@@ -172,14 +171,14 @@ public class GDALWarp {
          * @param band_number The band in question
          * @param offset      The return-location of the offset
          * @param success     The return-location of the success flag
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_offset(long token, int dataset, int attempts, /* */
-					    int band_number, double[] offset, int[] success);
+                        int band_number, double[] offset, int[] success);
 
-	/**
-	 * Get the scale of the given band.
+        /**
+         * Get the scale of the given band.
          *
          * @param token       A token associated with some uri, options pair
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
@@ -188,8 +187,8 @@ public class GDALWarp {
          * @param band_number The band in question
          * @param scale       The return-location of the scale
          * @param success     The return-location of the success flag
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_scale(long token, int dataset, int attempts, /* */
                         int band_number, double[] scale, int[] success);
@@ -197,12 +196,12 @@ public class GDALWarp {
         /**
          * Get the color interpretation of the given band.
          *
-         * @param token        A token associated with some uri, options pair
-         * @param dataset      0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
-         *                     GDALWarp::WARPED) for the warped dataset
-         * @param attempts     The number of attempts to make before giving up
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @param token    A token associated with some uri, options pair
+         * @param dataset  0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
+         *                 GDALWarp::WARPED) for the warped dataset
+         * @param attempts The number of attempts to make before giving up
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int noop(long token, int dataset, int attempts);
 
@@ -216,8 +215,8 @@ public class GDALWarp {
          * @param band_number  The band in question
          * @param color_interp The return-slot for the integer-coded color
          *                     interpretation
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_color_interpretation(long token, int dataset, int attempts, /* */
                         int band_number, int color_interp[]);
@@ -231,8 +230,8 @@ public class GDALWarp {
          * @param attempts    The number of attempts to make before giving up
          * @param band_number The band to query (zero for the file itself)
          * @param domain_list The return-location for the list of strings
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_metadata_domain_list(long token, int dataset, int attempts, /* */
                         int band_number, byte[][] domain_list);
@@ -247,8 +246,8 @@ public class GDALWarp {
          * @param band_number The band to query (zero for the file itself)
          * @param domain      The metadata domain to query
          * @param list        The return-location for the list of strings
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_metadata(long token, int dataset, int attempts, /* */
                         int band_number, String domain, byte[][] list);
@@ -264,8 +263,8 @@ public class GDALWarp {
          * @param key         The key of the key, value metadata pair
          * @param domain      The metadata domain to query
          * @param value       The return-location for the value of the key, value pair
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_metadata_item(long token, int dataset, int attempts, /* */
                         int band_number, String key, String domain, byte[] value);
@@ -284,8 +283,8 @@ public class GDALWarp {
          *                    overviews
          * @param max_length  The maximum number of widths and heights to return
          *                    (nominally the smaller of the lengths of the two arrays)
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_overview_widths_heights(long token, int dataset, int attempts, /* */
                         int band_number, int[] widths, int heights[]);
@@ -299,8 +298,8 @@ public class GDALWarp {
          * @param attempts The number of attempts to make before giving up
          * @param crs      The character array in-which to return the PROJ.4 string
          * @param max_size The size of the pre-allocated return buffer
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_crs_proj4(long token, int dataset, int attempts, /* */
                         byte[] crs);
@@ -314,8 +313,8 @@ public class GDALWarp {
          * @param attempts The number of attempts to make before giving up
          * @param crs      The character array in-which to return the PROJ.4 string
          * @param max_size The size of the pre-allocated return buffer
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_crs_wkt(long token, int dataset, int attempts, /* */
                         byte[] crs);
@@ -331,8 +330,8 @@ public class GDALWarp {
          * @param nodata      The return-location of the NODATA value
          * @param success     The return-location of the success flag (answer whether or
          *                    not there is a NODATA value)
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_band_nodata(long token, int dataset, int attempts, /* */
                         int band, double[] nodata, int[] success);
@@ -351,8 +350,8 @@ public class GDALWarp {
          * @param minmax      The return-location of the minimum and maximum
          * @param success     The return-location of the success flag (answer whether or
          *                    not there is a NODATA value)
-	 * @return The number of attempts made (upon success) or a
-         *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_band_min_max(long token, int dataset, int attempts, /* */
                         int band, boolean approx_okay, double[] minmax, int[] success);
@@ -367,8 +366,8 @@ public class GDALWarp {
          * @param band_number The band of interest
          * @param data_type   The return-location of the band_number type (of integral
          *                    type GDALDataType)
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_band_data_type(long token, int dataset, int attempts, /* */
                         int band, int[] data_type);
@@ -381,8 +380,8 @@ public class GDALWarp {
          *                   GDALWarp::WARPED) for the warped dataset
          * @param attempts   The number of attempts to make before giving up
          * @param band_count The return-location of the band count
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_band_count(long token, int dataset, int attempts, /* */
                         int[] band_count);
@@ -396,8 +395,8 @@ public class GDALWarp {
          * @param attempts The number of attempts to make before giving up
          * @param width    The return-location of the width
          * @param height   The return-location of the height
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_width_height(long token, int dataset, int attempts, /* */
                         int[] width_height);
@@ -409,14 +408,16 @@ public class GDALWarp {
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                    GDALWarp::WARPED) for the warped dataset
          * @param attempts    The number of attempts to make before giving up
-         * @param src_window  Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
-         * @param dst_window  Please see https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+         * @param src_window  Please see
+         *                    https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+         * @param dst_window  Please see
+         *                    https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
          * @param band_number The band_number number of interest
          * @param type        The desired type of returned pixels (the argument is of
          *                    integral type GDALDataType)
          * @param data        The return-location of the read read data
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_data( /* */
                         long token, /* */
@@ -437,8 +438,8 @@ public class GDALWarp {
          * @param attempts  The number of attempts to make before giving up
          * @param transform The return location for the six double-precision floating
          *                  point number that will be returned
-	 * @return The number of attempts made (upon success) or a
-	 *         negative error code (upon failure)
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
          */
         public static native int get_transform(long token, int dataset, int attempts, /* */
                         double[] transform);
