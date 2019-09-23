@@ -177,6 +177,26 @@ public:
         SUCCESS
     }
 
+    /** Get a histogram of a band
+     */
+    int get_histogram(int dataset, int band_number,
+		      double dfMin, double dfMax,
+		      int nBuckets, GUIntBig *panHistogram, int bIncludeOutOfRange, int bApproxOK)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        auto retval = GDALGetRasterHistogramEx(bandh, dfMin, dfMax, nBuckets, panHistogram, bIncludeOutOfRange, bApproxOK, NULL, NULL);
+        UNLOCK
+        if (retval == CE_None)
+        {
+            SUCCESS
+        }
+        else
+        {
+            FAILURE
+        }
+    }
+
     /**
      * Get the offset of the given band.
      *

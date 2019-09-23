@@ -327,6 +327,18 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
     DOIT(get_block_size(dataset, band_number, width, height));
 }
 
+/** Get the histogram of the given band
+ */
+int get_histogram(uint64_t token, int dataset, int attempts, int copies,
+		  int band_number,
+		  double dfMin, double dfMax,
+		  int nBuckets, GUIntBig *panHistogram, int bIncludeOutOfRange, int bApproxOK)
+{
+    uint64_t nanos = default_nanos;
+    DOIT(get_histogram(dataset, band_number,
+		       dfMin, dfMax, nBuckets, panHistogram, bIncludeOutOfRange, bApproxOK));
+}
+
 /**
  * Get the offset of the given band.
  *

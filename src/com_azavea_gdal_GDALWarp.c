@@ -132,6 +132,21 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1block_1size(JNIEnv *en
     return retval;
 }
 
+JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1histogram
+  (JNIEnv *env, jclass obj, jlong token, jint dataset, jint attempts, jint band_number,
+   jdouble dfMin, jdouble dfMax, jint nBuckets, jlongArray _panHistogram, jboolean bIncludeOutOfRange,
+   jboolean bApproxOK)
+{
+    jlong *panHistogram = (*env)->GetLongArrayElements(env, _panHistogram, NULL);
+
+    jint retval = get_histogram(token, dataset, attempts, copies, band_number,
+				dfMin, dfMax, nBuckets, (unsigned long long int *)panHistogram,
+				bIncludeOutOfRange, bApproxOK);
+    (*env)->ReleaseLongArrayElements(env, _panHistogram, panHistogram, 0);
+
+    return retval;
+}
+
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1offset(JNIEnv *env, jclass obj,
                                                                  jlong token,
                                                                  jint dataset,

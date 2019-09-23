@@ -157,6 +157,11 @@ public class GDALWarp {
         public static native int get_block_size(long token, int dataset, int attempts, /* */
                         int band_number, int[] width, int[] height);
 
+	public static native int get_histogram(long token, int dataset, int attempts, /* */
+					       int band_number, double dfMin, double dfMax,
+					       int nBuckets, long[] panHistogram,
+					       boolean bIncludeOutOfRange, boolean bApproxOK);
+
         /**
          * Get the offset of the given band.
          *
@@ -171,10 +176,10 @@ public class GDALWarp {
          *         negative error code (upon failure)
          */
         public static native int get_offset(long token, int dataset, int attempts, /* */
-                        int band_number, double[] offset, int[] success);
+					    int band_number, double[] offset, int[] success);
 
-        /**
-         * Get the scale of the given band.
+	/**
+	 * Get the scale of the given band.
          *
          * @param token       A token associated with some uri, options pair
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or

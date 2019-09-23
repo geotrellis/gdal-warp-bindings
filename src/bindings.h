@@ -32,6 +32,12 @@ extern "C"
     int get_block_size(uint64_t token, int dataset, int attempts, int copies,
                        int band_number, int *width, int *height);
 
+    int get_histogram(uint64_t token, int dataset, int attempts, int copies,
+		      int band_number,
+		      double dfMin, double dfMax,
+		      int nBuckets, unsigned long long int *panHistogram,
+		      int bIncludeOutOfRange, int bApproxOK);
+
     int get_offset(uint64_t token, int dataset, int attempts, int copies,
                    int band_number, double *offset, int *success);
 
