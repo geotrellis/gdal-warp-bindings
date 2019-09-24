@@ -34,7 +34,7 @@ extern "C"
 
     int get_histogram(uint64_t token, int dataset, int attempts, int copies,
                       int band_number,
-                      double dfMin, double dfMax,
+                      double dfMin, double dfMax, int nBuckets,
                       unsigned long long int *panHistogram,
                       int bIncludeOutOfRange, int bApproxOK);
 

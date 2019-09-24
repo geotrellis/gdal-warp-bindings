@@ -189,14 +189,11 @@ public:
      */
     int get_histogram(int dataset, int band_number,
                       double dfMin, double dfMax,
-                      GUIntBig *panHistogram, int bIncludeOutOfRange, int bApproxOK)
+                      int nBuckets, GUIntBig *panHistogram, int bIncludeOutOfRange, int bApproxOK)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
-        printf("Histogram container size is: %ld", sizeof(panHistogram) / sizeof(panHistogram[0]));
-        // TODO should be length of panHistogram, but can't get that to evaluate to what I think it
-        // should be :thinking_face:
-        auto retval = GDALGetRasterHistogramEx(bandh, dfMin, dfMax, 256,
+        auto retval = GDALGetRasterHistogramEx(bandh, dfMin, dfMax, nBuckets,
                                                panHistogram, bIncludeOutOfRange, bApproxOK, NULL, NULL);
         UNLOCK
         if (retval == CE_None)

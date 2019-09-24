@@ -66,9 +66,8 @@ BOOST_AUTO_TEST_CASE(get_histogram)
     errno_init();
 
     GUIntBig panContainer[256];
-    ld.get_histogram(locked_dataset::SOURCE, 1, -0.5, 255.5, *&panContainer, true, false);
+    ld.get_histogram(locked_dataset::SOURCE, 1, -0.5, 255.5, 256, *&panContainer, true, false);
 
-    printf("Head of histogram is: %ld", (long int)panContainer[0]);
     BOOST_TEST(panContainer[0] == 3265829);
     BOOST_TEST(panContainer[12] == 487792);
 
