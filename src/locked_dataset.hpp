@@ -177,6 +177,36 @@ public:
         SUCCESS
     }
 
+    /** Get a histogram of a band
+     *
+     * @param dataset The index of the dataset (source == 0, warped == 1)
+     * @param band_number The band in question
+     * @param lower the lower bound of the histogram
+     * @param upper the upper bound of the histogram
+     * @param num_buckets The number of histogram buckts
+     * @param hist array into which the histogram totals are placed
+     * @param include_out_of_range Whether to map out of range values into the first/last buckets
+     * @param approx_ok Whether to accept an approximate histogram. With COGs, will cause the use of overviews
+     */
+    int get_histogram(int dataset, int band_number,
+                      double lower, double upper,
+                      int num_buckets, GUIntBig *hist, int include_out_of_range, int approx_ok)
+    {
+        TRYLOCK
+        GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
+        auto retval = GDALGetRasterHistogramEx(bandh, lower, upper, num_buckets,
+                                               hist, include_out_of_range, approx_ok, NULL, NULL);
+        UNLOCK
+        if (retval == CE_None)
+        {
+            SUCCESS
+        }
+        else
+        {
+            FAILURE
+        }
+    }
+
     /**
      * Get the offset of the given band.
      *

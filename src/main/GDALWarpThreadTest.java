@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 Azavea
  *
@@ -124,8 +123,7 @@ class GDALWarpThreadTest extends Thread {
         {
             String version = GDALWarp.get_version_info("--version");
             System.out.println(ANSI_BLUE + "Version info: " + ANSI_GREEN + version + ANSI_RESET);
-            System.out
-                    .println(ANSI_BLUE + "Version string length: " + ANSI_GREEN + version.length() + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Version string length: " + ANSI_GREEN + version.length() + ANSI_RESET);
         }
 
         // License
@@ -157,7 +155,8 @@ class GDALWarpThreadTest extends Thread {
 
         // noop
         {
-            System.out.println(ANSI_BLUE + "noop: " + ANSI_GREEN + GDALWarp.noop(token, GDALWarp.SOURCE, 0) + ANSI_RESET);
+            System.out
+                    .println(ANSI_BLUE + "noop: " + ANSI_GREEN + GDALWarp.noop(token, GDALWarp.SOURCE, 0) + ANSI_RESET);
         }
 
         // Color Interpretation
@@ -234,6 +233,17 @@ class GDALWarpThreadTest extends Thread {
             GDALWarp.get_block_size(token, GDALWarp.WARPED, 0, 1, width, height);
             System.out
                     .println(ANSI_BLUE + "Warped block size: " + ANSI_GREEN + width[0] + " " + height[0] + ANSI_RESET);
+        }
+
+        // Histogram
+        {
+            long[] hist = new long[256];
+            GDALWarp.get_histogram(token, GDALWarp.SOURCE, 0, 1, -0.5, 255.5, hist, true, false);
+            System.out.println(ANSI_BLUE + "Exact histogram: " + ANSI_GREEN);
+            for (int i = 0; i < hist.length; ++i) {
+                System.out.print(hist[i] + " ");
+            }
+            System.out.println("");
         }
 
         // Offset
