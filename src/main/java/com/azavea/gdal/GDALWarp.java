@@ -159,24 +159,24 @@ public class GDALWarp {
 
         /**
          * Get the histogram for a given band
-         * 
-         * @param token              A token associated with some uri, options pair
-         * @param dataset            0 (or GDALWarp::SOURCE) for the source dataset, 1
-         *                           (or GDALWarp::WARPED) for the warped dataset
-         * @param attempts           The number of attempts to make before giving up
-         * @param band_number        The band in question
-         * @param min                The minimum bin for the histogram
-         * @param max                The maximum bin for the histogram
-         * @param histogramContainer The array to hold the result of the histogram
-         *                           calculation
-         * @param includeOutOfRange  Whether to map out of range values into the
-         *                           first/last buckets
-         * @param approxOK           Whether to accept an approximate histogram. With
-         *                           COGs, will cause the use of overviews
+         *
+         * @param token                A token associated with some uri, options pair
+         * @param dataset              0 (or GDALWarp::SOURCE) for the source dataset, 1
+         *                             (or GDALWarp::WARPED) for the warped dataset
+         * @param attempts             The number of attempts to make before giving up
+         * @param band_number          The band in question
+         * @param min                  The minimum bin for the histogram
+         * @param max                  The maximum bin for the histogram
+         * @param histogram_container  The array to hold the result of the histogram
+         *                             calculation
+         * @param include_out_of_range Whether to map out of range values into the
+         *                             first/last buckets
+         * @param approx_ok            Whether to accept an approximate histogram. With
+         *                             COGs, will cause the use of overviews
          */
         public static native int get_histogram(long token, int dataset, int attempts, /* */
-                        int band_number, double min, double max, long[] histogramContainer, boolean includeOutOfRange,
-                        boolean approxOK);
+                        int band_number, double min, double max, long[] histogram_container,
+                        boolean include_out_of_range, boolean approx_ok);
 
         /**
          * Get the offset of the given band.

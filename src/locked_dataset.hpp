@@ -163,7 +163,7 @@ public:
      * Get the block size of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param width The return-location of the block width
      * @param height The return-location of the block height
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
@@ -178,7 +178,7 @@ public:
     }
 
     /** Get a histogram of a band
-     * 
+     *
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band in question
      * @param dfMin the lower bound of the histogram
@@ -228,7 +228,7 @@ public:
      * Get the scale of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param scale The return-location of the scale
      * @param success The return-location of the success flag
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
@@ -246,7 +246,7 @@ public:
      * Get the color interpretation of the given band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param color_interp The return-slot for the integer-coded color
      *                     interpretation
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
@@ -262,10 +262,10 @@ public:
 
     /**
      * Get the widths and heights of all overviews associated with the
-     * first band of the underlying warped dataset          .
+     * first band of the underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param widths The array in which to return the widths
      * @param heights The array in which to return the heights
      * @param max_length The maximum of number of widths and heights to return
@@ -291,10 +291,10 @@ public:
     }
 
     /**
-     * Get the CRS of the underlying warped dataset in PROJ.4           .
+     * Get the CRS of the underlying warped dataset in PROJ.4.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param           crs The location at-which           to return the PROJ.4 string
+     * @param crs The location at-which to return the PROJ.4 string
      * @param max_size The maximum PROJ.4 string size
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
@@ -312,10 +312,10 @@ public:
     }
 
     /**
-     * Get the CRS of the underlying warped dataset in WKT          .
+     * Get the CRS of the underlying warped dataset in WKT.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @param           crs The location at-which           to return the WKT string
+     * @param crs The location at-which to return the WKT string
      * @param max_size The maximum WKT string size
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
@@ -329,10 +329,10 @@ public:
 
     /**
      * Get the NODATA value associated with a particular band of the
-     * underlying warped dataset            .
+     * underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param nodata The return-location for the nodata value
      * @param success The return slot for the "is there nodata" value
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
@@ -348,10 +348,10 @@ public:
 
     /**
      * Get the data type of a particular band of the underlying warped
-     * dataset          .
+     * dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          in question
+     * @param band_number The band in question
      * @param data_type The type of the band in question
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
@@ -366,10 +366,10 @@ public:
 
     /**
      * Get the number of raster bands in the underlying warped
-     * dataset          .
+     * dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_count The return         -location for the integer band count
+     * @param band_count The return-location for the integer band count
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_band_count(int dataset, int *band_count) const
@@ -381,10 +381,10 @@ public:
     }
 
     /**
-     * Get the transform of the underlying warped dataset           .
+     * Get the transform of the underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param transform The return-         location of the transform
+     * @param transform The return-location of the transform
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
     int get_transform(int dataset, double transform[6]) const
@@ -396,10 +396,10 @@ public:
     }
 
     /**
-     * Get the width and height of the underlying warped dataset            .
+     * Get the width and height of the underlying warped dataset.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param width The return-location             for the width
+     * @param width The return-location for the width
      * @param height The return-location for the height
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
@@ -417,7 +417,7 @@ public:
      * Get the maximum and minimum values appearing in the requested band.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band          to query
+     * @param band_number The band to query
      * @param approx_okay A flag indicating whether approximate min
      *                    and max values are okay
      * @param minmax The return-array for the minimum and maximum
@@ -449,7 +449,7 @@ public:
      * Get the list of metadata domain lists.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band to           query (zero for the file itself)
+     * @param band_number The band to query (zero for the file itself)
      * @param domain_list The return-location for the list of strings
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
@@ -464,7 +464,7 @@ public:
         else
         {
             GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
-            // Must be freed            with CSLDestroy
+            // Must be freed with CSLDestroy
             *domain_list = GDALGetMetadataDomainList(band);
         }
         UNLOCK
@@ -482,7 +482,7 @@ public:
      * Get the metadata found in a particular metadata domain.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band to           query (zero for the file itself)
+     * @param band_number The band to query (zero for the file itself)
      * @param domain The metadata domain to query
      * @param list The return-location for the list of strings
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
@@ -514,7 +514,7 @@ public:
      * Get a particular metadata value associated with a key.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param band_number The band to           query (zero for the file itself)
+     * @param band_number The band to query (zero for the file itself)
      * @param key The key of the key ⨯ value metadata pair
      * @param doamin The metadata domain to query
      * @param value The return-location for the value of the key ⨯ value pair
@@ -545,12 +545,12 @@ public:
 
     /**
      * Read pixels from the underlying dataset.  This is more-or-less
-     * a direct wrapper of the          GDALRasterIO function see
+     * a direct wrapper of the GDALRasterIO function see
      * https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv419GDALDatasetRasterIO12GDALDatasetH10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
      * for more information.
      *
      * @param dataset The index of the dataset (source == 0, warped == 1)
-     * @            param src_window The pixel-         space coordinates of the upper-left
+     * @param src_window The pixel-space coordinates of the upper-left
      *                   corner of the source window (the first two
      *                   entries) and the width and height of the
      *                   source window (the last two entries)
@@ -599,7 +599,7 @@ public:
 
     /**
      * Is the dataset valid?
-                 */
+     */
     bool valid() const
     {
         auto src = m_datasets[SOURCE];
@@ -609,7 +609,7 @@ public:
 
     /**
      * Increment the reference count of this dataset.
-                 */
+     */
     void inc()
     {
         m_use_count++;
@@ -617,14 +617,14 @@ public:
 
     /**
      * Decrement the reference count of this dataset.
-                 */
+     */
     void dec()
     {
         m_use_count--;
     }
 
     /**
-     * Answer "true" iff this dataset is unused and safe to delete          .
+     * Answer "true" iff this dataset is unused and safe to delete.
      *
      * @return A boolean meeting the above description
      */
@@ -645,7 +645,7 @@ public:
 
     /**
      * Unlock this dataset (use only if previously locked for deletion).
-                 */
+     */
     void unlock_for_nondeletion()
     {
         UNLOCK
@@ -654,7 +654,7 @@ public:
 private:
     /**
      * A function to open a GDAL dataset answering the given warp
-     * options.  Should only            be called from constructors.
+     * options.  Should only be called from constructors.
      */
     void open()
     {
