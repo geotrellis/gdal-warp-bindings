@@ -133,16 +133,16 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1block_1size(JNIEnv *en
 }
 
 JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1histogram(JNIEnv *env, jclass obj, jlong token, jint dataset, jint attempts, jint band_number,
-                                                                    jdouble dfMin, jdouble dfMax, jlongArray _panHistogram, jboolean bIncludeOutOfRange,
-                                                                    jboolean bApproxOK)
+                                                                    jdouble lower, jdouble upper, jlongArray _hist, jboolean include_out_of_range,
+                                                                    jboolean approx_ok)
 {
-    jlong *panHistogram = (*env)->GetLongArrayElements(env, _panHistogram, NULL);
-    jint nBuckets = (*env)->GetArrayLength(env, _panHistogram);
+    jlong *hist = (*env)->GetLongArrayElements(env, _hist, NULL);
+    jint num_buckets = (*env)->GetArrayLength(env, _hist);
 
     jint retval = get_histogram(token, dataset, attempts, copies, band_number,
-                                dfMin, dfMax, nBuckets, (unsigned long long int *)panHistogram,
-                                bIncludeOutOfRange, bApproxOK);
-    (*env)->ReleaseLongArrayElements(env, _panHistogram, panHistogram, 0);
+                                lower, upper, num_buckets, (unsigned long long int *)hist,
+                                include_out_of_range, approx_ok);
+    (*env)->ReleaseLongArrayElements(env, _hist, hist, 0);
 
     return retval;
 }

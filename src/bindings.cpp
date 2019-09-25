@@ -336,19 +336,20 @@ int get_block_size(uint64_t token, int dataset, int attempts, int copies,
  * @param attempts The number of attempts to make before giving up
  * @param copies The desired number of datasets
  * @param band_number The band in question
- * @param dfMin the lower bound of the histogram
- * @param dfMax the upper bound of the histogram
- * @param panHistogram array into which the histogram totals are placed
- * @param bIncludeOutOfRange Whether to map out of range values into the first/last buckets
- * @param bApproxOK Whether to accept an approximate histogram. With COGs, will cause the use of overviews
+ * @param lower the lower bound of the histogram
+ * @param upper the upper bound of the histogram
+ * @param num_buckets The number of histogram buckts
+ * @param hist array into which the histogram totals are placed
+ * @param include_out_of_range Whether to map out of range values into the first/last buckets
+ * @param approx_ok Whether to accept an approximate histogram. With COGs, will cause the use of overviews
  */
 int get_histogram(uint64_t token, int dataset, int attempts, int copies,
-                  int band_number, double dfMin, double dfMax, int nBuckets,
-                  GUIntBig *panHistogram, int bIncludeOutOfRange, int bApproxOK)
+                  int band_number, double lower, double upper, int num_buckets,
+                  GUIntBig *hist, int include_out_of_range, int approx_ok)
 {
     uint64_t nanos = default_nanos;
     DOIT(get_histogram(dataset, band_number,
-                       dfMin, dfMax, nBuckets, panHistogram, bIncludeOutOfRange, bApproxOK));
+                       lower, upper, num_buckets, hist, include_out_of_range, approx_ok));
 }
 
 /**

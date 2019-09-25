@@ -237,11 +237,11 @@ class GDALWarpThreadTest extends Thread {
 
         // Histogram
         {
-            long[] histContainer = new long[256];
-            GDALWarp.get_histogram(token, GDALWarp.SOURCE, 0, 1, -0.5, 255.5, histContainer, true, false);
+            long[] hist = new long[256];
+            GDALWarp.get_histogram(token, GDALWarp.SOURCE, 0, 1, -0.5, 255.5, hist, true, false);
             System.out.println(ANSI_BLUE + "Exact histogram: " + ANSI_GREEN);
-            for (int i = 0; i < histContainer.length; ++i) {
-                System.out.print(histContainer[i] + " ");
+            for (int i = 0; i < hist.length; ++i) {
+                System.out.print(hist[i] + " ");
             }
             System.out.println("");
         }
