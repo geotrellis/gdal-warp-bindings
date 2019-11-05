@@ -1,0 +1,12 @@
+version: 2
+general:
+  branches:
+    only:
+      - master
+      - publishment
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: ~/project/.travis/tests.sh
