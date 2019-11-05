@@ -1,5 +1,9 @@
 version: 2
-jobs:
+general:
+  branches:
+    only:
+      - master
+      - publishment
   build:
     machine: true
     steps:
