@@ -1,0 +1,15 @@
+  version: 2
+  jobs:
+    build:
+      docker:
+        - image: jamesmcclain/gdal-build-environment:3
+      steps:
+        - checkout
+        - run:
+            command: |-
+              CC=gcc CXX=g++ CFLAGS="-Wall -Werror -O0 -ggdb3 -DSO_FINI -D_GNU_SOURCE" JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" make -j4 -C src tests
+            name: "Linux Build and Tests"
+        - run:
+            command: |-
+              CC=gcc CXX=g++ JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" make -j4 -C src/experiments/thread pattern oversubscribe
+            name: "Build Experiments"
