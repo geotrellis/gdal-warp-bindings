@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/geotrellis/gdal-warp-bindings.svg?branch=master)](https://travis-ci.org/geotrellis/gdal-warp-bindings) [![Download](https://api.bintray.com/packages/azavea/geotrellis/gdal-warp-bindings/images/download.svg)](https://bintray.com/azavea/geotrellis/gdal-warp-bindings/_latestVersion)
+[![Build Status](https://travis-ci.org/geotrellis/gdal-warp-bindings.svg?branch=master)](https://travis-ci.org/geotrellis/gdal-warp-bindings) [![CircleCI](https://circleci.com/gh/geotrellis/gdal-warp-bindings.svg?style=svg)](https://circleci.com/gh/geotrellis/gdal-warp-bindings) [![Download](https://api.bintray.com/packages/azavea/geotrellis/gdal-warp-bindings/images/download.svg)](https://bintray.com/azavea/geotrellis/gdal-warp-bindings/_latestVersion)
 
 # Intro #
 
