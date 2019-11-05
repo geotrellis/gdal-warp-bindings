@@ -1,24 +1,7 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: jamesmcclain/gdal-build-environment:3
+    machine: true
     steps:
       - checkout
-      - run:
-          command: |-
-            CC=gcc CXX=g++ CFLAGS="-Wall -Werror -O0 -ggdb3 -DSO_FINI -D_GNU_SOURCE" JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" make -j4 -C src tests
-          name: "Linux Build and Tests"
-      - run:
-          command: |-
-            CC=gcc CXX=g++ JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" make -j4 -C src/experiments/thread pattern oversubscribe
-          name: "Build Experiments"
-      - run:
-          command: |-
-            rm -f $(find | grep '\.o$')
-            OSXCROSS_NO_INCLUDE_PATH_WARNINGS=1 CROSS_TRIPLE="x86_64-apple-darwin" OS=darwin SO=dylib CC=cc CXX=c++ CFLAGS="-Wall -Werror -O0 -ggdb3" JAVA_HOME="/macintosh/jdk8u202-b08/Contents/Home" GDALCFLAGS="-I/macintosh/gdal/2.4.0_1/include" CXXFLAGS="-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1" BOOST_ROOT="/usr/local/include/boost_1_69_0" LDFLAGS="-mmacosx-version-min=10.9 -L/macintosh/gdal/2.4.0_1/lib -lgdal -lstdc++ -lpthread" make -j4 -C src libgdalwarp_bindings.dylib
-          name: "Macintosh Build"
-      - run:
-          command: |-
-            CROSS_TRIPLE=x86_64-w64-mingw32 OS=win32 CFLAGS="-Wall -Werror -Os -g" JAVA_HOME="/windows/jdk8u202-b08" BOOST_ROOT="/usr/local/include/boost_1_69_0" LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" make -j4 -C src gdalwarp_bindings.dll
-          name: "Windows Build"
+      - run: ~/project/.travis/tests.sh
