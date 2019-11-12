@@ -10,3 +10,4 @@ jobs:
     steps:
       - checkout
       - run: ~/project/.travis/tests.sh
+      - run: ~/project/.circleci/deploy.sh
