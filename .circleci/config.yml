@@ -4,9 +4,11 @@ general:
     only:
       - master
       - publishment
+      - release
 jobs:
   build:
     machine: true
     steps:
       - checkout
       - run: ~/project/.travis/tests.sh
+      - run: ~/project/.circleci/deploy.sh
