@@ -43,6 +43,9 @@ docker run -it --rm \
 cp src/libgdalwarp_bindings.dylib src/main/java/resources/ || exit -1
 cp src/gdalwarp_bindings.dll src/main/java/resources/ || exit -1
 (cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*) || exit -1
+(cd src/main/java ; jar -cvf ../../../gdalwarp-source.jar $(find | grep '\.java$')) || exit -1
+(javadoc -sourcepath src/main/java -subpackages com.azavea -d /tmp/javadoc ; cd /tmp/javadoc ; jar -cvf /tmp/gdalwarp-javadoc.jar .) || exit -1
+cp /tmp/gdalwarp-javadoc.jar . || exit -1
 
 rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
 rm -f src/com_azavea_gdal_GDALWarp.h
