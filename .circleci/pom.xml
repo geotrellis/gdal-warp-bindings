@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.azavea.geotrellis</groupId>
+  <artifactId>gdal-warp-bindings</artifactId>
+  <version>XXX</version>
+  <url>http://github.com/geotrellis/gdal-warp-bindings</url>
+  <name>gdal-warp-bindings</name>
+  <description>Thread-safe bindings for GDAL's Warp functionality</description>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://opensource.org/licenses/Apache-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git#github.com:geotrellis/gdal-warp-bindings.git</url>
+    <connection>scm:git:git#github.com:geotrellis/gdal-warp-bindings</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>jamesmcclain</id>
+      <name>James McClain</name>
+      <url>http://github.com/jamesmcclain</url>
+    </developer>
+  </developers>
+</project>
