@@ -118,7 +118,7 @@ inline void pthread_yield()
 #define DOIT(fn)                                                                          \
     bool done = false;                                                                    \
     auto query_result = query_token(token);                                               \
-    int code = -CPLE_AppDefined;                                                          \
+    int code = CPLE_None;                                                                 \
     uint64_t then, now;                                                                   \
     if (query_result)                                                                     \
     {                                                                                     \

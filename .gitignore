@@ -14,6 +14,7 @@ src/experiments/thread/rawthread
 src/experiments/thread/wrapthread
 src/experiments/thread/pattern
 src/experiments/thread/oversubscribe
+src/experiments/thread/metadata
 src/unit_tests/dataset_tests
 src/unit_tests/token_tests
 src/unit_tests/cache_tests

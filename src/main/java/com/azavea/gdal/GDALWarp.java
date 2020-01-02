@@ -16,6 +16,8 @@
 
 package com.azavea.gdal;
 
+import java.io.UnsupportedEncodingException;
+
 import cz.adamh.utils.NativeUtils;
 
 public class GDALWarp {
@@ -62,7 +64,56 @@ public class GDALWarp {
         private static final String ANSI_RESET = "\u001B[0m";
         private static final String ANSI_RED = "\u001B[31m";
 
+        private static ThreadLocal<byte[]> scratch_1d = new ThreadLocal<>();
+        private static ThreadLocal<byte[][]> scratch_2d = new ThreadLocal<>();
+
         private static native void _init(int size);
+
+        private static int ensure_scratch_1d() {
+                int len;
+
+                if (scratch_1d.get() == null) {
+                        len = 1 << 8;
+                        scratch_1d.set(new byte[len]);
+                } else {
+                        len = scratch_1d.get().length;
+                }
+                return len;
+        }
+
+        private static int ensure_scratch_2d() {
+                int len;
+
+                if (scratch_2d.get() == null) {
+                        len = 1 << 8;
+                        scratch_2d.set(new byte[len][len]);
+                } else {
+                        len = scratch_2d.get().length;
+                }
+                return len;
+        }
+
+        private static void grow_scratch_1d(int _len) {
+                int len;
+
+                if (_len <= 0) {
+                        len = (scratch_1d.get().length << 1);
+                } else {
+                        len = _len;
+                }
+                scratch_1d.set(new byte[len]);
+        }
+
+        private static void grow_scratch_2d(int _len) {
+                int len;
+
+                if (_len <= 0) {
+                        len = (scratch_2d.get().length << 1);
+                } else {
+                        len = _len;
+                }
+                scratch_2d.set(new byte[len][len]);
+        }
 
         public static void init(int size) throws Exception {
 
@@ -101,17 +152,16 @@ public class GDALWarp {
          *            https://gdal.org/api/raster_c_api.html?highlight=rasterio#_CPPv415GDALVersionInfoPKc)
          * @return The requested information
          */
-        public static String get_version_info(String key) throws Exception {
-                final int first_size = 1 << 8;
-                byte[] value = new byte[first_size];
-                int len = _get_version_info(key, value);
+        public static String get_version_info(String key) throws UnsupportedEncodingException {
+                int array_len = ensure_scratch_1d();
+                int result_len = _get_version_info(key, scratch_1d.get());
 
-                if (len < first_size) {
-                        return new String(value, "UTF-8").trim();
+                if (result_len < array_len) {
+                        return new String(scratch_1d.get(), 0, result_len, "UTF-8").trim();
                 } else {
-                        byte[] value2 = new byte[len + 1];
-                        _get_version_info(key, value2);
-                        return new String(value2, "UTF-8").trim();
+                        grow_scratch_1d(result_len + 1);
+                        _get_version_info(key, scratch_1d.get());
+                        return new String(scratch_1d.get(), 0, result_len, "UTF-8").trim();
                 }
         }
 
@@ -254,6 +304,44 @@ public class GDALWarp {
                         int band_number, byte[][] domain_list);
 
         /**
+         * Get the list of metadata domain lists.
+         *
+         * @param token       A token associated with some uri, options pair
+         * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
+         *                    GDALWarp::WARPED) for the warped dataset
+         * @param attempts    The number of attempts to make before giving up
+         * @param band_number The band to query (zero for the file itself)
+         * @param domain_list The return-location for the list of strings
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
+         */
+        public static int get_metadata_domain_list(long token, int dataset, int attempts, int band_number,
+                        String[][] domain_list) throws UnsupportedEncodingException {
+                int array_len = ensure_scratch_2d();
+                int retval = get_metadata_domain_list(token, dataset, attempts, band_number, scratch_2d.get());
+
+                if (retval >= 0) {
+                        int n = 0;
+                        for (n = 0; scratch_2d.get()[n][0] != 0; ++n) {
+                        }
+                        domain_list[0] = new String[n];
+                        for (--n; n >= 0; --n) {
+                                int m = 0;
+                                byte[] bytes = scratch_2d.get()[n];
+                                for (m = 0; (m < array_len) && (bytes[m] != 0); ++m) {
+                                }
+                                domain_list[0][n] = new String(bytes, 0, m, "UTF-8").trim();
+                        }
+                        return retval;
+                } else if (retval == -1) { // CPLE_AppDefined means array too small
+                        grow_scratch_2d(0);
+                        return get_metadata_domain_list(token, dataset, attempts, band_number, domain_list);
+                } else { // Return other error code
+                        return retval;
+                }
+        }
+
+        /**
          * Get the metadata found in a particular metadata domain.
          *
          * @param token       A token associated with some uri, options pair
@@ -268,6 +356,45 @@ public class GDALWarp {
          */
         public static native int get_metadata(long token, int dataset, int attempts, /* */
                         int band_number, String domain, byte[][] list);
+
+        /**
+         * Get the metadata found in a particular metadata domain.
+         *
+         * @param token       A token associated with some uri, options pair
+         * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
+         *                    GDALWarp::WARPED) for the warped dataset
+         * @param attempts    The number of attempts to make before giving up
+         * @param band_number The band to query (zero for the file itself)
+         * @param domain      The metadata domain to query
+         * @param list        The return-location for the list of strings
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
+         */
+        public static int get_metadata(long token, int dataset, int attempts, int band_number, String domain,
+                        String[][] list) throws UnsupportedEncodingException {
+                int array_len = ensure_scratch_2d();
+                int retval = get_metadata(token, dataset, attempts, band_number, domain, scratch_2d.get());
+
+                if (retval >= 0) {
+                        int n = 0;
+                        for (n = 0; scratch_2d.get()[n][0] != 0; ++n) {
+                        }
+                        list[0] = new String[n];
+                        for (--n; n >= 0; --n) {
+                                int m = 0;
+                                byte[] bytes = scratch_2d.get()[n];
+                                for (m = 0; (m < array_len) && (bytes[m] != 0); ++m) {
+                                }
+                                list[0][n] = new String(bytes, 0, m, "UTF-8").trim();
+                        }
+                        return retval;
+                } else if (retval == -1) { // CPLE_AppDefined means array too small
+                        grow_scratch_2d(0);
+                        return get_metadata(token, dataset, attempts, band_number, domain, list);
+                } else { // Return other error code
+                        return retval;
+                }
+        }
 
         /**
          * Get a particular metadata value associated with a key.
@@ -285,6 +412,40 @@ public class GDALWarp {
          */
         public static native int get_metadata_item(long token, int dataset, int attempts, /* */
                         int band_number, String key, String domain, byte[] value);
+
+        /**
+         * Get a particular metadata value associated with a key.
+         *
+         * @param token       A token associated with some uri, options pair
+         * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
+         *                    GDALWarp::WARPED) for the warped dataset
+         * @param attempts    The number of attempts to make before giving up
+         * @param band_number The band to query (zero for the file itself)
+         * @param key         The key of the key, value metadata pair
+         * @param domain      The metadata domain to query
+         * @param value       The return-location for the value of the key, value pair
+         * @return The number of attempts made (upon success) or a negative error code
+         *         (upon failure)
+         */
+        public static int get_metadata_item(long token, int dataset, int attempts, int band_number, String key,
+                        String domain, String[] value) throws UnsupportedEncodingException {
+                int array_len = ensure_scratch_1d();
+                int retval = get_metadata_item(token, dataset, attempts, band_number, key, domain, scratch_1d.get());
+
+                if (retval >= 0) {
+                        int m = 0;
+                        byte[] bytes = scratch_1d.get();
+                        for (m = 0; (m < array_len) && (bytes[m] != 0); ++m) {
+                        }
+                        value[0] = new String(bytes, 0, m, "UTF-8").trim();
+                        return retval;
+                } else if (retval == -1) { // CPLE_AppDefined means array too small
+                        grow_scratch_1d(0);
+                        return get_metadata_item(token, dataset, attempts, band_number, key, domain, value);
+                } else { // Return other error code
+                        return retval;
+                }
+        }
 
         /**
          * Get the widths and heights of all overviews.
