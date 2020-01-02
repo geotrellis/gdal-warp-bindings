@@ -34,6 +34,7 @@ typedef _locale_t locale_t;
 #include <gdal.h>
 #include <gdal_utils.h>
 #include <cpl_conv.h>
+#include <cpl_error.h>
 #include <ogr_srs_api.h>
 
 #include "types.hpp"
@@ -700,6 +701,9 @@ private:
                 return; // Lock intentionally not unlocked
             }
 
+            /* Avoid causing failure in opening file that can't have a Warp object (i.e. some netCDF file) */
+            /* See https://github.com/geotrellis/gdal-warp-bindings/issues/70 */
+            CPLTurnFailureIntoWarning(TRUE);
             m_datasets[WARPED] = GDALWarp("", nullptr, 1, &m_datasets[SOURCE], app_options, 0);
             if (m_datasets[SOURCE] == nullptr)
             {
@@ -708,7 +712,7 @@ private:
                 m_datasets[SOURCE] = m_datasets[WARPED] = nullptr;
                 return; // Lock intentionally not unlocked
             }
-
+            CPLTurnFailureIntoWarning(FALSE);
             GDALWarpAppOptionsFree(app_options);
         }
         UNLOCK
