@@ -2,10 +2,19 @@ FROM jamesmcclain/crossbuild:0
 LABEL maintainer="James McClain <james.mcclain@gmail.com>"
 
 RUN apt-get update -q && \
-    apt-get install build-essential libgdal-dev openjdk-8-jdk -y -q && \
+    apt-get install build-essential pkg-config openjdk-8-jdk -y -q && \
     apt-get autoremove && \
     apt-get autoclean && \
     apt-get clean
+
+# Build GDAL 2.4.3
+RUN cd /usr/local/src && \
+    wget -k 'https://download.osgeo.org/gdal/2.4.3/gdal-2.4.3.tar.gz' && \
+    wget -k 'https://download.osgeo.org/proj/proj-4.9.3.tar.gz' && \
+    tar axvf gdal-2.4.3.tar.gz && tar axvf proj-4.9.3.tar.gz && \
+    cd proj-4.9.3 && ./configure --prefix=/usr/local && nice -n 19 make -j33 && make install && \
+    cd ../gdal-2.4.3 && ./configure --prefix=/usr/local && nice -n 19 make -j33 && make install && \
+    cd .. && rm -r proj-4.9.3/ gdal-2.4.3/ proj-4.9.3.tar.gz gdal-2.4.3.tar.gz
 
 # Test data
 RUN wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O /tmp/c41078a1.tif
@@ -23,9 +32,9 @@ RUN mkdir -p /macintosh && \
     wget "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz" && \
     tar axvf OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
     rm -f OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
-    wget "https://homebrew.bintray.com/bottles/gdal-2.4.0_1.sierra.bottle.tar.gz" && \
-    tar axvf gdal-2.4.0_1.sierra.bottle.tar.gz && \
-    rm -f gdal-2.4.0_1.sierra.bottle.tar.gz
+    wget "https://homebrew.bintray.com/bottles/gdal-2.4.2_3.high_sierra.bottle.tar.gz" && \
+    tar axvf gdal-2.4.2_3.high_sierra.bottle.tar.gz && \
+    rm -f gdal-2.4.2_3.high_sierra.bottle.tar.gz
 
 # Windows
 RUN mkdir -p /windows && \
@@ -35,8 +44,11 @@ RUN mkdir -p /windows && \
     rm -r OpenJDK8U-jdk_x64_windows_hotspot_8u202b08.zip && \
     mkdir -p /windows/gdal && \
     cd /windows/gdal && \
-    wget "http://download.gisinternals.com/sdk/downloads/release-1900-x64-gdal-2-4-0-mapserver-7-2-2-libs.zip" && \
-    unzip release-1900-x64-gdal-2-4-0-mapserver-7-2-2-libs.zip && \
-    rm -f release-1900-x64-gdal-2-4-0-mapserver-7-2-2-libs.zip
+    wget "http://download.gisinternals.com/sdk/downloads/release-1900-x64-gdal-2-4-3-mapserver-7-4-2-libs.zip" && \
+    unzip release-1900-x64-gdal-2-4-3-mapserver-7-4-2-libs.zip && \
+    rm -f release-1900-x64-gdal-2-4-3-mapserver-7-4-2-libs.zip
 
-# docker build -f Dockerfile.environment -t jamesmcclain/gdal-build-environment:3 .
+# Linkage
+RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
+
+# docker build -f Dockerfile.environment -t jamesmcclain/gdal-build-environment:4 .

@@ -34,9 +34,11 @@ Please see [`src/main/java/com/azavea/gdal/GDALWarp.java`](src/main/java/com/aza
 
 # Binary Artifacts #
 
+## BinTray ##
+
 The binary artifacts are present on [Bintray](https://bintray.com/azavea/geotrellis/gdal-warp-bindings/_latestVersion).
 This jar file contains Linux, Macintosh, and Windows shared libraries.
-All native binaries are built for [AMD64](https://en.wikipedia.org/wiki/X86-64#AMD64); the Linux ones are linked against the Ubuntu 18.04 GDAL 2.2.3 package (`libgdal-dev`), The Macintosh ones are linked against [GDAL 2.4.0 from Homebrew](https://formulae.brew.sh/formula/gdal#default), and the Windows ones are linked against the [GDAL 2.4.0 MSVC 2015 build from GISinternals.com](http://www.gisinternals.com/release.php).
+All native binaries are built for [AMD64](https://en.wikipedia.org/wiki/X86-64#AMD64); the Linux ones are linked against GDAL 2.4.3, The Macintosh ones are linked against [GDAL 2.4.2 from Homebrew](https://formulae.brew.sh/formula/gdal#default), and the Windows ones are linked against the [GDAL 2.4.3 MSVC 2015 build from GISinternals.com](http://www.gisinternals.com/release.php).
 
 The class files in the jar were built with OpenJDK 8.
 
@@ -49,6 +51,11 @@ The jar file is reachable via Maven:
   <type>pom</type>
 </dependency>
 ```
+
+## SonaType ##
+
+The binary artifacts are also available on [SonaType](https://search.maven.org/artifact/com.azavea.geotrellis/gdal-warp-bindings).
+The set of artifacts available there is a subset of those on BinTray, but they are there for permanence and slightly easier access.
 
 # Repository Structure #
 
