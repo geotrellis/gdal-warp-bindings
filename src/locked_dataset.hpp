@@ -632,7 +632,10 @@ public:
     bool lock_for_deletion()
     {
         // If the lock could not be obtained, return false
-        TRYLOCK
+        if (pthread_mutex_trylock(&m_dataset_lock) != 0)
+        {
+            return false;
+        }        
         // If the lock could be obtained but the reference count is
         // not zero, return false
         else if (m_use_count != 0)
