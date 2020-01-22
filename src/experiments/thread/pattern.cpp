@@ -42,7 +42,7 @@ char const *options[] = {
 #pragma GCC diagnostic pop
 
 // Constants
-constexpr int N = (1024);
+constexpr int N = 1024;
 constexpr int DIM = 1 << 8;
 constexpr int BUFFERSIZE = DIM * DIM;
 constexpr int ATTEMPTS = 1 << 20;
@@ -51,6 +51,9 @@ constexpr int COPIES = -4;
 // Threads
 int lg_steps = 12;
 pthread_t threads[N];
+
+// Cache size
+int cache_size = 1 << 8;
 
 // ANSI
 // Reference: https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
@@ -123,10 +126,19 @@ int main(int argc, char **argv)
         }
         fprintf(stderr, ANSI_COLOR_BLUE "n = %d\n" ANSI_COLOR_RESET, n);
     }
+    if (argc >= 5)
+    {
+        sscanf(argv[4], "%d", &cache_size);
+        if (cache_size < 0)
+        {
+            cache_size = 1 << 8;
+        }
+        fprintf(stderr, ANSI_COLOR_BLUE "cache_size = %d\n" ANSI_COLOR_RESET, cache_size);
+    }
 
     // Setup
 
-    init(1 << 8);
+    init(cache_size);
     dup2(open("/dev/null", O_WRONLY), 2);
 
     for (int i = 0; i < n; ++i)
