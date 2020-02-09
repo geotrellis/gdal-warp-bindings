@@ -72,6 +72,25 @@ const char *severity_string(CPLErr eErrClass)
   }
 }
 
+const char *severity_string_nonansi(CPLErr eErrClass)
+{
+  switch (eErrClass)
+  {
+  case CE_None:
+    return "NON-ERROR(0)";
+  case CE_Debug:
+    return "DEBUG(1)";
+  case CE_Warning:
+    return "WARNING(2)";
+  case CE_Failure:
+    return "FAILURE(3)";
+  case CE_Fatal:
+    return "UNRECOVERABLE(4)";
+  default:
+    return "UNCLASSIFIED";
+  }
+}
+
 const char *error_string(int err_no)
 {
   switch (err_no)
@@ -136,8 +155,16 @@ void put_last_errno(CPLErr eErrClass, int err_no, const char *msg)
   if (reported_errors < max_reported_errors)
   {
     reported_errors++;
-    fprintf(stderr, ANSI_COLOR_BLACK ANSI_COLOR_BGMAGENTA "[%d of %d]" ANSI_COLOR_RESET " %s %s %s " ANSI_COLOR_RESET "\n",
-            reported_errors.load(), max_reported_errors, severity_string(eErrClass), error_string(err_no), msg);
+    if (getenv("GDALWARP_NONANSI_MESSAGES") == nullptr)
+    {
+      fprintf(stderr, ANSI_COLOR_BLACK ANSI_COLOR_BGMAGENTA "[%d of %d]" ANSI_COLOR_RESET " %s %s %s " ANSI_COLOR_RESET "\n",
+              reported_errors.load(), max_reported_errors, severity_string(eErrClass), error_string(err_no), msg);
+    }
+    else
+    {
+      fprintf(stderr, "[%d of %d] %s %s %s \n",
+              reported_errors.load(), max_reported_errors, severity_string_nonansi(eErrClass), error_string(err_no), msg);
+    }
   }
 
   if (eErrClass == CE_Fatal)
