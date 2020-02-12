@@ -568,9 +568,8 @@ public:
                    GDALDataType type,
                    void *data) const
     {
-        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
-
         TRYLOCK
+        GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
         auto retval = GDALRasterIO(
             band,                         // source band
             GF_Read,                      // mode
