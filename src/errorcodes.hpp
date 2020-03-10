@@ -19,6 +19,9 @@
 
 #include <gdal.h>
 
+// warpbindings error codes should not intersect GDAL error codes
+#define ATTEMPTS_EXCEEDED 100
+
 void errno_init();
 void errno_deinit();
 void put_last_errno(CPLErr eErrClass, int err_no, const char *msg);
