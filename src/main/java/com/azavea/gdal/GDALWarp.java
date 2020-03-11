@@ -459,7 +459,6 @@ public class GDALWarp {
          *                    overviews
          * @param heights     An array of integers to receive the heights of the various
          *                    overviews
-         * @param max_length  The maximum number of widths and heights to return
          *                    (nominally the smaller of the lengths of the two arrays)
          * @return The number of attempts made (upon success) or a negative error code
          *         (upon failure)
@@ -475,7 +474,6 @@ public class GDALWarp {
          *                 GDALWarp::WARPED) for the warped dataset
          * @param attempts The number of attempts to make before giving up
          * @param crs      The character array in-which to return the PROJ.4 string
-         * @param max_size The size of the pre-allocated return buffer
          * @return The number of attempts made (upon success) or a negative error code
          *         (upon failure)
          */
@@ -490,7 +488,6 @@ public class GDALWarp {
          *                 GDALWarp::WARPED) for the warped dataset
          * @param attempts The number of attempts to make before giving up
          * @param crs      The character array in-which to return the PROJ.4 string
-         * @param max_size The size of the pre-allocated return buffer
          * @return The number of attempts made (upon success) or a negative error code
          *         (upon failure)
          */
@@ -504,7 +501,7 @@ public class GDALWarp {
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                    GDALWarp::WARPED) for the warped dataset
          * @param attempts    The number of attempts to make before giving up
-         * @param band_number The band of interest
+         * @param band        The band number of interest
          * @param nodata      The return-location of the NODATA value
          * @param success     The return-location of the success flag (answer whether or
          *                    not there is a NODATA value)
@@ -521,7 +518,7 @@ public class GDALWarp {
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                    GDALWarp::WARPED) for the warped dataset
          * @param attempts    The number of attempts to make before giving up
-         * @param band_number The band_number of interest
+         * @param band        The band number of interest
          * @param approx_okay Is it okay to approximate the value if it is not stored in
          *                    the metadata, or must it be calculated exactly? An integer
          *                    treated as a boolean
@@ -541,7 +538,7 @@ public class GDALWarp {
          * @param dataset     0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                    GDALWarp::WARPED) for the warped dataset
          * @param attempts    The number of attempts to make before giving up
-         * @param band_number The band of interest
+         * @param band        The band number of interest
          * @param data_type   The return-location of the band_number type (of integral
          *                    type GDALDataType)
          * @return The number of attempts made (upon success) or a negative error code
@@ -571,8 +568,7 @@ public class GDALWarp {
          * @param dataset  0 (or GDALWarp::SOURCE) for the source dataset, 1 (or
          *                 GDALWarp::WARPED) for the warped dataset
          * @param attempts The number of attempts to make before giving up
-         * @param width    The return-location of the width
-         * @param height   The return-location of the height
+         * @param width_height  The return-location of the width and height
          * @return The number of attempts made (upon success) or a negative error code
          *         (upon failure)
          */
@@ -600,7 +596,7 @@ public class GDALWarp {
         public static native int get_data( /* */
                         long token, /* */
                         int dataset, /* */
-                        int attemps, /* */
+                        int attempts, /* */
                         int[] src_window, /* */
                         int[] dst_window, /* */
                         int band_number, /* */
