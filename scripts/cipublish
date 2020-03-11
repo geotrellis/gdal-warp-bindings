@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 docker run -it --rm \
       -v $(pwd):/workdir \
       -e CIRCLE_SHA1 -e CIRCLE_BRANCH \
