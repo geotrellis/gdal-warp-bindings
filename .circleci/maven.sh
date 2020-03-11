@@ -10,8 +10,6 @@ then
 
   if [ "${CIRCLE_BRANCH}" == "release" ]
   then
-    VERSION="33.${CIRCLE_SHA1:0:7}"
-    cat /workdir/.circleci/pom.xml | sed "s,XXX,${VERSION}," > pom.xml
     mvn gpg:sign-and-deploy-file \
       -Dgpg.passphrase="${GPG_PASSPHRASE}" \
       -DrepositoryId="sonatype_releases" \
