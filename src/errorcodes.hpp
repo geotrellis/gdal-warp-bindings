@@ -20,6 +20,7 @@
 #include <gdal.h>
 
 // warpbindings error codes should not intersect GDAL error codes
+// see https://gdal.org/doxygen/cpl__error_8h.html 
 #define ATTEMPTS_EXCEEDED 100
 
 void errno_init();
