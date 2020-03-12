@@ -1,14 +1,136 @@
-version: 2
-general:
-  branches:
-    only:
-      - master
-      - publishment
-      - release
+version: 2.1
+
+executors:
+  gdal-build-executor:
+    docker:
+      - image: jamesmcclain/gdal-build-environment:4
+    working_directory: /workdir
+
 jobs:
-  build:
-    machine: true
+  build-linux:
+    executor: gdal-build-executor
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: "-Wall -Wno-sign-compare -Werror -O0 -ggdb3 -DSO_FINI -D_GNU_SOURCE"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
     steps:
+      - attach_workspace:
+          at: /tmp/workdir/
       - checkout
-      - run: ~/project/.travis/tests.sh
-      - run: ~/project/.circleci/deploy.sh
+      - run:
+          name: Build Linux binaries and run unit tests
+          command: |
+            ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif
+            make -j4 -C src tests
+            make -j4 -C src/experiments/thread pattern oversubscribe
+      - persist_to_workspace:
+          root: src
+          paths:
+            - libgdalwarp_bindings.so
+
+  build-macos:
+    executor: gdal-build-executor
+    environment:
+      OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
+      CROSS_TRIPLE: x86_64-apple-darwin14
+      OS: darwin
+      SO: dylib
+      CC: cc 
+      CXX: c++
+      CFLAGS: "-Wall -Werror -O0 -ggdb3"
+      JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
+      GDALCFLAGS: "-I/macintosh/gdal/2.4.2_3/include"
+      CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/2.4.2_3/lib -lgdal -lstdc++ -lpthread"
+      LD_LIBRARY_PATH_ORIGIN: ""
+      CROSS_ROOT: /usr/x86_64-apple-darwin14
+      PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH_ORIGIN: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - attach_workspace:
+          at: /tmp/workdir/
+      - checkout
+      - run:
+          name: Build MacOS binaries
+          command: make -j4 -C src libgdalwarp_bindings.dylib
+      - persist_to_workspace:
+          root: src
+          paths:
+            - libgdalwarp_bindings.dylib
+
+  build-windows:
+    executor: gdal-build-executor
+    environment:
+      CROSS_TRIPLE: x86_64-w64-mingw32
+      OS: win32
+      CFLAGS: "-Wall -Werror -Os -g"
+      JAVA_HOME: "/windows/jdk8u202-b08"
+      GDALCFLAGS: "-I/usr/local/include"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      LDFLAGS: "-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32"
+      LD_LIBRARY_PATH: "/usr/x86_64-linux-gnu/x86_64-w64-mingw32/lib:"
+      LD_LIBRARY_PATH_ORIGIN: ""
+      CROSS_ROOT: /usr/x86_64-w64-mingw32
+      PATH: /usr/x86_64-w64-mingw32/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - attach_workspace:
+          at: /tmp/workdir/
+      - checkout
+      - run:
+          name: Build Windows binaries
+          command: make -j4 -C src gdalwarp_bindings.dll
+      - persist_to_workspace:
+          root: src
+          paths:
+            - gdalwarp_bindings.dll
+
+  publish:
+    executor: gdal-build-executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workdir/
+      - checkout
+      - run:
+          name: test print
+          command: ls -la /tmp/workdir/
+      - run:
+          name: Build a jar file, pack binaries into it and deploy it to maven central
+          command: |
+            apt-get install maven -y
+            .circleci/package.sh
+            .circleci/deploy.sh
+
+workflows:
+  build-publish:
+    jobs:
+      - build-linux:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/
+      - build-macos:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/
+      - build-windows:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/
+      - publish:
+          requires:
+            - build-linux
+            - build-macos
+            - build-windows
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/

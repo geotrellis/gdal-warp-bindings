@@ -1,9 +1,12 @@
 #!/bin/bash
 
-docker run -it --rm \
-      -v $(pwd):/workdir \
-      -e CIRCLE_SHA1 -e CIRCLE_BRANCH \
-      -e SONATYPE_USERNAME -e SONATYPE_PASSWORD \
-      -e GPG_KEY -e GPG_KEY_ID -e GPG_PASSPHRASE \
-      maven:3 \
-      /workdir/.circleci/maven.sh
+if [ ! -z "${GPG_KEY}" ]
+then
+  mkdir -p ~/.m2
+  cp /workdir/.circleci/settings.xml ~/.m2/
+
+  echo "${GPG_KEY}" | base64 -d > signing_key.asc
+  gpg --batch --passphrase "${GPG_PASSPHRASE}" --import signing_key.asc
+
+  mvn deploy
+fi

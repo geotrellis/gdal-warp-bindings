@@ -42,13 +42,12 @@ docker run -it --rm \
       -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" \
       jamesmcclain/gdal-build-environment:4 make -j4 -C src gdalwarp_bindings.dll || exit -1
 
-cp src/libgdalwarp_bindings.dylib src/main/java/resources/ || exit -1
-cp src/gdalwarp_bindings.dll src/main/java/resources/ || exit -1
-(cd src/main/java ; jar -cvf ../../../gdalwarp.jar com/azavea/gdal/*.class cz/adamh/utils/*.class resources/*) || exit -1
-(cd src/main/java ; jar -cvf ../../../gdalwarp-source.jar $(find | grep '\.java$')) || exit -1
-(javadoc -sourcepath src/main/java -subpackages com.azavea -d /tmp/javadoc ; cd /tmp/javadoc ; jar -cvf /tmp/gdalwarp-javadoc.jar .) || exit -1
-cp /tmp/gdalwarp-javadoc.jar . || exit -1
+rm -f src/main/resources/*.so
+mv src/libgdalwarp_bindings.so src/main/resources/resources/
+mv src/libgdalwarp_bindings.dylib src/main/resources/resources/
+mv src/gdalwarp_bindings.dll src/main/resources/resources/
+mvn install
 
-rm -f $(find | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
+rm -f $(find src | grep '\.\(o\|obj\|dylib\|dll\|so\|class\)$')
 rm -f src/com_azavea_gdal_GDALWarp.h
 rm -f src/experiments/thread/oversubscribe src/experiments/thread/pattern
