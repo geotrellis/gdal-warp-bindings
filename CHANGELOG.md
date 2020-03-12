@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.0]
 ### Added
 - Option to disable log message colorization [#78](https://github.com/geotrellis/gdal-warp-bindings/issues/78)
 - Add a special error code for the max attempts acceded case [#83](https://github.com/geotrellis/gdal-warp-bindings/issues/83)
@@ -17,5 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The first library release
 
-[Unreleased]: https://github.com/PDAL/java/compare/567d940706b08860f99492713ce706c3be02c33e...HEAD
+[Unreleased]: https://github.com/PDAL/java/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/PDAL/java/compare/567d940706b08860f99492713ce706c3be02c33e...v1.0.0
 [3.567d940]: https://github.com/geotrellis/gdal-warp-bindings/compare/0cc769caa6a9d179fae4dfa0aca8e291b64bbdb0...567d940706b08860f99492713ce706c3be02c33e
