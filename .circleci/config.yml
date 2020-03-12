@@ -90,9 +90,12 @@ jobs:
   publish:
     executor: gdal-build-executor
     steps:
-      - checkout
       - attach_workspace:
           at: /tmp/workdir/
+      - checkout
+      - run:
+          name: test print
+          command: ls -la /tmp/workdir/
       - run:
           name: Build a jar file, pack binaries into it and deploy it to maven central
           command: |

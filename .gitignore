@@ -57,6 +57,9 @@ README.html
 
 *.sublime-workspace
 
+# VSCode files
+.vscode
+
 # Test data files #
 
 sbt-jni/data
