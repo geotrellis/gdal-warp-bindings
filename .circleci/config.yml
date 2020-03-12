@@ -70,7 +70,7 @@ jobs:
       JAVA_HOME: "/windows/jdk8u202-b08"
       GDALCFLAGS: "-I/usr/local/include"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
-      LDFLAGS: "-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32"
+      LDFLAGS: "-L/windows/gdal/lib -lgdal_i -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -lws2_32"
       LD_LIBRARY_PATH: "/usr/x86_64-linux-gnu/x86_64-w64-mingw32/lib:"
       LD_LIBRARY_PATH_ORIGIN: ""
       CROSS_ROOT: /usr/x86_64-w64-mingw32

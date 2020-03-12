@@ -32,12 +32,13 @@ Please see [`src/bindings.h`](src/bindings.h) for the full C/C++ interface.
 
 Please see [`src/main/java/com/azavea/gdal/GDALWarp.java`](src/main/java/com/azavea/gdal/GDALWarp.java) for the full Java interface
 
-# Binary Artifacts #
+# SonaType Artifacts #
 
-## BinTray ##
+The binary artifacts are present on [SonaType](https://search.maven.org/artifact/com.azavea.geotrellis/gdal-warp-bindings).
+Snaphost artifacts are present on the [SonaType Snapshots repo](https://oss.sonatype.org/content/repositories/snapshots).
 
-The binary artifacts are present on [Bintray](https://bintray.com/azavea/geotrellis/gdal-warp-bindings/_latestVersion).
 This jar file contains Linux, Macintosh, and Windows shared libraries.
+
 All native binaries are built for [AMD64](https://en.wikipedia.org/wiki/X86-64#AMD64); the Linux ones are linked against GDAL 2.4.3, The Macintosh ones are linked against [GDAL 2.4.2 from Homebrew](https://formulae.brew.sh/formula/gdal#default), and the Windows ones are linked against the [GDAL 2.4.3 MSVC 2015 build from GISinternals.com](http://www.gisinternals.com/release.php).
 
 The class files in the jar were built with OpenJDK 8.
@@ -45,17 +46,12 @@ The class files in the jar were built with OpenJDK 8.
 The jar file is reachable via Maven:
 ```
 <dependency>
-  <groupId>com.azavea.gdal</groupId>
+  <groupId>com.azavea.geotrellis</groupId>
   <artifactId>gdal-warp-bindings</artifactId>
-  <version>33.xxxxxxx</version>
+  <version>x.x.x</version>
   <type>pom</type>
 </dependency>
 ```
-
-## SonaType ##
-
-The binary artifacts are also available on [SonaType](https://search.maven.org/artifact/com.azavea.geotrellis/gdal-warp-bindings).
-The set of artifacts available there is a subset of those on BinTray, but they are there for permanence and slightly easier access.
 
 # Repository Structure #
 
@@ -85,4 +81,4 @@ If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make 
 ### Windows ###
 
 The Windows version has only been cross-built with [MinGW](http://www.mingw.org/wiki/InstallationHOWTOforMinGW) from within a Linux Docker container.
-Please see the [continuous integration script](.travis/tests.sh) for more.
+Please see the [test script](scripts/tests.sh) for more.

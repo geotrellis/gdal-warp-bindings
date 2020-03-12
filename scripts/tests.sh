@@ -39,7 +39,7 @@ docker run -it --rm \
       -e JAVA_HOME="/windows/jdk8u202-b08" \
       -e GDALCFLAGS="-I/usr/local/include" \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
-      -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -lstdc++ -lpthread -lws2_32" \
+      -e LDFLAGS="-L/windows/gdal/lib -lgdal_i -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -lws2_32" \
       jamesmcclain/gdal-build-environment:4 make -j4 -C src gdalwarp_bindings.dll || exit -1
 
 rm -f src/main/resources/*.so
