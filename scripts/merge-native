@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+cd ./target
+
+jar_file=`ls ./ | grep jar`
+
+jar uf $jar_file resources/*
+
+cd ~-
