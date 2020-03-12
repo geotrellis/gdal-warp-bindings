@@ -18,6 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The first library release
 
-[Unreleased]: https://github.com/PDAL/java/compare/v1.0.0...HEAD
-[v1.0.0]: https://github.com/PDAL/java/compare/567d940706b08860f99492713ce706c3be02c33e...v1.0.0
-[3.567d940]: https://github.com/geotrellis/gdal-warp-bindings/compare/0cc769caa6a9d179fae4dfa0aca8e291b64bbdb0...567d940706b08860f99492713ce706c3be02c33e
+[Unreleased]: https://github.com/geotrellis/compare/v1.0.0...HEAD
+[v1.0.0]: https://github.com/geotrellis/compare/567d940706b08860f99492713ce706c3be02c33e...v1.0.0
+[33.567d940]: https://github.com/geotrellis/gdal-warp-bindings/compare/0cc769caa6a9d179fae4dfa0aca8e291b64bbdb0...567d940706b08860f99492713ce706c3be02c33e
