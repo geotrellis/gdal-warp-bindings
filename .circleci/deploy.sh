@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -z "${GPG_KEY}" ]
+if [ ! -z "${GPG_KEY}" ] && [ ! -z "${CIRCLE_TAG}" ]
 then
   mkdir -p ~/.m2
   cp /workdir/.circleci/settings.xml ~/.m2/
