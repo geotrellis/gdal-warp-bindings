@@ -354,13 +354,15 @@ public:
      * @param dataset The index of the dataset (source == 0, warped == 1)
      * @param band_number The band in question
      * @param data_type The type of the band in question
+     * @param is_signed The sign of the returned GDALDataType
      * @return ATTEMPT_SUCCESSFUL, DATASET_LOCKED, or a negative CPLErrorNum
      */
-    int get_band_data_type(int dataset, int band_number, GDALDataType *data_type)
+    int get_band_data_type(int dataset, int band_number, GDALDataType *data_type, bool *is_signed)
     {
         TRYLOCK
         GDALRasterBandH bandh = GDALGetRasterBand(m_datasets[dataset], band_number);
         *data_type = GDALGetRasterDataType(bandh);
+        *is_signed = GDALDataTypeIsSigned(*data_type);
         UNLOCK
         SUCCESS
     }

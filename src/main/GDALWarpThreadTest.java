@@ -172,10 +172,11 @@ class GDALWarpThreadTest extends Thread {
         // Band Type
         {
             int[] data_type = new int[1];
-            GDALWarp.get_band_data_type(token, GDALWarp.SOURCE, 0, 1, data_type);
-            System.out.println(ANSI_BLUE + "Source data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
-            GDALWarp.get_band_data_type(token, GDALWarp.WARPED, 0, 1, data_type);
-            System.out.println(ANSI_BLUE + "Warped data Type: " + ANSI_GREEN + data_type[0] + ANSI_RESET);
+            boolean[] is_signed = new boolean[1];
+            GDALWarp.get_band_data_type(token, GDALWarp.SOURCE, 0, 1, data_type, is_signed);
+            System.out.println(ANSI_BLUE + "Source data Type: " + ANSI_GREEN + data_type[0] + "/" + is_signed[0] + ANSI_RESET);
+            GDALWarp.get_band_data_type(token, GDALWarp.WARPED, 0, 1, data_type, is_signed);
+            System.out.println(ANSI_BLUE + "Warped data Type: " + ANSI_GREEN + data_type[0] + "/" + is_signed[0] + ANSI_RESET);
         }
 
         // NoData

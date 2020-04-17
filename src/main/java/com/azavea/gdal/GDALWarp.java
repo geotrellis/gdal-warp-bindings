@@ -541,11 +541,12 @@ public class GDALWarp {
          * @param band        The band number of interest
          * @param data_type   The return-location of the band_number type (of integral
          *                    type GDALDataType)
+         * @param is_signed   The sign of the returned GDALDataType
          * @return The number of attempts made (upon success) or a negative error code
          *         (upon failure)
          */
         public static native int get_band_data_type(long token, int dataset, int attempts, /* */
-                        int band, int[] data_type);
+                        int band, int[] data_type, boolean[] is_signed);
 
         /**
          * Get the number of bands.

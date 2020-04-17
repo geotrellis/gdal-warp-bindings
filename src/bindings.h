@@ -74,7 +74,7 @@ extern "C"
                          int band_number, int approx_okay, double *minmax, int *success);
 
     int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
-                           int band_number, int *data_type);
+                           int band_number, int *data_type, bool *is_signed);
 
     int get_band_count(uint64_t token, int dataset, int attempts, int copies,
                        int *band_count);

@@ -603,14 +603,15 @@ int get_band_min_max(uint64_t token, int dataset, int attempts, int copies,
  * @param band_number The band of interest
  * @param data_type The return-location of the band_number type (of integral
  *                  type GDALDataType)
+ * @param is_signed The type of the returned GDALDataType
  * @return The number of attempts on success, negative CPLErrorNum on failure
  */
 int get_band_data_type(uint64_t token, int dataset, int attempts, int copies,
-                       int band_number, int *data_type)
+                       int band_number, int *data_type, bool *is_signed)
 {
     uint64_t nanos = default_nanos;
     auto ptr = reinterpret_cast<GDALDataType *>(data_type);
-    DOIT(get_band_data_type(dataset, band_number, ptr));
+    DOIT(get_band_data_type(dataset, band_number, ptr, is_signed));
 }
 
 /**

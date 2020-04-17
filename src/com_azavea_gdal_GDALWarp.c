@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <errno.h>
 #if defined(__APPLE__)
 #include <arpa/inet.h>
@@ -452,11 +453,14 @@ JNIEXPORT jint JNICALL Java_com_azavea_gdal_GDALWarp_get_1band_1data_1type(JNIEn
                                                                            jint dataset,
                                                                            jint attempts,
                                                                            jint band,
-                                                                           jintArray _data_type)
+                                                                           jintArray _data_type,
+                                                                           jbooleanArray _is_signed)
 {
     jint *data_type = (*env)->GetIntArrayElements(env, _data_type, NULL);
-    jint retval = get_band_data_type(token, dataset, attempts, copies, band, (int *)data_type);
+    jboolean *is_signed = (*env)->GetBooleanArrayElements(env, _is_signed, NULL);
+    jint retval = get_band_data_type(token, dataset, attempts, copies, band, (int *)data_type, (bool *) is_signed);
     (*env)->ReleaseIntArrayElements(env, _data_type, data_type, 0);
+    (*env)->ReleaseBooleanArrayElements(env, _is_signed, is_signed, 0);
 
     return retval;
 }

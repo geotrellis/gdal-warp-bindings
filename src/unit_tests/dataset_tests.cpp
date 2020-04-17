@@ -317,11 +317,12 @@ BOOST_AUTO_TEST_CASE(get_band_count_test)
 BOOST_AUTO_TEST_CASE(get_band_data_type)
 {
     GDALDataType data_type;
+    bool is_signed;
     auto ld = locked_dataset(uri_options1);
 
     errno_init();
 
-    ld.get_band_data_type(locked_dataset::WARPED, 1, &data_type);
+    ld.get_band_data_type(locked_dataset::WARPED, 1, &data_type, &is_signed);
 
     BOOST_TEST(data_type == GDT_Byte);
 
