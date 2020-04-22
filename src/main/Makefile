@@ -29,9 +29,9 @@ java/cz/adamh/utils/NativeUtils.java:
 ../experiments/data/c41078a1.tif:
 	$(MAKE) -C ../experiments data/c41078a1.tif
 
-tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif
-	$(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
-	GDALWARP_GC_LOCK=1 $(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif small
+tests: gdalwarp.jar GDALWarpThreadTest.class ../experiments/data/c41078a1.tif ../experiments/data/gdal-uint8raw-test.tiff
+	$(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif ../experiments/data/gdal-uint8raw-test.tiff small
+	GDALWARP_GC_LOCK=1 $(JAVA) -cp gdalwarp.jar:. GDALWarpThreadTest ../experiments/data/c41078a1.tif ../experiments/data/gdal-uint8raw-test.tiff small
 
 clean:
 	rm -f *.class java/cz/adamh/utils/*.class java/com/azavea/gdal/*.class

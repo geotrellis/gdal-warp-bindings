@@ -52,6 +52,8 @@ class GDALWarpThreadTest extends Thread {
             "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512" /* */
     };
 
+    private static String options_empty[] = { };
+
     private int x;
     private int y;
     private long token;
@@ -104,7 +106,7 @@ class GDALWarpThreadTest extends Thread {
         boolean large = true;
         long token;
 
-        if (args.length > 1 && args[1].equals("small")) {
+        if (args.length > 2 && args[2].equals("small")) {
             large = false;
         } else {
             large = true;
@@ -116,6 +118,8 @@ class GDALWarpThreadTest extends Thread {
             token = GDALWarp.get_token(args[0], options_small);
             THREADS = 1 << 4;
         }
+
+        long token_metadata_empty = GDALWarp.get_token(args[1], options_empty);
 
         GDALWarp.set_config_option("COMPRESS_OVERVIEW", "DEFLATE"); // Just for fun
 
@@ -301,7 +305,7 @@ class GDALWarpThreadTest extends Thread {
         }
         {
             String[][] list2 = new String[1][0];
-            System.out.println(ANSI_BLUE + "Warped metadata:" + ANSI_RESET);
+            System.out.println(ANSI_BLUE + "Warped metadata: " + ANSI_RESET);
             GDALWarp.get_metadata(token, GDALWarp.WARPED, 0, 0, "", list2);
             for (int i = 0; i < list2[0].length; ++i) {
                 if (list2[0][i].length() > 0) {
@@ -310,16 +314,26 @@ class GDALWarpThreadTest extends Thread {
             }
         }
 
+        // Empty Band metadata
+        {
+            String[][] list1 = new String[1][0];
+            System.out.print(ANSI_BLUE + "Empty metadata: " + ANSI_RESET);
+            GDALWarp.get_metadata(token_metadata_empty, GDALWarp.SOURCE, 0, 1, "IMAGE_STRUCTURE", list1);
+            Boolean is_empty = list1[0].length == 0;
+            assert (is_empty);
+            System.out.println(ANSI_GREEN + is_empty + ANSI_RESET);
+        }
+
         // Metadata item
         {
             String[] item = new String[1];
-            System.out.print(ANSI_BLUE + "Source AREA_OR_POINT:" + ANSI_RESET);
+            System.out.print(ANSI_BLUE + "Source AREA_OR_POINT: " + ANSI_RESET);
             GDALWarp.get_metadata_item(token, GDALWarp.SOURCE, 0, 0, "AREA_OR_POINT", "", item);
             System.out.println(ANSI_GREEN + item[0] + ANSI_RESET);
         }
         {
             String[] item = new String[1];
-            System.out.print(ANSI_BLUE + "Warped AREA_OR_POINT:" + ANSI_RESET);
+            System.out.print(ANSI_BLUE + "Warped AREA_OR_POINT: " + ANSI_RESET);
             GDALWarp.get_metadata_item(token, GDALWarp.WARPED, 0, 0, "AREA_OR_POINT", "", item);
             System.out.println(ANSI_GREEN + item[0] + ANSI_RESET);
         }
