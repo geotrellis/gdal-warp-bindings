@@ -17,6 +17,7 @@
 #ifndef __ERRORCODES_H__
 #define __ERRORCODES_H__
 
+#include <chrono>
 #include <gdal.h>
 
 // warpbindings error codes should not intersect GDAL error codes
@@ -27,5 +28,6 @@ void errno_init();
 void errno_deinit();
 void put_last_errno(CPLErr eErrClass, int err_no, const char *msg);
 int get_last_errno();
+std::chrono::milliseconds get_last_errno_timestamp();
 
 #endif
