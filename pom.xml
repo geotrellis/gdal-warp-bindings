@@ -6,7 +6,7 @@
   <groupId>com.azavea.geotrellis</groupId>
   <artifactId>gdal-warp-bindings</artifactId>
   <version>${revision}</version>
-  <url>http://github.com/geotrellis/gdal-warp-bindings</url>
+  <url>https://github.com/geotrellis/gdal-warp-bindings</url>
   <name>gdal-warp-bindings</name>
   <description>Thread-safe bindings for GDAL's Warp functionality</description>
   <licenses>
@@ -24,7 +24,12 @@
     <developer>
       <id>jamesmcclain</id>
       <name>James McClain</name>
-      <url>http://github.com/jamesmcclain</url>
+      <url>https://github.com/jamesmcclain</url>
+    </developer>
+    <developer>
+      <id>pomadchin</id>
+      <name>Grigory Pomadchin</name>
+      <url>https://github.com/pomadchin</url>
     </developer>
   </developers>
   <distributionManagement>
