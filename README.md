@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/geotrellis/gdal-warp-bindings.svg?style=svg)](https://circleci.com/gh/geotrellis/gdal-warp-bindings) [![Maven Central](https://img.shields.io/maven-central/v/com.azavea.geotrellis/gdal-warp-bindings)](https://search.maven.org/search?q=com.azavea.geotrellis:gdal-warp-bindings) [![Join the chat at https://gitter.im/geotrellis/geotrellis](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/geotrellis/geotrellis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![CircleCI](https://circleci.com/gh/geotrellis/gdal-warp-bindings.svg?style=svg)](https://circleci.com/gh/geotrellis/gdal-warp-bindings) [![Maven Central](https://img.shields.io/maven-central/v/com.azavea.geotrellis/gdal-warp-bindings)](https://search.maven.org/artifact/com.azavea.geotrellis/gdal-warp-bindings) [![Join the chat at https://gitter.im/geotrellis/geotrellis](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/geotrellis/geotrellis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Intro #
 
