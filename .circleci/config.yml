@@ -3,7 +3,7 @@ version: 2.1
 executors:
   gdal-build-executor:
     docker:
-      - image: daunnc/gdal-build-environment:5
+      - image: daunnc/gdal-build-environment:6
     working_directory: /workdir
 
 jobs:
