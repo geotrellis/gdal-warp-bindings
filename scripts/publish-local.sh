@@ -16,7 +16,7 @@ docker run -it --rm \
       -e JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
       daunnc/gdal-build-environment:6 make -j4 -C src/experiments/thread pattern oversubscribe || exit -1
 
-rm -f $(find | grep '\.o$')
+rm -f $(find ./src | grep '\.o$')
 docker run -it --rm \
       -v $(pwd):/workdir \
       -e OSXCROSS_NO_INCLUDE_PATH_WARNINGS=1 \
