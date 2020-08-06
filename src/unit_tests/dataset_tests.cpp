@@ -116,6 +116,7 @@ BOOST_AUTO_TEST_CASE(get_offset)
     // - https://github.com/OSGeo/gdal/commit/69f25f253d141faf836c400676f9f94dd3f43707
     // 
     // BOOST_TEST(success != false);
+    BOOST_TEST(success == false);
     success = false;
 
     ld.get_offset(locked_dataset::WARPED, 1, &offset, &success);
@@ -167,6 +168,7 @@ BOOST_AUTO_TEST_CASE(get_scale)
     // - https://github.com/OSGeo/gdal/commit/69f25f253d141faf836c400676f9f94dd3f43707
     // 
     // BOOST_TEST(success != false);
+    BOOST_TEST(success == false);
     success = false;
 
     ld.get_scale(locked_dataset::WARPED, 1, &scale, &success);
