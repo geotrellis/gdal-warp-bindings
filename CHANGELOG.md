@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v1.0.0] - 2020-03-12
 ### Added
 - Option to disable log message colorization [#78](https://github.com/geotrellis/gdal-warp-bindings/issues/78)
-- Add a special error code for the max attempts acceded case [#83](https://github.com/geotrellis/gdal-warp-bindings/issues/83)
+- Add a special error code for the max attempts exceeded case [#83](https://github.com/geotrellis/gdal-warp-bindings/issues/83)
 
 ### Fixed
 - Assertion failed on parallel reads [#72](https://github.com/geotrellis/gdal-warp-bindings/issues/72)
