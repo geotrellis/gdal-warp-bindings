@@ -84,7 +84,39 @@ BOOST_AUTO_TEST_CASE(get_offset)
 
     ld.get_offset(locked_dataset::SOURCE, 1, &offset, &success);
     BOOST_TEST(offset == 0);
-    BOOST_TEST(success != false);
+    // In GDAL 3.1 there happened a behavior change
+    // Both GetScale and GetOffset functions are affected.
+    // In the test raster Scale and Offset are not set and in GDAL 2.x and 3.0.x this case is handled differently.
+    //
+    // The root of the change:
+    // Even though Offset and Scale values were not set, there was a logic that fixed it and set values to 1.0 and 0.0 in GDAL 2.x and GDAL 3.0.x.
+    // The change in the references changes the success flag behavior, so on the Python side 
+    // it is possible to interpret the return results as None.
+    //
+    // It is easy to check it with the following python code:
+    // import gdal
+    // path = /tmp/c41078a1.tif
+    // ds = gdal.Open(path)
+    // band = ds.GetRasterBand(1)
+    // s = band.GetScale() # prints 1.0 in GDAL 2.x and 3.0.x, and None in GDAL 3.1.x
+    // o = band.GetOffset() # prints 0.0 in GDAL 2.x and 3.0.x, and None in GDAL 3.1.x
+    // 
+    // However, the Warp operation peformed in this test sets Scale and Offset values explicitly.
+    // It explains why the old test case with the Warped dataset didn't change its behavior.
+    // 
+    // It is easy to check it with the following python code:
+    // w = gdal.Warp('', path, format='MEM', warpOptions=["-r", "bilinear", "-t_srs", "epsg:3857", "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512"])
+    // wband = w.GetRasterBand(1)
+    // ws = wband.GetScale() # prints 1.0 in GDAL 2.x, 3.0.x, and GDAL 3.1.x
+    // wo = wband.GetOffset() # prints 0.0 in GDAL 2.x, 3.0.x, and GDAL 3.1.x
+    //
+    // References:
+    // - https://github.com/geotrellis/gdal-warp-bindings/pull/96 (PR that introduced this comment)
+    // - https://github.com/OSGeo/gdal/issues/2579
+    // - https://github.com/OSGeo/gdal/commit/69f25f253d141faf836c400676f9f94dd3f43707
+    // 
+    // BOOST_TEST(success != false);
+    BOOST_TEST(success == false);
     success = false;
 
     ld.get_offset(locked_dataset::WARPED, 1, &offset, &success);
@@ -104,7 +136,39 @@ BOOST_AUTO_TEST_CASE(get_scale)
 
     ld.get_scale(locked_dataset::SOURCE, 1, &scale, &success);
     BOOST_TEST(scale == 1);
-    BOOST_TEST(success != false);
+    // In GDAL 3.1 there happened a behavior change
+    // Both GetScale and GetOffset functions are affected.
+    // In the test raster Scale and Offset are not set and in GDAL 2.x and 3.0.x this case is handled differently.
+    // 
+    // The root of the change:
+    // Even though Offset and Scale values were not set, there was a logic that fixed it and set values to 1.0 and 0.0 in GDAL 2.x and GDAL 3.0.x.
+    // The change in the references changes the success flag behavior, so on the Python side 
+    // it is possible to interpret the return results as None.
+    // 
+    // It is easy to check it with the following python code:
+    // import gdal
+    // path = /tmp/c41078a1.tif
+    // ds = gdal.Open(path)
+    // band = ds.GetRasterBand(1)
+    // s = band.GetScale() // prints 1.0 in GDAL 2.x and 3.0.x and None in GDAL 3.1.x
+    // o = band.GetOffset() // prints 0.0 in GDAL 2.x and 3.0.x and None in GDAL 3.1.x
+    // 
+    // However, the Warp operation peformed in this test sets Scale and Offset values explicitly.
+    // It explains why the old test case with the Warped dataset didn't change its behavior.
+    // 
+    // It is easy to check it with the following python code:
+    // w = gdal.Warp('', path, format='MEM', warpOptions=["-r", "bilinear", "-t_srs", "epsg:3857", "-co", "BLOCKXSIZE=512", "-co", "BLOCKYSIZE=512"])
+    // wband = w.GetRasterBand(1)
+    // ws = wband.GetScale() // prints 1.0 in GDAL 2.x, 3.0.x and GDAL 3.1.x
+    // wo = wband.GetOffset() // prints 0.0 in GDAL 2.x, 3.0.x and GDAL 3.1.x
+    //
+    // References:
+    // - https://github.com/geotrellis/gdal-warp-bindings/pull/96 (PR that introduced this comment)
+    // - https://github.com/OSGeo/gdal/issues/2579
+    // - https://github.com/OSGeo/gdal/commit/69f25f253d141faf836c400676f9f94dd3f43707
+    // 
+    // BOOST_TEST(success != false);
+    BOOST_TEST(success == false);
     success = false;
 
     ld.get_scale(locked_dataset::WARPED, 1, &scale, &success);
