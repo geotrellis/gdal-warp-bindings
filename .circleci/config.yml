@@ -96,9 +96,18 @@ jobs:
       - run:
           name: Build a jar file, pack binaries into it and deploy it to maven central
           command: |
-            apt-get install maven -y
-            .circleci/package.sh
-            .circleci/deploy.sh
+            apt-get install maven -y &&
+            rm -f src/main/resources/resources/.gitkeep &&
+            cp -f /tmp/workdir/* src/main/resources/resources/ &&
+            mvn package &&
+            if [ ! -z "${GPG_KEY}" ]; then
+              mkdir -p ~/.m2 &&
+              cp /workdir/.circleci/settings.xml ~/.m2/ &&
+              gpg --keyserver keyserver.ubuntu.com --recv-keys 0x13E9AA1D8153E95E &&
+              echo "${GPG_KEY}" | base64 -d > signing_key.asc &&
+              gpg --batch --passphrase "${GPG_PASSPHRASE}" --import signing_key.asc &&
+              mvn deploy
+            fi
 
 workflows:
   build-publish:
