@@ -1,6 +1,8 @@
 CFLAGS ?= -Wall -Werror -O0 -ggdb3 -D_GNU_SOURCE
 CXXFLAGS ?= -std=c++14
-LDFLAGS ?= $(shell pkg-config gdal --libs) -l:libstdc++.a -lpthread
+LDFLAGS_CORE ?= -l:libstdc++.a -lpthread
+LDFLAGS_GDAL ?= $(shell pkg-config gdal --libs)
+LDFLAGS ?= $(LDFLAGS_GDAL) $(LDFLAGS_CORE)
 JAVA_HOME ?= /usr/lib/jvm/java-11-openjdk-amd64
 GDALCFLAGS ?= $(shell pkg-config gdal --cflags)
 BOOST_ROOT ?= /usr/include
@@ -24,7 +26,10 @@ com_azavea_gdal_GDALWarp.obj: com_azavea_gdal_GDALWarp.c
 %.obj: %.cpp $(HEADERS)
 	$(CXX) $(GDALCFLAGS) $(CFLAGS) $(CXXFLAGS) -I$(BOOST_ROOT) -fPIC $< -c -o $@
 
-libgdalwarp_bindings.$(SO): com_azavea_gdal_GDALWarp.o bindings.o tokens.o errorcodes.o
+libgdalwarp_bindings.so: com_azavea_gdal_GDALWarp.o bindings.o tokens.o errorcodes.o
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
+
+libgdalwarp_bindings.dylib: com_azavea_gdal_GDALWarp.o bindings.o tokens.o errorcodes.o
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -shared -o $@
 
 gdalwarp_bindings.dll: com_azavea_gdal_GDALWarp.obj bindings.obj tokens.obj errorcodes.obj

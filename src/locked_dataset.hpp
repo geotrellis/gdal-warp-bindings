@@ -44,6 +44,13 @@ typedef std::atomic<int> atomic_int_t;
 constexpr int ATTEMPT_SUCCESSFUL = std::numeric_limits<int>::max();
 constexpr int DATASET_LOCKED = std::numeric_limits<int>::lowest();
 
+#if defined(__APPLE__)
+#include <dlfcn.h>
+const char *dylib_name = "libgdal.dylib";
+void *dylib = dlopen(dylib_name, RTLD_LAZY);
+const char *dlopen_error = dlerror();
+#endif
+
 #define TRYLOCK                                      \
     if (pthread_mutex_trylock(&m_dataset_lock) != 0) \
     {                                                \
@@ -323,7 +330,19 @@ public:
     int get_crs_wkt(int dataset, char *crs, int max_size)
     {
         TRYLOCK
+        #if defined(__APPLE__)
+        typedef char (*fptr_t)(GDALDatasetH);
+        dlerror();
+        fptr_t fptr = (fptr_t)dlsym(dylib, "GDALGetProjectionRef");
+        char *dylib_error = dlerror();
+        if (dylib_error != NULL) {
+            printf("%s\n", dylib_error);
+        }
+        const char *new_crs = fptr(m_datasets[dataset]);
+        strncpy(crs, new_crs, max_size);
+        #else
         strncpy(crs, GDALGetProjectionRef(m_datasets[dataset]), max_size);
+        #endif
         UNLOCK
         SUCCESS
     }
@@ -639,7 +658,7 @@ public:
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
-        }        
+        }
         // If the lock could be obtained but the reference count is
         // not zero, return false
         else if (m_use_count != 0)
