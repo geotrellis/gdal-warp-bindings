@@ -28,7 +28,7 @@ docker run -it --rm \
       -e GDALCFLAGS="-I/macintosh/gdal/3.1.2/include" \
       -e CXXFLAGS="-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"  \
       -e BOOST_ROOT="/usr/local/include/boost_1_69_0" \
-      -e LDFLAGS="-mmacosx-version-min=10.9 -L/macintosh/gdal/3.1.2/lib -lgdal -lstdc++ -lpthread" \
+      -e LDFLAGS="-mmacosx-version-min=10.9 -L/macintosh/gdal/3.1.2/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib" \
       jamesmcclain/gdal-build-environment:6 make -j4 -C src libgdalwarp_bindings.dylib || exit -1
 
 docker run -it --rm \
