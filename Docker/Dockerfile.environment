@@ -39,10 +39,10 @@ RUN mkdir -p /macintosh && \
     wget "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz" && \
     tar axvf OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
     rm -f OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
-    wget "http://homebrew.bintray.com/bottles/gdal-3.1.2.high_sierra.bottle.tar.gz" && \
-    tar axvf gdal-3.1.2.high_sierra.bottle.tar.gz && \
-    rm -f gdal-3.1.2.high_sierra.bottle.tar.gz
-
+    wget "https://anaconda.org/conda-forge/libgdal/3.1.2/download/osx-64/libgdal-3.1.2-hd7bf8dc_4.tar.bz2" && \
+    mkdir -p gdal/3.1.2 && \
+    tar axvf libgdal-3.1.2-hd7bf8dc_4.tar.bz2 -C gdal/3.1.2 && \
+    rm -f libgdal-3.1.2-hd7bf8dc_4.tar.bz2
 
 # Windows
 RUN mkdir -p /windows && \
