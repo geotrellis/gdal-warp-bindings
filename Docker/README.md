@@ -1,6 +1,6 @@
 # Dockerfile.crossbuild #
 
-The file [`Dockerfile.crossbuild`](Dockerfile.crossbuild) is used to generate the Docker image `jamesmcclain/crossbuild` which contains the cross-compilers needed to generate Macintosh and Windows shared libraries.
+The file [`Dockerfile.crossbuild`](Dockerfile.crossbuild) is used to generate the Docker image `quay.io/geotrellis/gdal-warp-bindings-crossbuild` which contains the cross-compilers needed to generate Macintosh and Windows shared libraries.
 
 This image is based heavily on Manfred Touron's [`multiarch/crossbuild`](https://github.com/multiarch/crossbuild) image (in fact, it is just that image with non-x86 compilers removed, some unneeded packages removed, and based on Ubuntu 18.04 instead of Debian Jessie).
 
@@ -14,7 +14,7 @@ OSX/Darwin/Apple builds:
 
 # Dockerfile.environment #
 
-The file [`Dockerfile.environment`](Dockerfile.environment) is used to generate the Docker image `jamesmcclain/gdal-build-environment` which is derived from `jamesmcclain/crossbuild`.  The former adds Macintosh and Windows versions of OpenJDK (which provide necessary header files) as well as binary version of GDAL for Macintosh and Windows (which need to be linked-against).
+The file [`Dockerfile.environment`](Dockerfile.environment) is used to generate the Docker image `quay.io/geotrellis/gdal-warp-bindings-environment` which is derived from `quay.io/geotrellis/gdal-warp-bindings-crossbuild`.  The former adds Macintosh and Windows versions of OpenJDK (which provide necessary header files) as well as binary version of GDAL for Macintosh and Windows (which need to be linked-against).
 
 # License #
 

@@ -7,6 +7,29 @@ If one wishes to use [GDAL's VRT functionality](https://www.gdal.org/gdal_vrttut
 The code in this repository attempts to address that issue by wrapping GDAL datasets in objects which abstract one or more identical datasets; the wrapped datasets can be safely used from multiple threads with less contention than would be the case with a simple mutex around one GDAL dataset.
 APIs are provided for C and Java.
 
+# Installation #
+
+These bindings require a GDAL installation on your machine with the appropriate matching version:
+
+| GDAL Warp Bindings | OS | GDAL  | Shared Library {so,dylib,dll} |
+|--------------------|----|-------|-------------------------------|
+| 1.1.x | Linux, MacOS | 3.1.2 | libgdal.27 |
+| 1.1.x | Windows | 3.0.4 | -- |
+
+## MacOS ##
+
+For MacOS users, you must also ensure that the appropriate shared libary file (dylib) above is symlinked to `/usr/local/lib` from your GDAL installation with matching version.
+
+For best results, we recommend explicitly installing the appropriate GDAL version via Conda and symlinking the appropriate lib. Here's an example for GDAL Warp Bindings 1.1.0 using GDAL 3.1.2:
+
+```shell
+conda create -n gdal-3.1.2
+conda activate gdal-3.1.2
+conda install -c conda-forge gdal==3.1.2
+sudo ln -s $(conda info --base)/envs/gdal-3.1.2/lib/libgdal.27.dylib /usr/local/lib/libgdal.27.dylib
+conda deactivate
+```
+
 # APIs #
 
 The C and Java APIs are very similar to each other.
