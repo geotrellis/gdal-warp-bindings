@@ -44,7 +44,7 @@ jobs:
       GDALCFLAGS: "-I/macintosh/gdal/3.1.2/include"
       CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
-      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/3.1.2/lib -lgdal -lstdc++ -lpthread"
+      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/3.1.2/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
       LD_LIBRARY_PATH_ORIGIN: ""
       CROSS_ROOT: /usr/x86_64-apple-darwin14
       PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
