@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Use Conda GDAL in MacOS to fix dylib load errors [#99](https://github.com/geotrellis/gdal-warp-bindings/pull/99). See the MacOS installation section of the README for more details.
+
 ## [v1.1.0] - 2020-08-10
 ### Changed
 - GDAL 3.x Support [#96](https://github.com/geotrellis/gdal-warp-bindings/pull/96)
