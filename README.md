@@ -11,9 +11,10 @@ APIs are provided for C and Java.
 
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
-| GDAL Warp Bindings | GDAL  | Shared Library {so|dylib|dll} |
-|--------------------|-------|-------------------------------|
-| 1.1.x              | 3.1.2 | libgdal.27                    |
+| GDAL Warp Bindings | OS | GDAL  | Shared Library {so,dylib,dll} |
+|--------------------|----|-------|-------------------------------|
+| 1.1.x | Linux, MacOS | 3.1.2 | libgdal.27 |
+| 1.1.x | Windows | 3.0.4 | -- |
 
 ## MacOS ##
 

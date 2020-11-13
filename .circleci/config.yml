@@ -3,7 +3,7 @@ version: 2.1
 executors:
   gdal-build-executor:
     docker:
-      - image: quay.io/quay.io/geotrellis/gdal-warp-bindings-environment:1
+      - image: quay.io/geotrellis/gdal-warp-bindings-environment:1
     working_directory: /workdir
 
 jobs:
