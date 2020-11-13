@@ -3,7 +3,7 @@ version: 2.1
 executors:
   gdal-build-executor:
     docker:
-      - image: daunnc/gdal-build-environment:6
+      - image: daunnc/gdal-build-environment:7
     working_directory: /workdir
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
       CROSS_TRIPLE: x86_64-apple-darwin14
       OS: darwin
       SO: dylib
-      CC: cc 
+      CC: cc
       CXX: c++
       CFLAGS: "-Wall -Werror -O0 -ggdb3"
       JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
