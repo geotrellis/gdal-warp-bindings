@@ -59,4 +59,4 @@ RUN mkdir -p /windows && \
 # Linkage
 RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
-# docker build -f Dockerfile.environment -t daunnc/gdal-build-environment:7 .
+# docker build -f Dockerfile.environment -t quay.io/geotrellis/gdal-warp-bindings-build:1 .
