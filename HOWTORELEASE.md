@@ -12,3 +12,4 @@ Follow these steps:
 - [ ] Select staging repo and press `Close` button on the top of the table with repos
 - [ ] Wait for close process to complete
 - [ ] Select staging repo again and press Release button. It will be immediately published into sonatype releases repo and synced with maven central ~ in 10 minutes
+- [ ] Create a new GitHub release https://github.com/geotrellis/gdal-warp-bindings/releases/new
