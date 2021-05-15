@@ -1,0 +1,10 @@
+--- build.sh.old	2021-05-15 16:49:49.371757665 -0400
++++ build.sh	2021-05-15 16:50:17.519863520 -0400
+@@ -154,6 +154,7 @@
+ CONFFLAGS+="--disable-clang-as "
+ [ -n "$DISABLE_LTO_SUPPORT" ] && CONFFLAGS+="--disable-lto-support "
+ ./configure $CONFFLAGS
++cp /usr/include/llvm-c-10/llvm-c/ExternC.h /tmp/osxcross/build/cctools-877.5-ld64-253.3_4f8ad51/cctools/include/llvm-c/
+ $MAKE -j$JOBS
+ $MAKE install -j$JOBS
+ popd &>/dev/null

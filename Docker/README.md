@@ -2,7 +2,7 @@
 
 The file [`Dockerfile.crossbuild`](Dockerfile.crossbuild) is used to generate the Docker image `quay.io/geotrellis/gdal-warp-bindings-crossbuild` which contains the cross-compilers needed to generate Macintosh and Windows shared libraries.
 
-This image is based heavily on Manfred Touron's [`multiarch/crossbuild`](https://github.com/multiarch/crossbuild) image (in fact, it is just that image with non-x86 compilers removed, some unneeded packages removed, and based on Ubuntu 18.04 instead of Debian Jessie).
+This image is based heavily on Manfred Touron's [`multiarch/crossbuild`](https://github.com/multiarch/crossbuild) image (in fact, it is just that image with non-x86 compilers removed, some unneeded packages removed, and based on Ubuntu 20.04 instead of Debian Jessie).
 
 An important legal note from that project's [README.md](https://github.com/multiarch/crossbuild/blob/3d8c2ea811534cc6f4d82f54892f5494681e2591/README.md) concerning Apple's OSX SDK is reproduced below:
 
