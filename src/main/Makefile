@@ -1,16 +1,18 @@
 JAVA ?= java
 JAVAC ?= javac
 SO ?= so
+ARCH ?= amd64
+
 
 .PHONY: tests clean cleaner cleanest
 
-gdalwarp.jar: resources/libgdalwarp_bindings.$(SO) java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class
+gdalwarp.jar: resources/libgdalwarp_bindings-$(ARCH).$(SO) java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class
 	(cd java ; jar -cvf ../$@ com/azavea/gdal/*.class cz/adamh/utils/*.class ../resources/*)
 
-../libgdalwarp_bindings.$(SO):
-	$(MAKE) -C .. libgdalwarp_bindings.$(SO)
+../libgdalwarp_bindings-$(ARCH).$(SO):
+	$(MAKE) -C .. libgdalwarp_bindings-$(ARCH).$(SO)
 
-resources/libgdalwarp_bindings.$(SO): ../libgdalwarp_bindings.$(SO)
+resources/libgdalwarp_bindings-$(ARCH).$(SO): ../libgdalwarp_bindings-$(ARCH).$(SO)
 	cp -f $< $@
 
 java/com/azavea/gdal/GDALWarp.class java/cz/adamh/utils/NativeUtils.class: java/com/azavea/gdal/GDALWarp.java java/cz/adamh/utils/NativeUtils.java
@@ -38,6 +40,6 @@ clean:
 
 cleaner: clean
 	rm -f gdalwarp.jar
-	rm -f resources/libgdalwarp_bindings.$(SO)
+	rm -f resources/libgdalwarp_bindings-$(ARCH).$(SO)
 
 cleanest: cleaner

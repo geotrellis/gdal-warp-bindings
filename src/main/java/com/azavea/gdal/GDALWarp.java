@@ -21,9 +21,10 @@ import java.io.UnsupportedEncodingException;
 import cz.adamh.utils.NativeUtils;
 
 public class GDALWarp {
-        private static final String GDALWARP_BINDINGS_RESOURCE_ELF = "/resources/libgdalwarp_bindings.so";
-        private static final String GDALWARP_BINDINGS_RESOURCE_MACHO = "/resources/libgdalwarp_bindings.dylib";
-        private static final String GDALWARP_BINDINGS_RESOURCE_DLL = "/resources/gdalwarp_bindings.dll";
+        private static final String GDALWARP_BINDINGS_RESOURCE_ARM64_ELF = "/resources/libgdalwarp_bindings-arm64.so";
+        private static final String GDALWARP_BINDINGS_RESOURCE_AMD64_ELF = "/resources/libgdalwarp_bindings-amd64.so";
+        private static final String GDALWARP_BINDINGS_RESOURCE_AMD64_MACHO = "/resources/libgdalwarp_bindings-amd64.dylib";
+        private static final String GDALWARP_BINDINGS_RESOURCE_AMD64_DLL = "/resources/gdalwarp_bindings-amd64.dll";
 
         public static final int GDT_Unknown = 0;
         public static final int GDT_Byte = 1;
@@ -118,18 +119,28 @@ public class GDALWarp {
         public static void init(int size) throws Exception {
 
                 String os = System.getProperty("os.name").toLowerCase();
+                String arch = System.getProperty("os.arch").toLowerCase();
 
                 // Try to load ELF shared object from JAR file ...
                 if (os.contains("linux")) {
-                        NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ELF);
+                        // AMD64
+                        if (arch.contains("amd64"))
+                        {
+                                NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_ELF);
+                        }
+                        // ARM64
+                        else if (arch.contains("arm64"))
+                        {
+                                NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ARM64_ELF);
+                        }
                 }
                 // Try to Load Mach-O shared object from JAR file ...
                 else if (os.contains("mac")) {
-                        NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_MACHO);
+                        NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_MACHO);
                 }
                 // Try to load Windows DLL from JAR file ...
                 else if (os.contains("win")) {
-                        NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_DLL);
+                        NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_DLL);
                 } else {
                         throw new Exception("Unsupported platform");
                 }
