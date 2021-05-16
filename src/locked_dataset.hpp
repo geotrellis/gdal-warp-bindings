@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Azavea
+ * Copyright 2019-2021 Azavea
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -639,7 +639,7 @@ public:
         if (pthread_mutex_trylock(&m_dataset_lock) != 0)
         {
             return false;
-        }        
+        }
         // If the lock could be obtained but the reference count is
         // not zero, return false
         else if (m_use_count != 0)
