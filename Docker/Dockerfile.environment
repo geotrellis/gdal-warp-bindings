@@ -1,4 +1,4 @@
-FROM quay.io/geotrellis/gdal-warp-bindings-crossbuild:2
+FROM quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2
 LABEL maintainer="Azavea <info@azavea.com>"
 
 RUN apt-get update -y && \
@@ -59,4 +59,4 @@ RUN mkdir -p /windows && \
 # Linkage
 RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
-# docker build -f Dockerfile.environment -t quay.io/geotrellis/gdal-warp-bindings-environment:2 .
+# docker build -f Dockerfile.environment -t quay.io/geotrellis/gdal-warp-bindings-environment:amd64-2 .

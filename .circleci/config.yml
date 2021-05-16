@@ -1,14 +1,14 @@
 version: 2.1
 
 executors:
-  gdal-build-executor:
+  gdal-build-executor-amd64:
     docker:
-      - image: quay.io/geotrellis/gdal-warp-bindings-environment:1
+      - image: quay.io/geotrellis/gdal-warp-bindings-environment:amd64-2
     working_directory: /workdir
 
 jobs:
   build-linux:
-    executor: gdal-build-executor
+    executor: gdal-build-executor-amd64
     environment:
       CC: gcc
       CXX: g++
@@ -20,7 +20,7 @@ jobs:
           at: /tmp/workdir/
       - checkout
       - run:
-          name: Build Linux binaries and run unit tests
+          name: Build AMD64 Linux binaries and run unit tests
           command: |
             ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif
             make -j4 -C src tests
@@ -31,7 +31,7 @@ jobs:
             - libgdalwarp_bindings.so
 
   build-macos:
-    executor: gdal-build-executor
+    executor: gdal-build-executor-amd64
     environment:
       OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
       CROSS_TRIPLE: x86_64-apple-darwin14
@@ -62,7 +62,7 @@ jobs:
             - libgdalwarp_bindings.dylib
 
   build-windows:
-    executor: gdal-build-executor
+    executor: gdal-build-executor-amd64
     environment:
       CROSS_TRIPLE: x86_64-w64-mingw32
       OS: win32
@@ -88,7 +88,7 @@ jobs:
             - gdalwarp_bindings.dll
 
   publish:
-    executor: gdal-build-executor
+    executor: gdal-build-executor-amd64
     steps:
       - attach_workspace:
           at: /tmp/workdir/

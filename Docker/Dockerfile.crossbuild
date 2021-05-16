@@ -101,4 +101,4 @@ WORKDIR /workdir
 RUN wget -k 'https://raw.githubusercontent.com/multiarch/crossbuild/master/assets/crossbuild' -O /usr/bin/crossbuild && \
     chmod ugo+x /usr/bin/crossbuild
 
-# docker build -f Dockerfile.crossbuild -t quay.io/geotrellis/gdal-warp-bindings-crossbuild:2 .
+# docker build -f Dockerfile.crossbuild -t quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2 .
