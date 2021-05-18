@@ -129,7 +129,7 @@ public class GDALWarp {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_ELF);
                         }
                         // ARM64
-                        else if (arch.contains("arm64"))
+                        else if (arch.contains("aarch64"))
                         {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ARM64_ELF);
                         }
