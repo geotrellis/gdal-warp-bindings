@@ -1,29 +1,29 @@
-FROM buildpack-deps:bionic-curl
-MAINTAINER Manfred Touron <m@42.am> (https://github.com/moul)
+FROM buildpack-deps:focal-curl
+LABEL maintainer="Manfred Touron <m@42.am> (https://github.com/moul)"
 
 # Install deps
 RUN set -x; \
-    apt-get update                                     \
- && apt-get install -y -q                              \
-        autoconf                                       \
-        automake                                       \
-        autotools-dev                                  \
-        bc                                             \
-        build-essential                                \
-        clang                                          \
-        curl                                           \
-        devscripts                                     \
-        gdb                                            \
-        git-core                                       \
-        libtool                                        \
-        llvm                                           \
-        multistrap                                     \
-        patch                                          \
-        software-properties-common                     \
-        wget                                           \
-        xz-utils                                       \
-        cmake                                          \
-        mingw-w64                                      \
+    apt-get update                 \
+ && apt-get install -y -q          \
+        autoconf                   \
+        automake                   \
+        autotools-dev              \
+        bc                         \
+        build-essential            \
+        clang                      \
+        curl                       \
+        devscripts                 \
+        gdb                        \
+        git-core                   \
+        libtool                    \
+        llvm                       \
+        multistrap                 \
+        patch                      \
+        software-properties-common \
+        wget                       \
+        xz-utils                   \
+        cmake                      \
+        mingw-w64                  \
  && apt-get clean
 
 # Install OSx cross-tools
@@ -44,20 +44,22 @@ ENV OSXCROSS_REPO="${osxcross_repo}"                   \
     DARWIN_OSX_VERSION_MIN="${darwin_osx_version_min}" \
     DARWIN_SDK_URL="${darwin_sdk_url}"
 
-RUN mkdir -p "/tmp/osxcross"                                                                                   \
- && cd "/tmp/osxcross"                                                                                         \
- && curl -sLo osxcross.tar.gz "https://codeload.github.com/${OSXCROSS_REPO}/tar.gz/${OSXCROSS_REVISION}"  \
- && tar --strip=1 -xzf osxcross.tar.gz                                                                         \
- && rm -f osxcross.tar.gz                                                                                      \
- && curl -sLo tarballs/MacOSX${DARWIN_SDK_VERSION}.sdk.tar.xz                                                  \
-             "${DARWIN_SDK_URL}"                \
- && yes "" | SDK_VERSION="${DARWIN_SDK_VERSION}" OSX_VERSION_MIN="${DARWIN_OSX_VERSION_MIN}" ./build.sh                               \
- && mv target /usr/osxcross                                                                                    \
- && mv tools /usr/osxcross/                                                                                    \
- && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/omp                                                    \
- && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/osxcross-macports                                      \
- && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/osxcross-mp                                            \
- && rm -rf /tmp/osxcross                                                                                       \
+COPY build.patch /tmp/build.patch
+
+RUN mkdir -p "/tmp/osxcross"                                                                             \
+ && cd "/tmp/osxcross"                                                                                   \
+ && curl -sLo osxcross.tar.gz "https://codeload.github.com/${OSXCROSS_REPO}/tar.gz/${OSXCROSS_REVISION}" \
+ && tar --strip=1 -xzf osxcross.tar.gz                                                                   \
+ && rm -f osxcross.tar.gz                                                                                \
+ && curl -sLo tarballs/MacOSX${DARWIN_SDK_VERSION}.sdk.tar.xz "${DARWIN_SDK_URL}"                        \
+ && patch -p0 < /tmp/build.patch                                                                         \
+ && yes "" | SDK_VERSION="${DARWIN_SDK_VERSION}" OSX_VERSION_MIN="${DARWIN_OSX_VERSION_MIN}" ./build.sh  \
+ && mv target /usr/osxcross                                                                              \
+ && mv tools /usr/osxcross/                                                                              \
+ && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/omp                                              \
+ && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/osxcross-macports                                \
+ && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/osxcross-mp                                      \
+ && rm -rf /tmp/osxcross                                                                                 \
  && rm -rf "/usr/osxcross/SDK/MacOSX${DARWIN_SDK_VERSION}.sdk/usr/share/man"
 
 
@@ -99,4 +101,4 @@ WORKDIR /workdir
 RUN wget -k 'https://raw.githubusercontent.com/multiarch/crossbuild/master/assets/crossbuild' -O /usr/bin/crossbuild && \
     chmod ugo+x /usr/bin/crossbuild
 
-# docker build -f Dockerfile.crossbuild -t quay.io/geotrellis/gdal-warp-bindings-crossbuild:latest .
+# docker build -f Dockerfile.crossbuild -t quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2 .
