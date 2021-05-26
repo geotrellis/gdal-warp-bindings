@@ -14,7 +14,9 @@ OSX/Darwin/Apple builds:
 
 # Dockerfile.environment #
 
-The file [`Dockerfile.environment`](Dockerfile.environment) is used to generate the Docker image `quay.io/geotrellis/gdal-warp-bindings-environment` which is derived from `quay.io/geotrellis/gdal-warp-bindings-crossbuild`.  The former adds Macintosh and Windows versions of OpenJDK (which provide necessary header files) as well as binary version of GDAL for Macintosh and Windows (which need to be linked-against).
+The file [`Dockerfile.environment-amd64`](Dockerfile.environment-amd64) is used to generate the Docker images found under `quay.io/geotrellis/gdal-warp-bindings-environment` that contain `amd64` compilers.  The Docker images with `amd64` images are derived from `quay.io/geotrellis/gdal-warp-bindings-crossbuild`.  The Dockerfile mentioned above adds Macintosh, Windows, and `amd64` Linux versions of OpenJDK and GDAL.
+
+The file [`Dockerfile.environment-arm64`](Dockerfile.environment-arm64) is used to generate the Docker images found under `quay.io/geotrellis/gdal-warp-bindings-environment` that contain `arm64` compilers.  The `arm64` image is not derived directly from a Debian Buster base image and contains a `aarch64-gnu-linux` toolchain as well as OpenJDK and GDAL.
 
 # License #
 
