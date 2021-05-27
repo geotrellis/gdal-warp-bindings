@@ -11,10 +11,12 @@ APIs are provided for C and Java.
 
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
-| GDAL Warp Bindings | OS | GDAL  | Shared Library {so,dylib,dll} |
-|--------------------|----|-------|-------------------------------|
-| 1.1.x | Linux, MacOS | 3.1.2 | libgdal.27 |
-| 1.1.x | Windows | 3.0.4 | -- |
+| GDAL Warp Bindings | OS            |  GDAL | Shared Library {so,dylib,dll} |
+|--------------------|---------------|-------|-------------------------------|
+|              1.1.x | Linux (AMD64) | 3.1.2 | libgdal.so.27                 |
+|              1.1.x | Linux (ARM64) | 2.4.0 | libgdal.so.20                 |
+|              1.1.x | MacOS (ARM64) | 3.1.2 | libgdal.27.dylib              |
+|              1.1.x | Windows       | 3.0.4 | --                            |
 
 ## MacOS ##
 
@@ -85,21 +87,21 @@ The [`src`](src) directory contains all of the source code for the library; the 
 
 # Ports #
 
-The repository contains [everything needed](Docker/Dockerfile.environment) to compile Linux, Macintosh, and Windows versions of the library in a Docker container.
+The repository contains [everything needed](Docker/Dockerfile.environment) to compile Linux (AMD64 and ARM64), Macintosh, and Windows versions of the library in a Docker container.
 
 ## How to Build ##
 
-All three can easily be compiled in the normal manner outside of a container if all dependencies are present.
+All four can easily be compiled in the normal manner outside of a container if all dependencies are present.
 
 ### Linux ###
 
 If a recent [GDAL](https://www.gdal.org/) and recent [JDK](https://openjdk.java.net/) are installed, the Linux version can be built by typing `make -C src` from the root directory of the cloned repository.
-If one only wishes to use the C/C++ library, then type `make -C src libgdalwarp_bindings.so`.
+If one only wishes to use the C/C++ library, then type `make -C src libgdalwarp_bindings_amd64.so` or `ARCH=arm64 make -C src libgdalwarp_bindings_arm64.so`.
 
 ### Macintosh ###
 
 If a recent GDAL is installed (perhaps from Homebrew) and a recent JDK is installed, the Macintosh version can be built on a Macintosh by typing `OS=darwin SO=dylib make -C src` from the root directory of the cloned repository.
-If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make -C src libgdalwarp_bindings.dylib`.
+If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make -C src libgdalwarp_bindings_amd64.dylib`.
 
 ### Windows ###
 
