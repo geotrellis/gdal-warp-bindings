@@ -62,4 +62,4 @@ RUN mkdir -p /windows && \
 # Linkage
 RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
 
-# docker build -f Dockerfile.environment-amd64 -t quay.io/geotrellis/gdal-warp-bindings-environment:amd64-2 .
+# docker build -f Dockerfile.environment-amd64 -t quay.io/geotrellis/gdal-warp-bindings-environment:3.7.2-amd64 .
