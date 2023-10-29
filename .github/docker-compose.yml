@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  # from the workflows: docker compose -f ../docker-compose.yml up build-linux-amd64
+  # cd .github/workflows; docker compose -f ../docker-compose.yml up build-linux-amd64
   build-linux-amd64:
     image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
     working_dir: /workdir
@@ -20,4 +20,4 @@ services:
         ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif
         make -j4 -C src tests 
         make -j4 -C src/experiments/thread pattern oversubscribe
-    # network_mode: host
+    network_mode: host
