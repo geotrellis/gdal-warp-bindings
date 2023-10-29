@@ -21,3 +21,81 @@ services:
         make -j4 -C src tests 
         make -j4 -C src/experiments/thread pattern oversubscribe
     network_mode: host
+
+  build-linux-arm64:
+    image: quay.io/geotrellis/gdal-warp-bindings-environment:arm64-2
+    working_dir: /workdir
+    environment:
+      ARCH: arm64
+      CC: aarch64-linux-gnu-gcc-8
+      CXX: aarch64-linux-gnu-g++-8
+      CFLAGS: "-Wall -Og -ggdb3 -DSO_FINI -D_GNU_SOURCE"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-arm64"
+    volumes:
+      - ./../:/workdir/
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        touch /workdir/src/main/java/com/azavea/gdal/GDALWarp.class
+        cp -f /tmp/workdir/*.h /workdir/src/
+        make -j4 -C src libgdalwarp_bindings-arm64.so
+    network_mode: host
+
+  build-macos-amd64:
+    image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+    working_dir: /workdir
+    environment:
+      OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
+      CROSS_TRIPLE: x86_64-apple-darwin14
+      OS: darwin
+      SO: dylib
+      CC: cc
+      CXX: c++
+      CFLAGS: "-Wall -Werror -Og -ggdb3"
+      JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
+      GDALCFLAGS: "-I/macintosh/gdal/3.7.2/include"
+      CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/3.7.2/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
+      LD_LIBRARY_PATH_ORIGIN: ""
+      CROSS_ROOT: /usr/x86_64-apple-darwin14
+      PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH_ORIGIN: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      - ./../:/workdir/
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        touch /workdir/src/main/java/com/azavea/gdal/GDALWarp.class
+        cp -f /tmp/workdir/*.h /workdir/src/
+        make -j4 -C src libgdalwarp_bindings-amd64.dylib
+    network_mode: host
+
+  build-windows-amd64:
+    image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+    working_dir: /workdir
+    environment:
+      CROSS_TRIPLE: x86_64-w64-mingw32
+      OS: win32
+      CFLAGS: "-Wall -Werror -Og -g"
+      JAVA_HOME: "/windows/jdk8u202-b08"
+      GDALCFLAGS: "-I/usr/local/include"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      LDFLAGS: "-L/windows/gdal/lib -lgdal_i -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -lws2_32"
+      LD_LIBRARY_PATH: "/usr/x86_64-linux-gnu/x86_64-w64-mingw32/lib:"
+      LD_LIBRARY_PATH_ORIGIN: ""
+      CROSS_ROOT: /usr/x86_64-w64-mingw32
+      PATH: /usr/x86_64-w64-mingw32/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      - ./../:/workdir/
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        touch /workdir/src/main/java/com/azavea/gdal/GDALWarp.class
+        cp -f /tmp/workdir/*.h /workdir/src/
+        make -j4 -C src gdalwarp_bindings-amd64.dll
+    network_mode: host
