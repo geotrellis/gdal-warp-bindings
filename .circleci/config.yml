@@ -3,7 +3,7 @@ version: 2.1
 executors:
   gdal-build-executor-amd64:
     docker:
-      - image: quay.io/geotrellis/gdal-warp-bindings-environment:amd64-2
+      - image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64 # quay.io/geotrellis/gdal-warp-bindings-environment:amd64-2
     working_directory: /workdir
 
   gdal-build-executor-arm64:

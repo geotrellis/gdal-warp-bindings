@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  build-linux-amd64:
+    image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+    working_dir: /workdir
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: "-Wall -Werror -Og -ggdb3 -DSO_FINI -D_GNU_SOURCE"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+    volumes:
+      - ./../:/workdir/
+    command: make -j4 -C src tests
+      # ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif && \
+      # make -j4 -C src tests && \
+      # make -j4 -C src/experiments/thread pattern oversubscribe
+    # network_mode: host

@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(get_block_size)
 
     ld.get_block_size(locked_dataset::WARPED, 1, &width, &height);
     BOOST_TEST(width == 512);
-    BOOST_TEST(height == 128);
+    BOOST_TEST(height == 512);
 
     errno_deinit();
 }
@@ -450,8 +450,8 @@ BOOST_AUTO_TEST_CASE(get_transform_test)
     auto ld = locked_dataset(uri_options1);
     auto actual = std::vector<double>();
     auto expected = std::vector<double>{
-        -8915910.5905594081, 33.88424960091178, 0,
-        5174836.3438357478, 0, -33.88424960091178}; // Manually verified
+        -8915910.5905594081, 33.88424960091165, 0,
+        5174836.343835746, 0, -33.88424960091165}; // Manually verified
 
     errno_init();
 
