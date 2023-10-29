@@ -280,6 +280,7 @@ void deinit()
     env_deinit();
     cache_deinit();
     token_deinit();
+    GDALDestroyDriverManager();
 }
 
 #if defined(SO_FINI) && defined(__linux__)

@@ -543,3 +543,8 @@ BOOST_AUTO_TEST_CASE(width_height_test)
 
     errno_deinit();
 }
+
+BOOST_AUTO_TEST_CASE(destroy)
+{
+    GDALDestroyDriverManager();
+}
