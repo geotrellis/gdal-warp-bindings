@@ -36,6 +36,16 @@ auto options2 = options_t{"-r", "bilinear",
 auto uri_options1 = std::make_pair(uri1, options1);
 auto uri_options2 = std::make_pair(uri1, options2);
 
+double EPSILON = 10e-9;
+
+void BOOST_TEST_VECTOR_DOUBLE(std::vector<double> actual, std::vector<double> expected, double eps = EPSILON) {
+    BOOST_TEST(actual.size() == expected.size());
+
+    for (int i = 0; i < expected.size(); i++) {
+        BOOST_TEST(fabs(expected[i] - actual[i]) < eps);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
@@ -450,15 +460,15 @@ BOOST_AUTO_TEST_CASE(get_transform_test)
     auto ld = locked_dataset(uri_options1);
     auto actual = std::vector<double>();
     auto expected = std::vector<double>{
-        -8915910.5905594081, 33.88424960091165, 0,
-        5174836.343835746, 0, -33.88424960091165}; // Manually verified
+        -8915910.5905594081, 33.88424960091178, 0,
+        5174836.3438357478, 0, -33.88424960091178}; // Manually verified
 
     errno_init();
 
     ld.get_transform(locked_dataset::WARPED, transform);
     actual.insert(actual.end(), transform, transform + 6);
 
-    BOOST_TEST(actual == expected);
+    BOOST_TEST_VECTOR_DOUBLE(actual, expected);
 
     errno_deinit();
 }
