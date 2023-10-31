@@ -42,7 +42,7 @@ void BOOST_TEST_VECTOR_DOUBLE(std::vector<double> actual, std::vector<double> ex
     BOOST_TEST(actual.size() == expected.size());
 
     for (int i = 0; i < expected.size(); i++) {
-        BOOST_TEST(fabs(expected[i] - actual[i]) < eps);
+        BOOST_CHECK_SMALL((expected[i] - actual[i]), eps);
     }
 }
 
