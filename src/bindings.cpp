@@ -70,18 +70,6 @@ static uint64_t get_nanos()
 #endif
 }
 
-#if defined(__APPLE__)
-inline void pthread_yield()
-{
-    pthread_yield_np();
-}
-#elif defined(__MINGW32__)
-inline void pthread_yield()
-{
-    sleep(0);
-}
-#endif
-
 /**
  * A macro for making one attempt to perform the given operation on
  * (one of) the locked datasets.  If an attempt succeeds, then the
@@ -142,7 +130,7 @@ inline void pthread_yield()
             TRY(fn)                                                                       \
             if (!done)                                                                    \
             {                                                                             \
-                pthread_yield();                                                          \
+                sched_yield();                                                          \
             }                                                                             \
         }                                                                                 \
         if ((code == ATTEMPT_SUCCESSFUL) && ((i < attempts) || (i > 0 && attempts == 0))) \
@@ -280,6 +268,7 @@ void deinit()
     env_deinit();
     cache_deinit();
     token_deinit();
+    GDALDestroyDriverManager();
 }
 
 #if defined(SO_FINI) && defined(__linux__)

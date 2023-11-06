@@ -220,6 +220,7 @@ int main(int argc, char **argv)
     GDALWarpAppOptionsFree(app_options);
     GDALClose(dataset);
     GDALClose(source);
+    GDALDestroyDriverManager();
     unlink(temp_path);
 
     return 0;

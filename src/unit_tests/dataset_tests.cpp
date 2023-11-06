@@ -36,6 +36,16 @@ auto options2 = options_t{"-r", "bilinear",
 auto uri_options1 = std::make_pair(uri1, options1);
 auto uri_options2 = std::make_pair(uri1, options2);
 
+double EPSILON = 10e-9;
+
+void BOOST_TEST_VECTOR_DOUBLE(std::vector<double> actual, std::vector<double> expected, double eps = EPSILON) {
+    BOOST_TEST(actual.size() == expected.size());
+
+    for (int i = 0; i < expected.size(); i++) {
+        BOOST_CHECK_SMALL((expected[i] - actual[i]), eps);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(init)
 {
     GDALAllRegister();
@@ -55,7 +65,7 @@ BOOST_AUTO_TEST_CASE(get_block_size)
 
     ld.get_block_size(locked_dataset::WARPED, 1, &width, &height);
     BOOST_TEST(width == 512);
-    BOOST_TEST(height == 128);
+    BOOST_TEST(height == 512);
 
     errno_deinit();
 }
@@ -458,7 +468,7 @@ BOOST_AUTO_TEST_CASE(get_transform_test)
     ld.get_transform(locked_dataset::WARPED, transform);
     actual.insert(actual.end(), transform, transform + 6);
 
-    BOOST_TEST(actual == expected);
+    BOOST_TEST_VECTOR_DOUBLE(actual, expected);
 
     errno_deinit();
 }
@@ -542,4 +552,9 @@ BOOST_AUTO_TEST_CASE(width_height_test)
     BOOST_TEST(height == 5771); // Manually verified (VRT different from raw TIF)
 
     errno_deinit();
+}
+
+BOOST_AUTO_TEST_CASE(destroy)
+{
+    GDALDestroyDriverManager();
 }

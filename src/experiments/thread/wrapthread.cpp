@@ -262,6 +262,7 @@ int main(int argc, char **argv)
 
     deinit();
     GDALWarpAppOptionsFree(app_options);
+    GDALDestroyDriverManager();
 
     return 0;
 }

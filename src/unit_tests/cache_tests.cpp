@@ -167,3 +167,8 @@ BOOST_AUTO_TEST_CASE(passive_multiple_test)
     cache.get(uri_options1, 16);
     BOOST_TEST(cache.count(uri_options1) <= 8);
 }
+
+BOOST_AUTO_TEST_CASE(destroy)
+{
+    GDALDestroyDriverManager();
+}
