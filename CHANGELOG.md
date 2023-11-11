@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.7.0] - 2023-11-11
+
 ### Changed
 - GDAL 3.7.2 build [#120](https://github.com/geotrellis/gdal-warp-bindings/pull/120)
 
@@ -41,7 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The first library release
 
-[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.7.0...HEAD
+[v3.7.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v1.2.0...v3.7.0
 [v1.2.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v1.1.1...v1.2.0
 [v1.1.1]: https://github.com/geotrellis/gdal-warp-bindings/compare/v1.1.0...v1.1.1
 [v1.1.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v1.0.1...v1.1.0
