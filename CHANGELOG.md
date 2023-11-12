@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v1.2.0] - 2022-08-02
 
 ### Changed
-
 - Add support for `aarch64-linux-gnu` ARM64 on Linux [#107](https://github.com/geotrellis/gdal-warp-bindings/pull/107).
 - Add release instructions for developers to HOWTORELEASE.md
 

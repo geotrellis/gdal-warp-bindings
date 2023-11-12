@@ -1,9 +1,14 @@
 version: 2.1
 
+parameters:
+  gdal-version:
+    type: string
+    default: "3.7.2"
+
 executors:
   gdal-build-executor-amd64:
     docker:
-      - image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+      - image: daunnc/gdal-warp-bindings-environment:<< pipeline.parameters.gdal-version >>-amd64
     working_directory: /workdir
 
   gdal-build-executor-arm64:
@@ -71,10 +76,10 @@ jobs:
       CXX: c++
       CFLAGS: "-Wall -Werror -Og -ggdb3"
       JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
-      GDALCFLAGS: "-I/macintosh/gdal/3.7.2/include"
+      GDALCFLAGS: "-I/macintosh/gdal/<< pipeline.parameters.gdal-version >>/include"
       CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
-      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/3.7.2/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
+      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/<< pipeline.parameters.gdal-version >>/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
       LD_LIBRARY_PATH_ORIGIN: ""
       CROSS_ROOT: /usr/x86_64-apple-darwin14
       PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
