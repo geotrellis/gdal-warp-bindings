@@ -23,6 +23,7 @@ executors:
 jobs:
   build-linux-amd64:
     executor: gdal-build-executor-amd64
+    resource_class: large
     environment:
       CC: gcc
       CXX: g++
@@ -52,6 +53,7 @@ jobs:
 
   build-linux-arm64:
     executor: gdal-build-executor-arm64
+    resource_class: large
     environment:
       ARCH: arm64
       CC: aarch64-linux-gnu-gcc-8
@@ -76,6 +78,7 @@ jobs:
 
   build-macos-amd64:
     executor: gdal-build-executor-amd64
+    resource_class: large
     environment:
       OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
       CROSS_TRIPLE: x86_64-apple-darwin14
@@ -110,6 +113,7 @@ jobs:
 
   build-windows-amd64:
     executor: gdal-build-executor-amd64
+    resource_class: large
     environment:
       CROSS_TRIPLE: x86_64-w64-mingw32
       OS: win32
@@ -139,6 +143,7 @@ jobs:
 
   publish:
     executor: gdal-build-executor-amd64
+    resource_class: large
     steps:
       - attach_workspace:
           at: /tmp/workdir/
