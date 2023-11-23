@@ -1,9 +1,18 @@
 version: 2.1
 
+parameters:
+  gdal-version:
+    type: string
+    default: "3.7.2"
+  skip-tests:
+    type: boolean
+    default: false
+    description: Skip tests, false by default.
+
 executors:
   gdal-build-executor-amd64:
     docker:
-      - image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+      - image: daunnc/gdal-warp-bindings-environment:<< pipeline.parameters.gdal-version >>-amd64
     working_directory: /workdir
 
   gdal-build-executor-arm64:
@@ -20,6 +29,7 @@ jobs:
       CFLAGS: "-Wall -Werror -Og -ggdb3 -DSO_FINI -D_GNU_SOURCE"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
       JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+      SKIP_TESTS: << pipeline.parameters.skip-tests >>
     steps:
       - attach_workspace:
           at: /tmp/workdir/
@@ -27,9 +37,13 @@ jobs:
       - run:
           name: Build AMD64 Linux binaries and run unit tests
           command: |
-            ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif
-            make -j4 -C src tests
-            make -j4 -C src/experiments/thread pattern oversubscribe
+            if [ "$SKIP_TESTS" = true ]; then
+              make -j4 -C src libgdalwarp_bindings-amd64.so
+            else 
+              ln -s /tmp/c41078a1.tif src/experiments/data/c41078a1.tif
+              make -j4 -C src tests
+              make -j4 -C src/experiments/thread pattern oversubscribe
+            fi
       - persist_to_workspace:
           root: src
           paths:
@@ -71,10 +85,10 @@ jobs:
       CXX: c++
       CFLAGS: "-Wall -Werror -Og -ggdb3"
       JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
-      GDALCFLAGS: "-I/macintosh/gdal/3.7.2/include"
+      GDALCFLAGS: "-I/macintosh/gdal/<< pipeline.parameters.gdal-version >>/include"
       CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
-      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/3.7.2/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
+      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/<< pipeline.parameters.gdal-version >>/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
       LD_LIBRARY_PATH_ORIGIN: ""
       CROSS_ROOT: /usr/x86_64-apple-darwin14
       PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
