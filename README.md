@@ -9,6 +9,15 @@ APIs are provided for C and Java.
 
 # Installation #
 
+Starting GDAL 3.7 we changed the versioning scheme, given the `{major}.{minor}.{patch}` version:
+* `{major}.{minor}` - matches the GDAL version it is published against
+  * for GDAL `3.7.1` major = `3`, minor = `7`
+* `{patch}` - is a lib update within the corresponding GDAL version
+  * There can be multiple releases for the same GDAL `{major}.{minor}.{patch}` version
+    * Bindings improvements but the compatible GDAL version is the same
+  * There can be releases that bump the GDAL patch version   
+    * Convenient releases to align with the GDAL patch version
+
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
 | GDAL Warp Bindings | OS                    |  GDAL | Shared Library {so,dylib,dll} |
