@@ -9,21 +9,18 @@ APIs are provided for C and Java.
 
 # Installation #
 
-Starting GDAL 3.7 we changed the versioning scheme, given the `{major}.{minor}.{patch}` version:
-* `{major}.{minor}` - matches the GDAL version it is published against
-  * for GDAL `3.7.1` major = `3`, minor = `7`
-* `{patch}` - is a lib update within the corresponding GDAL version
-  * There can be multiple releases for the same GDAL `{major}.{minor}.{patch}` version
-    * Bindings improvements but the compatible GDAL version is the same
-  * There can be releases that bump the GDAL patch version   
-    * Convenient releases to align with the GDAL patch version
+Starting **gdal-warp-bindings version** `3.7` we changed the versioning scheme. Given the `{major}.{minor}.{patch}` version:
+* `{major}.{minor}` - matches the **GDAL library** version it is published for
+  * i.e. for GDAL `3.7.x` major = `3`, minor = `7`
+* `{patch}` - a **gdal-warp-bindings** update within the corresponding **GDAL library** `{major}.{minor}` version
+  * There can be multiple **gdal-warp-bindings** releases for the same **GDAL library** version. All releases are compatible with the matching **GDAL library** `{major}.{minor}` version
 
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
 | GDAL Warp Bindings | OS                    |  GDAL | Shared Library {so,dylib,dll} |
 |--------------------|-----------------------|-------|-------------------------------|
-|              3.7.0 | Linux, MacOS, Windows | 3.7.2 | libgdal.so.33.3.7.2           |
-|              3.6.4 | Linux, MacOS, Windows | 3.6.4 | libgdal.so.33.3.6.4           |
+|              3.7.0 | Linux, MacOS, Windows | 3.7.x | libgdal.so.33.3.7.2           |
+|              3.6.4 | Linux, MacOS, Windows | 3.6.x | libgdal.so.33.3.6.4           |
 |              1.1.x | Linux (AMD64)         | 3.1.2 | libgdal.so.27                 |
 |              1.1.x | Linux (ARM64)         | 2.4.0 | libgdal.so.20                 |
 |              1.1.x | MacOS (AMD64)         | 3.1.2 | libgdal.27.dylib              |
