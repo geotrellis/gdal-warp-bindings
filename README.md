@@ -9,11 +9,11 @@ APIs are provided for C and Java.
 
 # Installation #
 
-Starting **gdal-warp-bindings version** `3.7` we changed the versioning scheme. Given the `{major}.{minor}.{patch}` version:
-* `{major}.{minor}` - matches the **GDAL library** version it is published for
-  * i.e. for GDAL `3.7.x` major = `3`, minor = `7`
-* `{patch}` - a **gdal-warp-bindings** update within the corresponding **GDAL library** `{major}.{minor}` version
-  * There can be multiple **gdal-warp-bindings** releases for the same **GDAL library** version. All releases are compatible with the matching **GDAL library** `{major}.{minor}` version
+Beginning with **gdal-warp-bindings version** `3.7` we've adopted a new versioning scheme intended to simplify versioning. Given a `{major}.{minor}.{patch}` version:
+* `{major}.{minor}` - matches the **GDAL** version it is published for
+  * e.g. gdal-warp-bindings of version `3.7.x` are suitable for GDAL versions `3.7.x` major = `3`, minor = `7`
+* `{patch}` - this portion of the version corresponds to updates within **gdal-warp-bindings** and should remain compatible with **GDAL library** `{major}.{minor}` versions
+  * This implies that there may be multiple **gdal-warp-bindings** releases for the same **GDAL library** version. All releases are compatible with the matching **GDAL library** `{major}.{minor}` version. Thus, higher patch versions are to be preferred.
 
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
