@@ -9,12 +9,18 @@ APIs are provided for C and Java.
 
 # Installation #
 
+Beginning with **gdal-warp-bindings version** `3.7` we've adopted a new versioning scheme intended to simplify linking to native dependencies. Given a `{major}.{minor}.{patch}` version:
+* `{major}.{minor}` - matches the **GDAL** version it is published for
+  * e.g. gdal-warp-bindings of version `3.7.x` are suitable for GDAL versions `3.7.x` major = `3`, minor = `7`
+* `{patch}` - this portion of the version corresponds to updates within **gdal-warp-bindings** and should remain compatible with **GDAL library** `{major}.{minor}` versions
+  * This implies that there may be multiple **gdal-warp-bindings** releases for the same **GDAL library** version. All releases are compatible with the matching **GDAL library** `{major}.{minor}` version. Thus, higher patch versions are to be preferred.
+
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
 | GDAL Warp Bindings | OS                    |  GDAL | Shared Library {so,dylib,dll} |
 |--------------------|-----------------------|-------|-------------------------------|
-|              3.7.0 | Linux, MacOS, Windows | 3.7.2 | libgdal.so.33.3.7.2           |
-|              3.6.4 | Linux, MacOS, Windows | 3.6.4 | libgdal.so.33.3.6.4           |
+|              3.7.0 | Linux, MacOS, Windows | 3.7.x | libgdal.so.33.3.7.2           |
+|              3.6.4 | Linux, MacOS, Windows | 3.6.x | libgdal.so.33.3.6.4           |
 |              1.1.x | Linux (AMD64)         | 3.1.2 | libgdal.so.27                 |
 |              1.1.x | Linux (ARM64)         | 2.4.0 | libgdal.so.20                 |
 |              1.1.x | MacOS (AMD64)         | 3.1.2 | libgdal.27.dylib              |
