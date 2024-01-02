@@ -34,7 +34,7 @@ RUN cd /usr/local/src && \
 RUN wget 'https://download.osgeo.org/geotiff/samples/usgs/c41078a1.tif' -k -O /tmp/c41078a1.tif
 
 # Boost
-RUN wget 'http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2' -O /tmp/boost.tar.bz2 && \
+RUN wget 'https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.tar.bz2' -O /tmp/boost.tar.bz2 && \
   mkdir -p /usr/local/include && \
   cd /usr/local/include && \
   tar axvf /tmp/boost.tar.bz2 && \
