@@ -48,7 +48,7 @@ RUN mkdir -p /macintosh && \
     wget "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u202-b08/OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz" && \
     tar axvf OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
     rm -f OpenJDK8U-jdk_x64_mac_hotspot_8u202b08.tar.gz && \
-    wget "https://anaconda.org/conda-forge/libgdal/${GDAL_VERSION}/download/osx-64/${GDAL_MACOS}" && \
+    curl "https://anaconda.org/conda-forge/libgdal/${GDAL_VERSION}/download/osx-64/${GDAL_MACOS}" && \
     mkdir -p gdal/${GDAL_VERSION} && \
     cph extract ${GDAL_MACOS} --dest gdal/${GDAL_VERSION} && \
     rm -f ${GDAL_MACOS} && \
