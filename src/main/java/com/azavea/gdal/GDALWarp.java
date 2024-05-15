@@ -28,6 +28,7 @@ public class GDALWarp {
 
         public static final int GDT_Unknown = 0;
         public static final int GDT_Byte = 1;
+        public static final int GDT_Int8 = 14;
         public static final int GDT_UInt16 = 2;
         public static final int GDT_Int16 = 3;
         public static final int GDT_UInt32 = 4;
