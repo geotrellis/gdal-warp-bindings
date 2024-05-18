@@ -686,13 +686,13 @@ private:
             for (i = 0; i < options_vector.size(); ++i)
             {
                 auto value = options_vector[i].c_str();
-                if(i % 2 == 0 && value == std::string("-of")) {
+                if(!output_format_configured && value == std::string("-of")) {
                     output_format_configured = true;
                 }
                 options_array[i] = value;
             }
 
-            // GDAL 3.9.x+ fails on duplicate arguments that can't be repeatable
+            // GDAL 3.9.x+ fails on duplicate arguments that are not repeatable
             // https://github.com/OSGeo/gdal/blob/v3.9.0/apps/argparse/argparse.hpp#L928-L931
             if(!output_format_configured) {
                 options_array[i++] = "-of";
