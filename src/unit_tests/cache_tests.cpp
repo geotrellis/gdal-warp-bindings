@@ -23,16 +23,16 @@
 
 auto uri1 = uri_t("../experiments/data/c41078a1.tif");
 auto options1 = options_t{
-    // "-of", "MEM", // since GDAL 3.9.x fails as a duplicate https://github.com/geotrellis/gdal-warp-bindings/blob/v3.8.1/src/locked_dataset.hpp#L689-L690
+    "-of", "VRT",
     "-tap", "-tr", "7", "11",
     "-r", "bilinear",
     "-t_srs", "epsg:3857"};
 auto options2 = options_t{
-    // "-of", "MEM", // since GDAL 3.9.x fails as a duplicate https://github.com/geotrellis/gdal-warp-bindings/blob/v3.8.1/src/locked_dataset.hpp#L689-L690
+    "-of", "VRT",
     "-tap", "-tr", "33", "42",
     "-t_srs", "epsg:3857"};
 auto options3 = options_t{
-    // "-of", "MEM", // since GDAL 3.9.x fails as a duplicate https://github.com/geotrellis/gdal-warp-bindings/blob/v3.8.1/src/locked_dataset.hpp#L689-L690
+    "-of", "VRT",
     "-tap", "-tr", "1013", "1307",
     "-t_srs", "epsg:3857"};
 auto uri_options1 = uri_options_t{uri1, options1};
