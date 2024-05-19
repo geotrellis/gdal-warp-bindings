@@ -99,7 +99,7 @@
         <configuration>
           <serverId>sonatype_releases</serverId>
           <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
           <updateReleaseInfo>true</updateReleaseInfo>
         </configuration>
       </plugin>
