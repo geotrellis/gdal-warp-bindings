@@ -19,6 +19,7 @@ These bindings require a GDAL installation on your machine with the appropriate 
 
 | GDAL Warp Bindings | OS                    |  GDAL | Shared Library {so,dylib,dll} |
 |--------------------|-----------------------|-------|-------------------------------|
+|              3.9.0 | Linux, MacOS, Windows | 3.9.x | libgdal.so.35.3.9.0           |
 |              3.8.0 | Linux, MacOS, Windows | 3.8.x | libgdal.so.34.3.8.x           |
 |              3.7.0 | Linux, MacOS, Windows | 3.7.x | libgdal.so.33.3.7.x           |
 |              3.6.4 | Linux, MacOS, Windows | 3.6.x | libgdal.so.33.3.6.x           |

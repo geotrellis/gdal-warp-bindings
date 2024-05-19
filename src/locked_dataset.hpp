@@ -681,13 +681,24 @@ private:
             char const *options_array[1 << 8];
             GDALWarpAppOptions *app_options = nullptr;
 
+            bool output_format_configured = false;
             unsigned int i = 0;
             for (i = 0; i < options_vector.size(); ++i)
             {
-                options_array[i] = options_vector[i].c_str();
+                auto value = options_vector[i].c_str();
+                if(!output_format_configured && value == std::string("-of")) {
+                    output_format_configured = true;
+                }
+                options_array[i] = value;
             }
-            options_array[i++] = "-of";
-            options_array[i++] = "VRT";
+
+            // GDAL 3.9.x+ fails on duplicate arguments that are not repeatable
+            // https://github.com/OSGeo/gdal/blob/v3.9.0/apps/argparse/argparse.hpp#L928-L931
+            if(!output_format_configured) {
+                options_array[i++] = "-of";
+                options_array[i++] = "VRT";
+            }
+
             options_array[i++] = nullptr;
             app_options = GDALWarpAppOptionsNew(const_cast<char **>(options_array), nullptr);
             if (app_options == nullptr)

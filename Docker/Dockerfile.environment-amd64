@@ -1,8 +1,11 @@
+# docker build -f Dockerfile.environment-amd64 -t quay.io/geotrellis/gdal-warp-bindings-environment:${GDAL_VERSION}-amd64 .
+# docker buildx build -f Dockerfile.environment-amd64 --platform linux/amd64 --push -t daunnc/gdal-warp-bindings-environment:3.9.0-amd64 .
+
 FROM quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2
 LABEL maintainer="Azavea <info@azavea.com>"
 
-ARG GDAL_VERSION=3.8.2
-ARG GDAL_MACOS=libgdal-3.8.2-hf17bf98_0.conda
+ARG GDAL_VERSION=3.9.0
+ARG GDAL_MACOS=libgdal-3.9.0-h8fe29fd_2.conda
 ARG GDAL_WINDOWS=release-1916-x64-gdal-3-8-1-mapserver-8-0-1-libs.zip
 ARG PROJ_VERSION=9.3.0
 ARG LIBTIFF_VERSION=4.1.0
@@ -39,7 +42,7 @@ RUN wget 'https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2' 
   cd /usr/local/include && \
   tar axvf /tmp/boost.tar.bz2 && \
   rm /tmp/boost.tar.bz2
-
+  
 # Macintosh
 RUN mkdir -p /macintosh && \
     cd /macintosh && \
@@ -68,5 +71,3 @@ RUN mkdir -p /windows && \
 
 # Linkage
 RUN echo '/usr/local/lib' >> /etc/ld.so.conf && ldconfig
-
-# docker build -f Dockerfile.environment-amd64 -t quay.io/geotrellis/gdal-warp-bindings-environment:${GDAL_VERSION}-amd64 .

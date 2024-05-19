@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   gdal-version:
     type: string
-    default: "3.8.2"
+    default: "3.9.0"
   skip-tests:
     type: boolean
     default: false
