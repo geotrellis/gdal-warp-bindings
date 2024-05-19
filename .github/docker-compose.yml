@@ -3,7 +3,7 @@ version: "3.9"
 services:
   # cd .github/workflows; docker compose -f ../docker-compose.yml up build-linux-amd64
   build-linux-amd64:
-    image: daunnc/gdal-warp-bindings-environment:3.8.2-amd64
+    image: daunnc/gdal-warp-bindings-environment:3.9.0-amd64
     working_dir: /workdir
     environment:
       CC: gcc
@@ -44,7 +44,7 @@ services:
     network_mode: host
 
   build-macos-amd64:
-    image: daunnc/gdal-warp-bindings-environment:3.8.2-amd64
+    image: daunnc/gdal-warp-bindings-environment:3.9.0-amd64
     working_dir: /workdir
     environment:
       OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
@@ -75,7 +75,7 @@ services:
     network_mode: host
 
   build-windows-amd64:
-    image: daunnc/gdal-warp-bindings-environment:3.7.2-amd64
+    image: daunnc/gdal-warp-bindings-environment:3.9.0-amd64
     working_dir: /workdir
     environment:
       CROSS_TRIPLE: x86_64-w64-mingw32
