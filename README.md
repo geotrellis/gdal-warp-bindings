@@ -17,17 +17,18 @@ Beginning with **gdal-warp-bindings version** `3.7` we've adopted a new versioni
 
 These bindings require a GDAL installation on your machine with the appropriate matching version:
 
-| GDAL Warp Bindings | OS                    |  GDAL | Shared Library {so,dylib,dll} |
-|--------------------|-----------------------|-------|-------------------------------|
-|              3.9.1 | Linux, MacOS, Windows | 3.9.x | libgdal.so.35.3.9.2           |
-|              3.9.0 | Linux, MacOS, Windows | 3.9.x | libgdal.so.35.3.9.0           |
-|              3.8.0 | Linux, MacOS, Windows | 3.8.x | libgdal.so.34.3.8.x           |
-|              3.7.0 | Linux, MacOS, Windows | 3.7.x | libgdal.so.33.3.7.x           |
-|              3.6.4 | Linux, MacOS, Windows | 3.6.x | libgdal.so.33.3.6.x           |
-|              1.1.x | Linux (AMD64)         | 3.1.2 | libgdal.so.27                 |
-|              1.1.x | Linux (ARM64)         | 2.4.0 | libgdal.so.20                 |
-|              1.1.x | MacOS (AMD64)         | 3.1.2 | libgdal.27.dylib              |
-|              1.1.x | Windows               | 3.0.4 | --                            |
+| GDAL Warp Bindings | OS                    |  GDAL  | Shared Library {so,dylib,dll} |
+|--------------------|-----------------------|--------|-------------------------------|
+|             3.10.0 | Linux, MacOS, Windows | 3.10.x | libgdal.so.36.3.10.3          |
+|             3.9.1  | Linux, MacOS, Windows | 3.9.x  | libgdal.so.35.3.9.2           |
+|             3.9.0  | Linux, MacOS, Windows | 3.9.x  | libgdal.so.35.3.9.0           |
+|             3.8.0  | Linux, MacOS, Windows | 3.8.x  | libgdal.so.34.3.8.x           |
+|             3.7.0  | Linux, MacOS, Windows | 3.7.x  | libgdal.so.33.3.7.x           |
+|             3.6.4  | Linux, MacOS, Windows | 3.6.x  | libgdal.so.33.3.6.x           |
+|             1.1.x  | Linux (AMD64)         | 3.1.2  | libgdal.so.27                 |
+|             1.1.x  | Linux (ARM64)         | 2.4.0  | libgdal.so.20                 |
+|             1.1.x  | MacOS (AMD64)         | 3.1.2  | libgdal.27.dylib              |
+|             1.1.x  | Windows               | 3.0.4  | --                            |
 
 ## MacOS ##
 
