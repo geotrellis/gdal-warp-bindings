@@ -1,9 +1,12 @@
 version: 2.1
 
 parameters:
+  docker-build-version:
+    type: string
+    default: "3.10.0"
   gdal-version:
     type: string
-    default: "3.9.2"
+    default: "3.10.3"
   skip-tests:
     type: boolean
     default: false
@@ -12,7 +15,7 @@ parameters:
 executors:
   gdal-build-executor-amd64:
     docker:
-      - image: daunnc/gdal-warp-bindings-environment:<< pipeline.parameters.gdal-version >>-amd64
+      - image: daunnc/gdal-warp-bindings-environment:<< pipeline.parameters.docker-build-version >>-amd64
     working_directory: /workdir
 
   gdal-build-executor-arm64:
