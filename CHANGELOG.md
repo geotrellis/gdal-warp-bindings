@@ -65,7 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The first library release
 
-[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.9.1...HEAD
+[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.10.0...HEAD
+[v3.10.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.9.1...v3.10.0
 [v3.9.1]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.9.0...v3.9.1
 [v3.9.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.8.1...v3.9.0
 [v3.8.1]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.8.0...v3.8.1
