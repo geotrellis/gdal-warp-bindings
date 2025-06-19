@@ -9,12 +9,12 @@
   <pluginGroups/>
   <servers>
     <server>
-      <id>sonatype_snapshots</id>
+      <id>central_snapshots</id>
       <username>${env.SONATYPE_USERNAME}</username>
       <password>${env.SONATYPE_PASSWORD}</password>
     </server>
     <server>
-      <id>sonatype_releases</id>
+      <id>central</id>
       <username>${env.SONATYPE_USERNAME}</username>
       <password>${env.SONATYPE_PASSWORD}</password>
     </server>
