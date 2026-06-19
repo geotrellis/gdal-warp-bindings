@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v3.12.0] - 2026-06-19
 ### Changed
-- GDAL 3.12.x build
+- GDAL 3.12.x build [#138](https://github.com/geotrellis/gdal-warp-bindings/pull/138)
 
 ## [v3.11.0] - 2026-06-19
 ### Changed
