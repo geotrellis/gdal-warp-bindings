@@ -7,10 +7,10 @@
 FROM quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2
 LABEL maintainer="Azavea <info@azavea.com>"
 
-ARG GDAL_VERSION=3.10.3
-ARG GDAL_MACOS=libgdal-core-3.10.3-h20d0c4d_2.conda
-ARG GDAL_WINDOWS=release-1928-x64-gdal-3-10-0-mapserver-8-2-2-libs.zip
-ARG PROJ_VERSION=9.3.0
+ARG GDAL_VERSION=3.13.1
+ARG GDAL_MACOS=libgdal-core-3.13.1-h2e1b34b_1.conda
+ARG GDAL_WINDOWS=release-1944-x64-gdal-3-12-1-mapserver-8-6-0-libs.zip
+ARG PROJ_VERSION=9.8.1
 ARG LIBTIFF_VERSION=4.1.0
 ARG CURL_VERSION=7.71.1
 

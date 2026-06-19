@@ -1,12 +1,14 @@
 version: 2.1
 
 parameters:
+  # Image tag (<< docker-build-version >>-amd64) pulled from the executor registry; built by `make gdal-3-13-1`.
+  # To target another line, set both params: 3.11.5 (make gdal-3-11-5) or 3.12.4 (make gdal-3-12-4).
   docker-build-version:
     type: string
-    default: "3.10.0"
+    default: "3.11.5"
   gdal-version:
     type: string
-    default: "3.10.3"
+    default: "3.11.5"
   skip-tests:
     type: boolean
     default: false
