@@ -5,10 +5,10 @@ parameters:
   # To target another line, set both params: 3.11.5 (make gdal-3-11-5) or 3.12.4 (make gdal-3-12-4).
   docker-build-version:
     type: string
-    default: "3.12.4"
+    default: "3.13.1"
   gdal-version:
     type: string
-    default: "3.12.4"
+    default: "3.13.1"
   skip-tests:
     type: boolean
     default: false
