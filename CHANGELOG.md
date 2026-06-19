@@ -5,8 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- Build environments for GDAL 3.11.x, 3.12.x and 3.13.x (PROJ 9.8.1); default build env bumped to 3.13.x. Windows libs for the 3.13.x line fall back to gisinternals GDAL 3.12.1 (no upstream Windows build is published for that line yet).
+
+## [v3.11.0] - 2026-06-19
+### Changed
+- GDAL 3.11.x build [#137](https://github.com/geotrellis/gdal-warp-bindings/pull/137)
+  - Add Docker build environments for GDAL 3.11.5, 3.12.4 and 3.13.1 (PROJ 9.8.1); Windows libs for the 3.13.x line fall back to gisinternals GDAL 3.12.1 (no upstream Windows build is published for that line yet) 
 
 ## [v3.10.0] - 2025-04-17
 ### Changed
@@ -67,7 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The first library release
 
-[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.10.0...HEAD
+[Unreleased]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.11.0...HEAD
+[v3.11.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.10.0...v3.11.0
 [v3.10.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.9.1...v3.10.0
 [v3.9.1]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.9.0...v3.9.1
 [v3.9.0]: https://github.com/geotrellis/gdal-warp-bindings/compare/v3.8.1...v3.9.0
