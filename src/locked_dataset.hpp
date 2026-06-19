@@ -496,12 +496,13 @@ public:
         auto time_before = get_last_errno_timestamp();
         if (band_number == 0)
         {
-            *list = GDALGetMetadata(m_datasets[dataset], domain);
+            // GDAL >= 3.13 returns CSLConstList (const char* const*); const_cast is a no-op on older versions
+            *list = const_cast<char **>(GDALGetMetadata(m_datasets[dataset], domain));
         }
         else
         {
             GDALRasterBandH band = GDALGetRasterBand(m_datasets[dataset], band_number);
-            *list = GDALGetMetadata(band, domain);
+            *list = const_cast<char **>(GDALGetMetadata(band, domain));
         }
         auto time_after = get_last_errno_timestamp();
         UNLOCK
