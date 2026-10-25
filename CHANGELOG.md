@@ -6,11 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- MacOS ARM64 (Apple Silicon) build [#136](https://github.com/geotrellis/gdal-warp-bindings/issues/136)
+- Support for macOS on Apple Silicon (ARM64) [#140](https://github.com/geotrellis/gdal-warp-bindings/issues/140)
 
 ### Changed
-- MacOS binaries are cross-built with osxcross against the macOS 11.3 SDK and require macOS 11.0+ on both AMD64 and ARM64; link against libc++ and search `/usr/local/lib` and `/opt/homebrew/lib` for GDAL
-- Docker build environment `daunnc/gdal-warp-bindings-environment:3.13.1-1-amd64` on top of the new `daunnc/gdal-warp-bindings-crossbuild:amd64-3` toolchain image
+- MacOS binaries are cross-built with osxcross against the macOS 11.3 SDK and require macOS 11.0+ on both AMD64 and ARM64; link against libc++ and search `/usr/local/lib` and `/opt/homebrew/lib` for GDAL [#140](https://github.com/geotrellis/gdal-warp-bindings/issues/140)
+- Docker build environment `daunnc/gdal-warp-bindings-environment:3.13.1-1-amd64` on top of the new `daunnc/gdal-warp-bindings-crossbuild:amd64-3` toolchain image [#140](https://github.com/geotrellis/gdal-warp-bindings/issues/140)
 
 ## [v3.13.0] - 2026-06-19
 ### Changed
