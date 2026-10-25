@@ -38,6 +38,8 @@ _† Windows is one GDAL version behind._
 ## MacOS ##
 
 For MacOS users, you must also ensure that the appropriate shared libary file (dylib) above is symlinked to `/usr/local/lib` from your GDAL installation with matching version.
+On Apple Silicon (ARM64), `/opt/homebrew/lib` (the Homebrew default prefix) is searched as well.
+Starting with the next release after 3.13.0, the MacOS binaries are built for both AMD64 and ARM64 (Apple Silicon) and require macOS 11.0 (Big Sur) or newer.
 
 For best results, we recommend explicitly installing the appropriate GDAL version via Conda and symlinking the appropriate lib. Here's an example for GDAL Warp Bindings 1.1.0 using GDAL 3.1.2:
 
@@ -79,7 +81,7 @@ Please see [`src/main/java/com/azavea/gdal/GDALWarp.java`](src/main/java/com/aza
 The binary artifacts are present on [SonaType](https://search.maven.org/artifact/com.azavea.geotrellis/gdal-warp-bindings).
 Snaphost artifacts are present on the [SonaType Snapshots repo](https://oss.sonatype.org/content/repositories/snapshots).
 
-This jar file contains Linux, Macintosh, and Windows shared libraries.
+This jar file contains Linux (AMD64, ARM64), Macintosh (AMD64, ARM64), and Windows (AMD64) shared libraries.
 
 All native binaries are built for [AMD64](https://en.wikipedia.org/wiki/X86-64#AMD64); the Linux ones are linked against GDAL 2.4.3, The Macintosh ones are linked against [GDAL 2.4.2 from Homebrew](https://formulae.brew.sh/formula/gdal#default), and the Windows ones are linked against the [GDAL 2.4.3 MSVC 2015 build from GISinternals.com](http://www.gisinternals.com/release.php).
 
@@ -118,7 +120,9 @@ If one only wishes to use the C/C++ library, then type `make -C src libgdalwarp_
 ### Macintosh ###
 
 If a recent GDAL is installed (perhaps from Homebrew) and a recent JDK is installed, the Macintosh version can be built on a Macintosh by typing `OS=darwin SO=dylib make -C src` from the root directory of the cloned repository.
-If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make -C src libgdalwarp_bindings_amd64.dylib`.
+If one only wishes to use the C/C++ library, then type `OS=darwin SO=dylib make -C src libgdalwarp_bindings-amd64.dylib` or, on Apple Silicon, `OS=darwin SO=dylib ARCH=arm64 make -C src libgdalwarp_bindings-arm64.dylib`.
+The default `LDFLAGS` target GNU ld, so on a Macintosh override them, e.g. `LDFLAGS="$(pkg-config gdal --libs) -lc++ -lpthread"`.
+Both MacOS binaries are cross-built from a Linux Docker container with [osxcross](https://github.com/tpoechtrager/osxcross) (see [`Docker/Dockerfile.crossbuild`](Docker/Dockerfile.crossbuild)).
 
 ### Windows ###
 

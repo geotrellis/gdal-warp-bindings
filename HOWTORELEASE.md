@@ -8,7 +8,7 @@ Follow these steps:
 - [ ] Wait for CI to publish release to OSS SonaType
 - [ ] Login to OSS Sonatype https://oss.sonatype.org with credentials in password manager
 - [ ] Go to https://oss.sonatype.org/#stagingRepositories and filter by package `gdal-warp-bindings`
-- [ ] Verify that the JAR package contains the bundled shared libs
+- [ ] Verify that the JAR package contains the bundled shared libs (`libgdalwarp_bindings-{amd64,arm64}.so`, `libgdalwarp_bindings-{amd64,arm64}.dylib`, `gdalwarp_bindings-amd64.dll`)
 - [ ] Select staging repo and press `Close` button on the top of the table with repos
 - [ ] Wait for close process to complete
 - [ ] Select staging repo again and press Release button. It will be immediately published into sonatype releases repo and synced with maven central ~ in 10 minutes
