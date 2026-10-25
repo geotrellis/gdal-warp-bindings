@@ -1,14 +1,15 @@
 # docker buildx create --name multi-platform-builder
 # docker buildx use multi-platform-builder
 # 
-# docker build -f Dockerfile.environment-amd64 -t daunnc/gdal-warp-bindings-environment:${GDAL_VERSION}-amd64 .
-# docker buildx build -f Dockerfile.environment-amd64 --platform linux/amd64 --push -t daunnc/gdal-warp-bindings-environment:${GDAL_VERSION}-amd64 .
+# docker build -f Dockerfile.environment-amd64 -t daunnc/gdal-warp-bindings-environment:${GDAL_VERSION}-1-amd64 .
+# docker buildx build -f Dockerfile.environment-amd64 --platform linux/amd64 --push -t daunnc/gdal-warp-bindings-environment:${GDAL_VERSION}-1-amd64 .
 
-FROM quay.io/geotrellis/gdal-warp-bindings-crossbuild:amd64-2
+FROM daunnc/gdal-warp-bindings-crossbuild:amd64-3
 LABEL maintainer="Azavea <info@azavea.com>"
 
 ARG GDAL_VERSION=3.13.1
 ARG GDAL_MACOS=libgdal-core-3.13.1-h2e1b34b_1.conda
+ARG GDAL_MACOS_ARM64=libgdal-core-3.13.1-hcee3826_1.conda
 ARG GDAL_WINDOWS=release-1944-x64-gdal-3-12-1-mapserver-8-6-0-libs.zip
 ARG PROJ_VERSION=9.8.1
 ARG LIBTIFF_VERSION=4.1.0
@@ -58,6 +59,10 @@ RUN mkdir -p /macintosh && \
     mkdir -p gdal/${GDAL_VERSION} && \
     cph extract ${GDAL_MACOS} --dest gdal/${GDAL_VERSION} && \
     rm -f ${GDAL_MACOS} && \
+    wget "https://anaconda.org/conda-forge/libgdal-core/${GDAL_VERSION}/download/osx-arm64/${GDAL_MACOS_ARM64}" && \
+    mkdir -p gdal-arm64/${GDAL_VERSION} && \
+    cph extract ${GDAL_MACOS_ARM64} --dest gdal-arm64/${GDAL_VERSION} && \
+    rm -f ${GDAL_MACOS_ARM64} && \
     rm -r /root/miniconda3
 
 # Windows

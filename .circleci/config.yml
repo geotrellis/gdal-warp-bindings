@@ -2,10 +2,10 @@ version: 2.1
 
 parameters:
   # Image tag (<< docker-build-version >>-amd64) pulled from the executor registry; built by `make gdal-3-13-1`.
-  # To target another line, set both params: 3.11.5 (make gdal-3-11-5) or 3.12.4 (make gdal-3-12-4).
+  # The -1 revision is built on crossbuild:amd64-3 (macOS SDK 11.3, x86_64 + arm64, macOS 11.0 minimum).
   docker-build-version:
     type: string
-    default: "3.13.1"
+    default: "3.13.1-1"
   gdal-version:
     type: string
     default: "3.13.1"
@@ -86,20 +86,20 @@ jobs:
     resource_class: large
     environment:
       OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
-      CROSS_TRIPLE: x86_64-apple-darwin14
+      CROSS_TRIPLE: x86_64-apple-darwin20.4
       OS: darwin
       SO: dylib
       CC: cc
       CXX: c++
-      CFLAGS: "-Wall -Werror -Og -ggdb3"
+      CFLAGS: "-Wall -Werror -Og -ggdb3 -mmacosx-version-min=11.0"
       JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
       GDALCFLAGS: "-I/macintosh/gdal/<< pipeline.parameters.gdal-version >>/include"
-      CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX10.10.sdk/usr/include/c++/v1"
+      CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX11.3.sdk/usr/include/c++/v1"
       BOOST_ROOT: "/usr/local/include/boost_1_69_0"
-      LDFLAGS: "-mmacosx-version-min=10.9 -L/macintosh/gdal/<< pipeline.parameters.gdal-version >>/lib -lgdal -lstdc++ -lpthread -Wl,-rpath,/usr/local/lib"
+      LDFLAGS: "-mmacosx-version-min=11.0 -L/macintosh/gdal/<< pipeline.parameters.gdal-version >>/lib -lgdal -lc++ -lpthread -Wl,-rpath,/usr/local/lib -Wl,-rpath,/opt/homebrew/lib"
       LD_LIBRARY_PATH_ORIGIN: ""
-      CROSS_ROOT: /usr/x86_64-apple-darwin14
-      PATH: /usr/x86_64-apple-darwin14/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      CROSS_ROOT: /usr/x86_64-apple-darwin20.4
+      PATH: /usr/x86_64-apple-darwin20.4/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PATH_ORIGIN: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - attach_workspace:
@@ -111,10 +111,50 @@ jobs:
             touch /workdir/src/main/java/com/azavea/gdal/GDALWarp.class
             cp -f /tmp/workdir/*.h /workdir/src/
             make -j4 -C src libgdalwarp_bindings-amd64.dylib
+            /usr/osxcross/bin/x86_64-apple-darwin20.4-otool -l src/libgdalwarp_bindings-amd64.dylib | grep -A4 -E "LC_BUILD_VERSION|LC_RPATH"
+            /usr/osxcross/bin/x86_64-apple-darwin20.4-otool -L src/libgdalwarp_bindings-amd64.dylib
       - persist_to_workspace:
           root: src
           paths:
             - libgdalwarp_bindings-amd64.dylib
+
+  build-macos-arm64:
+    executor: gdal-build-executor-amd64
+    resource_class: large
+    environment:
+      ARCH: arm64
+      OSXCROSS_NO_INCLUDE_PATH_WARNINGS: 1
+      CROSS_TRIPLE: arm64-apple-darwin20.4
+      OS: darwin
+      SO: dylib
+      CC: cc
+      CXX: c++
+      CFLAGS: "-Wall -Werror -Og -ggdb3 -mmacosx-version-min=11.0"
+      JAVA_HOME: "/macintosh/jdk8u202-b08/Contents/Home"
+      GDALCFLAGS: "-I/macintosh/gdal-arm64/<< pipeline.parameters.gdal-version >>/include"
+      CXXFLAGS: "-I/usr/osxcross/SDK/MacOSX11.3.sdk/usr/include/c++/v1"
+      BOOST_ROOT: "/usr/local/include/boost_1_69_0"
+      LDFLAGS: "-mmacosx-version-min=11.0 -L/macintosh/gdal-arm64/<< pipeline.parameters.gdal-version >>/lib -lgdal -lc++ -lpthread -Wl,-rpath,/usr/local/lib -Wl,-rpath,/opt/homebrew/lib"
+      LD_LIBRARY_PATH_ORIGIN: ""
+      CROSS_ROOT: /usr/arm64-apple-darwin20.4
+      PATH: /usr/arm64-apple-darwin20.4/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH_ORIGIN: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    steps:
+      - attach_workspace:
+          at: /tmp/workdir/
+      - checkout
+      - run:
+          name: Build MacOS ARM64 binaries
+          command: |
+            touch /workdir/src/main/java/com/azavea/gdal/GDALWarp.class
+            cp -f /tmp/workdir/*.h /workdir/src/
+            make -j4 -C src libgdalwarp_bindings-arm64.dylib
+            /usr/osxcross/bin/arm64-apple-darwin20.4-otool -l src/libgdalwarp_bindings-arm64.dylib | grep -A4 -E "LC_BUILD_VERSION|LC_RPATH"
+            /usr/osxcross/bin/arm64-apple-darwin20.4-otool -L src/libgdalwarp_bindings-arm64.dylib
+      - persist_to_workspace:
+          root: src
+          paths:
+            - libgdalwarp_bindings-arm64.dylib
 
   build-windows-amd64:
     executor: gdal-build-executor-amd64
@@ -194,6 +234,14 @@ workflows:
               only: /.*/
             tags:
               only: /^v.*/
+      - build-macos-arm64:
+          requires:
+            - build-linux-amd64
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /^v.*/
       - build-windows-amd64:
           requires:
             - build-linux-amd64
@@ -207,6 +255,7 @@ workflows:
             - build-linux-amd64
             - build-linux-arm64
             - build-macos-amd64
+            - build-macos-arm64
             - build-windows-amd64
           filters:
             branches:
