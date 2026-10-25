@@ -92,7 +92,7 @@ class GDALWarpThreadTest extends Thread {
                     src_window, dst_window, 1, /* */
                     GDALWarp.GDT_Byte, data);
             boolean success = return_code > 0;
-            int h = data.hashCode();
+            int h = Arrays.hashCode(data);
             assert (success == true);
             assert (h == EXPECTED[i + j * x]);
         }
@@ -376,7 +376,7 @@ class GDALWarpThreadTest extends Thread {
                             GDALWarp.GDT_Byte, data);
                     boolean success = (return_code > 0);
                     assert (success == true);
-                    EXPECTED[i + j * x] = data.hashCode();
+                    EXPECTED[i + j * x] = Arrays.hashCode(data);
                 }
             }
             long end = System.currentTimeMillis();
