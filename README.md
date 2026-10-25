@@ -19,6 +19,7 @@ These bindings require a GDAL installation on your machine with the appropriate 
 
 | GDAL Warp Bindings | OS                     |  GDAL  | Shared Library {so,dylib,dll} |
 |--------------------|------------------------|--------|-------------------------------|
+|             3.13.1 | Linux, MacOS, Windows† | 3.13.x | libgdal.so.39.3.13.1          |
 |             3.13.0 | Linux, MacOS, Windows† | 3.13.x | libgdal.so.39.3.13.1          |
 |             3.12.0 | Linux, MacOS, Windows  | 3.12.x | libgdal.so.38.3.12.4          |
 |             3.11.0 | Linux, MacOS, Windows  | 3.11.x | libgdal.so.37.3.11.5          |
@@ -39,7 +40,7 @@ _† Windows is one GDAL version behind._
 
 For MacOS users, you must also ensure that the appropriate shared libary file (dylib) above is symlinked to `/usr/local/lib` from your GDAL installation with matching version.
 On Apple Silicon (ARM64), `/opt/homebrew/lib` (the Homebrew default prefix) is searched as well.
-Starting with the next release after 3.13.0, the MacOS binaries are built for both AMD64 and ARM64 (Apple Silicon) and require macOS 11.0 (Big Sur) or newer.
+Starting with 3.13.1, the MacOS binaries are built for both AMD64 and ARM64 (Apple Silicon) and require macOS 11.0 (Big Sur) or newer.
 
 For best results, we recommend explicitly installing the appropriate GDAL version via Conda and symlinking the appropriate lib. Here's an example for GDAL Warp Bindings 1.1.0 using GDAL 3.1.2:
 
