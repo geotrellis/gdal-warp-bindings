@@ -126,26 +126,22 @@ public class GDALWarp {
                 // Try to load ELF shared object from JAR file ...
                 if (os.contains("linux")) {
                         // AMD64
-                        if (arch.contains("amd64"))
-                        {
+                        if (arch.contains("amd64")) {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_ELF);
                         }
                         // ARM64
-                        else if (arch.contains("aarch64"))
-                        {
+                        else if (arch.contains("aarch64")) {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ARM64_ELF);
                         }
                 }
                 // Try to Load Mach-O shared object from JAR file ...
                 else if (os.contains("mac")) {
                         // ARM64
-                        if (arch.contains("aarch64"))
-                        {
+                        if (arch.contains("aarch64") || arch.contains("arm64")) {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_ARM64_MACHO);
                         }
                         // AMD64
-                        else
-                        {
+                        else {
                                 NativeUtils.loadLibraryFromJar(GDALWARP_BINDINGS_RESOURCE_AMD64_MACHO);
                         }
                 }
