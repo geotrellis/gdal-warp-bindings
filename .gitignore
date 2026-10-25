@@ -60,6 +60,7 @@ README.html
 # VSCode files
 .vscode
 .history
+.metals
 
 # Test data files #
 
